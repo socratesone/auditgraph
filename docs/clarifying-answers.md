@@ -171,3 +171,14 @@ This document captures the assumed answers to the clarifying questions and ties 
 
 - The CLI scaffold establishes the command surface (init/version/ingest/extract/link/index/query/rebuild) and provides a workspace initializer.
 - The sample `config/pkg.yaml` encodes the assumed defaults for normalization, extraction, linking, and search.
+
+## J) Pipeline Stages
+
+1) **Atomic write strategy**
+   - **Answer:** Write artifacts to temp paths, atomically rename/move into place, then write the manifest last.
+
+2) **Dependency validation**
+   - **Answer:** Require upstream manifests for the same run_id before stage execution.
+
+3) **Recovery rule**
+   - **Answer:** If the manifest is missing, discard temp artifacts and rerun the stage.
