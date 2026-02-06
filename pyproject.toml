@@ -1,0 +1,18 @@
+[project]
+name = "auditgraph"
+version = "0.1.0"
+description = "Local-first deterministic personal knowledge graph tooling"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Auditgraph Contributors" }]
+
+[project.scripts]
+auditgraph = "auditgraph.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "."}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["auditgraph"]

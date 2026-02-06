@@ -1,0 +1,393 @@
+diff --git a/README.md b/README.md
+index 69aa05a5ecd7842a4af6c869fa638c2e4c5145db..521a4e3af3bbbc48d9828d801c8372f640c82178 100644
+--- a/README.md
++++ b/README.md
+@@ -1 +1,34 @@
+ # auditgraph
++
++Auditgraph is a local-first, deterministic personal knowledge graph (PKG) toolkit for engineers.
++
++## Current Status
++
++This repository contains an initial CLI scaffold and workspace initializer. Core pipeline stages
++(ingest, extract, link, index, query, rebuild) are present as placeholders to be implemented
++in upcoming milestones.
++
++## Quickstart
++
++```bash
++python -m venv .venv
++source .venv/bin/activate
++pip install -e .
++
++auditgraph init --root .
++```
++
++## CLI
++
++```bash
++auditgraph version
++
++auditgraph init --root .
++
++auditgraph ingest
++```
++
++## Project Assumptions
++
++See `docs/clarifying-answers.md` for the current answers to the project discovery questions and
++implementation assumptions.
+diff --git a/auditgraph/__init__.py b/auditgraph/__init__.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..a05eb9abb93a3c0a4e3f1ef478fe80d1793cee90
+--- /dev/null
++++ b/auditgraph/__init__.py
+@@ -0,0 +1,3 @@
++__all__ = ["__version__"]
++
++__version__ = "0.1.0"
+diff --git a/auditgraph/cli.py b/auditgraph/cli.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..9d75906a9cdf5b14cdd3fa4eae39b56a637aeb2f
+--- /dev/null
++++ b/auditgraph/cli.py
+@@ -0,0 +1,64 @@
++from __future__ import annotations
++
++import argparse
++import json
++from pathlib import Path
++
++from auditgraph import __version__
++from auditgraph.scaffold import initialize_workspace
++
++
++def _build_parser() -> argparse.ArgumentParser:
++    parser = argparse.ArgumentParser(prog="auditgraph", description="Auditgraph CLI")
++    subparsers = parser.add_subparsers(dest="command", required=True)
++
++    subparsers.add_parser("version", help="Show version")
++
++    init_parser = subparsers.add_parser("init", help="Initialize a workspace")
++    init_parser.add_argument("--root", default=".", help="Workspace root (default: .)")
++    init_parser.add_argument(
++        "--config-source",
++        default=str(Path(__file__).resolve().parent.parent / "config" / "pkg.yaml"),
++        help="Path to sample config file",
++    )
++
++    for name in ("ingest", "extract", "link", "index", "query", "rebuild"):
++        subparsers.add_parser(name, help=f"Run {name} stage (placeholder)")
++
++    return parser
++
++
++def _print_placeholder(stage: str) -> None:
++    payload = {
++        "stage": stage,
++        "status": "not_implemented",
++        "message": "This command is a scaffold placeholder. Implement the pipeline stage next.",
++    }
++    print(json.dumps(payload, indent=2))
++
++
++def main() -> None:
++    parser = _build_parser()
++    args = parser.parse_args()
++
++    if args.command == "version":
++        print(__version__)
++        return
++
++    if args.command == "init":
++        root = Path(args.root).resolve()
++        config_source = Path(args.config_source).resolve()
++        created = initialize_workspace(root, config_source)
++        payload = {
++            "root": str(root),
++            "created": created,
++            "config_source": str(config_source),
++        }
++        print(json.dumps(payload, indent=2))
++        return
++
++    _print_placeholder(args.command)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/auditgraph/scaffold.py b/auditgraph/scaffold.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..359c437c5c5ea5407e353f95b960c7953d931381
+--- /dev/null
++++ b/auditgraph/scaffold.py
+@@ -0,0 +1,29 @@
++from __future__ import annotations
++
++from pathlib import Path
++
++DEFAULT_DIRECTORIES = (
++    ".pkg",
++    "notes",
++    "repos",
++    "inbox",
++    "exports/reports",
++    "config/extractors",
++    "config/link_rules",
++    "config/profiles",
++)
++
++
++def initialize_workspace(root: Path, config_source: Path) -> list[str]:
++    created: list[str] = []
++    for relative in DEFAULT_DIRECTORIES:
++        target = root / relative
++        if not target.exists():
++            target.mkdir(parents=True, exist_ok=True)
++            created.append(str(target))
++
++    config_target = root / "config" / "pkg.yaml"
++    if not config_target.exists() and config_source.exists():
++        config_target.write_text(config_source.read_text(encoding="utf-8"), encoding="utf-8")
++        created.append(str(config_target))
++    return created
+diff --git a/config/pkg.yaml b/config/pkg.yaml
+new file mode 100644
+index 0000000000000000000000000000000000000000..070a91e387c915c2c122fec5ef86914fec81daf4
+--- /dev/null
++++ b/config/pkg.yaml
+@@ -0,0 +1,31 @@
++pkg_root: "."
++profiles:
++  default:
++    include_paths:
++      - "notes"
++      - "repos"
++    exclude_globs:
++      - "**/node_modules/**"
++      - "**/.git/**"
++    normalization:
++      unicode: "NFC"
++      line_endings: "LF"
++      path_style: "posix"
++    extraction:
++      rule_packs:
++        - "config/extractors/core.yaml"
++      llm:
++        enabled: false
++    linking:
++      rule_packs:
++        - "config/link_rules/core.yaml"
++    search:
++      keyword:
++        enabled: true
++      semantic:
++        enabled: false
++      ranking:
++        w_kw: 1.0
++        w_sem: 0.3
++        w_graph: 0.1
++        score_rounding: 0.000001
+diff --git a/docs/clarifying-answers.md b/docs/clarifying-answers.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..7e9ee529b1edc8717654c81ba08d864da6cb828d
+--- /dev/null
++++ b/docs/clarifying-answers.md
+@@ -0,0 +1,173 @@
++# Clarifying Answers and Implementation Assumptions
++
++This document captures the assumed answers to the clarifying questions and ties them to the current implementation plan. These answers can be revised once stakeholders confirm priorities.
++
++## A) Users and Workflows
++
++1) **Primary user profile**
++   - **Answer:** A small engineering team (2–8 people) with one primary maintainer.
++   - **Why:** Balances solo workflows with light collaboration, so deterministic outputs and repeatable runs matter.
++
++2) **Knowledge domains**
++   - **Answer:** Primarily software-engineering concepts with a small amount of project planning and research notes.
++   - **Why:** Drives strong support for code symbols, ADRs, and reproducible provenance.
++
++3) **Top 5 workflows (ranked)**
++   - **Answer:**
++     1. Codebase comprehension
++     2. ADRs
++     3. Debugging logs
++     4. Project planning
++     5. Quick capture notes
++
++4) **Query/answer expectations**
++   - **Answer:** Question answering with citations and inspectable result explanations.
++   - **Why:** Trust and auditability are central; raw graph exploration is secondary.
++
++5) **Ingestion volume and scale**
++   - **Answer:** Daily 10–50 files, 2–10 MB, and 2–10k LOC changed; weekly up to 500 files.
++   - **Why:** Suggests incremental ingestion with hashes and stable manifests.
++
++6) **Latency tolerance by workflow**
++   - **Answer:**
++     - Search/query: <200 ms p50, <1s p95
++     - Ingest/extract: background batch acceptable up to 10–30s for 100 files
++     - UI navigation: <1s
++
++7) **Maintenance budget**
++   - **Answer:** 5 minutes/day for review queue triage.
++   - **Why:** Allows conservative defaults but enables optional proposals.
++
++## B) Data Sources and Formats
++
++1) **Day-1 sources (must-have)**
++   - **Answer:** Markdown, plain text, Git repos.
++
++2) **PDF reality**
++   - **Answer:** Born-digital text only; OCR deferred.
++
++3) **Code languages**
++   - **Answer:** Python, TypeScript/JavaScript, Go (start with heuristics; add AST later).
++
++4) **Structured sources**
++   - **Answer:** JSON/YAML manifests and OpenAPI specs (opt-in).
++
++5) **Capture channels**
++   - **Answer:** Manual CLI import + Git-based scanning; watcher later.
++
++6) **Normalization rules**
++   - **Answer:** Canonical frontmatter schema preferred, with best-effort fallback.
++
++## C) Determinism and Trust
++
++1) **Determinism boundaries**
++   - **Answer:** Extraction outputs, link creation, ranking order, and QA responses must be deterministic.
++
++2) **Failure modes**
++   - **Answer:** Record "unknown" and queue for review; skip only on parse failure with log entry.
++
++3) **Audit artifacts**
++   - **Answer:** Per-artifact hashes, per-run manifests, provenance edges, pipeline version pin, and prompt logs for optional LLM.
++
++4) **Config immutability**
++   - **Answer:** Immutable profile snapshots per run; config can evolve but runs reference a snapshot hash.
++
++5) **Ranking determinism**
++   - **Answer:** Stable order required across OS/hardware with explicit tie-break keys.
++
++## D) Knowledge Model
++
++1) **Definitions**
++   - **Entity:** A canonical node (symbol, file, person, project, decision, error signature).
++   - **Fact/Claim:** Atomic assertion with provenance.
++   - **Note:** User-authored source artifact.
++   - **Task:** Action item extracted or written in notes.
++   - **Decision:** ADR-style resolved choice with rationale.
++   - **Event:** Time-scoped occurrence (incident, deploy, meeting).
++
++2) **Contradictions**
++   - **Answer:** Explicit support for contradictory claims with a conflict flag.
++
++3) **Temporal facts**
++   - **Answer:** Required; time windows supported for decisions and events.
++
++4) **Confidence**
++   - **Answer:** Rule-based confidence only in MVP.
++
++5) **Ontologies / typing**
++   - **Answer:** Single shared ontology with namespaces per domain.
++
++## E) Search and Retrieval
++
++1) **Query types**
++   - **Answer:** Keyword, hybrid (keyword + semantic), graph traversal, and "show sources for claim".
++
++2) **Dataset scale**
++   - **Answer:** 10k notes, 50 repos, 1M code symbols within 12 months.
++
++3) **Local embeddings constraints**
++   - **Answer:** CPU-only local embeddings, optional, <=1.5 GB model size.
++
++4) **Offline-first UX**
++   - **Answer:** Fully offline core; semantic search optional offline.
++
++## F) Linking and Navigation
++
++1) **Link generation policy**
++   - **Answer:** Deterministic rules only for authoritative links; optional suggestions flagged as non-authoritative.
++
++2) **Link types**
++   - **Answer:** mentions, defines, implements, depends_on, decided_in, relates_to, cites.
++
++3) **Explainability**
++   - **Answer:** Always require rule id + evidence snippet; include similarity score when applicable.
++
++4) **Backlinks and neighborhoods**
++   - **Answer:** Backlinks computed on demand in MVP; stored when performance demands it.
++
++## G) Automation and Integrations
++
++1) **Automations**
++   - **Answer:** Daily digest and changed-since-yesterday reports.
++
++2) **Interface preference**
++   - **Answer:** CLI-first, optional local web UI later.
++
++3) **Editor integration depth**
++   - **Answer:** Open results and insert links (phase 2+).
++
++4) **Extensibility model**
++   - **Answer:** Script-based plugins (Python) with deterministic outputs.
++
++## H) Privacy, Security, Compliance
++
++1) **Encryption at rest**
++   - **Answer:** Not required for source store; optional for exports.
++
++2) **Secrets handling**
++   - **Answer:** Automatic detection + redaction in derived artifacts and exports.
++
++3) **Multi-profile separation**
++   - **Answer:** Required; separate profile roots with no cross-profile queries.
++
++4) **Export policy**
++   - **Answer:** Support redaction profiles for clean-room sharing.
++
++## I) Distribution and Maintainability
++
++1) **Target OS**
++   - **Answer:** Linux + macOS day 1.
++
++2) **Packaging**
++   - **Answer:** Python package with a console script.
++
++3) **Upgrade strategy**
++   - **Answer:** Derived artifacts can be rebuilt; keep old outputs in versioned run folders.
++
++4) **Performance budgets**
++   - **Answer:** Index footprint <=2x source size.
++
++## Implementation Notes
++
++- The CLI scaffold establishes the command surface (init/version/ingest/extract/link/index/query/rebuild) and provides a workspace initializer.
++- The sample `config/pkg.yaml` encodes the assumed defaults for normalization, extraction, linking, and search.
+diff --git a/pyproject.toml b/pyproject.toml
+new file mode 100644
+index 0000000000000000000000000000000000000000..de0a6e17576748441b873e08aa8bf66607aa44b7
+--- /dev/null
++++ b/pyproject.toml
+@@ -0,0 +1,18 @@
++[project]
++name = "auditgraph"
++version = "0.1.0"
++description = "Local-first deterministic personal knowledge graph tooling"
++readme = "README.md"
++requires-python = ">=3.10"
++license = { text = "MIT" }
++authors = [{ name = "Auditgraph Contributors" }]
++
++[project.scripts]
++auditgraph = "auditgraph.cli:main"
++
++[tool.setuptools]
++package-dir = {"" = "."}
++
++[tool.setuptools.packages.find]
++where = ["."]
++include = ["auditgraph"]
