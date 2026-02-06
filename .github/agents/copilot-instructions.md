@@ -28,8 +28,8 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.10+: Follow standard conventions
 
 ## Recent Changes
+- 007-linking-explainability: Added Python 3.10+ + None required (stdlib-first)
 - 006-storage-layout-artifacts: Added Python 3.10+ + None required (stdlib-first)
-- 005-pipeline-stages: Added Python 3.10+ + None required (stdlib-first)
 - 005-pipeline-stages: Added Python 3.10+ + None required (stdlib-first)
 
 
