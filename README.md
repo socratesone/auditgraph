@@ -13,7 +13,8 @@ Auditgraph is a local-first, deterministic personal knowledge graph (PKG) toolki
 ## Current Status
 
 - CLI scaffold and workspace initializer are implemented.
-- Core pipeline commands (ingest, extract, link, index, query, rebuild) are present as placeholders.
+- Implemented: ingest, query, node, neighbors, diff, export, jobs (basic functionality).
+- Placeholders remain: extract, link, index (full pipeline still in progress).
 - Specification is split into focused documents under docs/spec for resolving remaining decisions.
 
 ## Quickstart
@@ -33,7 +34,15 @@ auditgraph version
 
 auditgraph init --root .
 
-auditgraph ingest
+auditgraph ingest --root . --config config/pkg.yaml
+
+auditgraph query --q "symbol" --root . --config config/pkg.yaml
+auditgraph node <entity_id> --root . --config config/pkg.yaml
+auditgraph neighbors <entity_id> --depth 2 --root . --config config/pkg.yaml
+auditgraph diff --run-a <run_id> --run-b <run_id> --root . --config config/pkg.yaml
+auditgraph export --format json --root . --config config/pkg.yaml
+auditgraph jobs list
+auditgraph jobs run daily_digest --root . --config config/pkg.yaml
 ```
 
 ## Project Assumptions

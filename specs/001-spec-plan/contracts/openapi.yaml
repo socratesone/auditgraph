@@ -1,0 +1,190 @@
+openapi: 3.0.3
+info:
+  title: Auditgraph Local API (Optional)
+  version: 0.1.0
+  description: Optional local HTTP API that mirrors CLI query behaviors for a local UI.
+servers:
+  - url: http://localhost:8080
+paths:
+  /query:
+    post:
+      summary: Run a hybrid search query
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryRequest'
+      responses:
+        '200':
+          description: Query results with explanations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryResponse'
+  /nodes/{id}:
+    get:
+      summary: Fetch a node by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Node details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Node'
+  /neighbors/{id}:
+    get:
+      summary: Get 1-2 hop neighbors for a node
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: depth
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+            maximum: 2
+      responses:
+        '200':
+          description: Neighbor results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NeighborsResponse'
+  /why-connected:
+    post:
+      summary: Explain why two nodes are connected
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WhyConnectedRequest'
+      responses:
+        '200':
+          description: Explanation of connection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WhyConnectedResponse'
+components:
+  schemas:
+    QueryRequest:
+      type: object
+      properties:
+        q:
+          type: string
+        limit:
+          type: integer
+          default: 20
+      required: [q]
+    QueryResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/QueryResult'
+    QueryResult:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        score:
+          type: number
+        explanation:
+          $ref: '#/components/schemas/Explanation'
+    Explanation:
+      type: object
+      properties:
+        matched_terms:
+          type: array
+          items:
+            type: string
+        bm25_score:
+          type: number
+        semantic_score:
+          type: number
+        graph_boost:
+          type: number
+        tie_break:
+          type: array
+          items:
+            type: string
+    Node:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        name:
+          type: string
+        refs:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceRef'
+    SourceRef:
+      type: object
+      properties:
+        source_path:
+          type: string
+        source_hash:
+          type: string
+        range:
+          type: object
+          properties:
+            start_line:
+              type: integer
+            end_line:
+              type: integer
+    NeighborsResponse:
+      type: object
+      properties:
+        center_id:
+          type: string
+        neighbors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Link'
+    Link:
+      type: object
+      properties:
+        id:
+          type: string
+        from_id:
+          type: string
+        to_id:
+          type: string
+        type:
+          type: string
+        explanation:
+          $ref: '#/components/schemas/Explanation'
+    WhyConnectedRequest:
+      type: object
+      properties:
+        from_id:
+          type: string
+        to_id:
+          type: string
+      required: [from_id, to_id]
+    WhyConnectedResponse:
+      type: object
+      properties:
+        path:
+          type: array
+          items:
+            $ref: '#/components/schemas/Link'

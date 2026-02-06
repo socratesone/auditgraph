@@ -25,3 +25,11 @@ This document set decomposes the full specification into focused sections that r
 - Each section includes a "Decisions Required" list derived from unresolved items in [SPEC.md](SPEC.md).
 - Fill in "Decisions" with final answers and move items to "Resolved" when complete.
 - Once all sections are resolved, the set forms the complete specification.
+
+## Execution artifacts
+
+- Plan: [specs/001-spec-plan/plan.md](specs/001-spec-plan/plan.md)
+- Tasks: [specs/001-spec-plan/tasks.md](specs/001-spec-plan/tasks.md)
+- Research: [specs/001-spec-plan/research.md](specs/001-spec-plan/research.md)
+- Data model: [specs/001-spec-plan/data-model.md](specs/001-spec-plan/data-model.md)
+- Quickstart: [specs/001-spec-plan/quickstart.md](specs/001-spec-plan/quickstart.md)
