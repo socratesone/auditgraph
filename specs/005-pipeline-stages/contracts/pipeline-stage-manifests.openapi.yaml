@@ -1,0 +1,151 @@
+openapi: 3.0.3
+info:
+  title: Auditgraph Pipeline Stage Manifests
+  version: 0.1.0
+  description: API contract for reading pipeline stage manifests and contracts.
+servers:
+  - url: http://localhost:8080
+paths:
+  /stages:
+    get:
+      summary: List stage contracts
+      responses:
+        "200":
+          description: Stage contracts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stages:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/StageContract"
+  /runs/{run_id}/manifests:
+    get:
+      summary: List manifests for a run
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Manifests for the run
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  manifests:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/StageManifest"
+  /runs/{run_id}/manifests/{stage}:
+    get:
+      summary: Get a stage manifest
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: stage
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Stage manifest
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StageManifest"
+components:
+  schemas:
+    StageContract:
+      type: object
+      required:
+        - stage_name
+        - required_inputs
+        - produced_outputs
+        - manifest_path
+        - entry_criteria
+        - exit_criteria
+      properties:
+        stage_name:
+          type: string
+        description:
+          type: string
+        required_inputs:
+          type: array
+          items:
+            type: string
+        produced_outputs:
+          type: array
+          items:
+            type: string
+        manifest_path:
+          type: string
+        entry_criteria:
+          type: string
+        exit_criteria:
+          type: string
+    StageManifest:
+      type: object
+      required:
+        - version
+        - stage
+        - run_id
+        - inputs_hash
+        - outputs_hash
+        - config_hash
+        - status
+        - started_at
+        - finished_at
+        - artifacts
+      properties:
+        version:
+          type: string
+        stage:
+          type: string
+        run_id:
+          type: string
+        inputs_hash:
+          type: string
+        outputs_hash:
+          type: string
+        config_hash:
+          type: string
+        status:
+          type: string
+          enum: [ok, failed, partial]
+        started_at:
+          type: string
+        finished_at:
+          type: string
+        artifacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Artifact"
+    Artifact:
+      type: object
+      required:
+        - path
+        - type
+        - hash
+        - size
+        - created_at
+      properties:
+        path:
+          type: string
+        type:
+          type: string
+        hash:
+          type: string
+        size:
+          type: integer
+        created_at:
+          type: string
