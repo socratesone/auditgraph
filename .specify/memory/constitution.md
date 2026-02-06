@@ -41,6 +41,7 @@ Rules:
 - Every bug requires a regression test.
 - Unit tests are mandatory for all domain logic.
 - Test names must describe behavior, not mechanics.
+- All Tests must pass after each specification is implmented.
 
 ### IV. Refactoring as a First-Class Activity
 Refactoring is continuous, not optional.
