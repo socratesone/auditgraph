@@ -1,6 +1,6 @@
 # Auditgraph
 
-![auditgraph](docs/assets/auditgraph-hero.png)
+![auditgraph](docs/img/auditgraph-hero.png)
 
 Auditgraph is a local-first, deterministic personal knowledge graph (PKG) toolkit for engineers. It ingests plain-text notes and code, deterministically extracts entities and claims, creates explainable typed links, builds hybrid search indexes, and provides CLI-first navigation with optional local UI. The source of truth remains plain-text; derived artifacts are reproducible, diffable, and fully audited.
 
