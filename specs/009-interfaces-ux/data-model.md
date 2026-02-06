@@ -7,7 +7,7 @@
 - Relationships: emits OutputPayload
 
 ### OutputPayload
-- Fields: status, data, errors, warnings
+- Fields: status, message, detail
 - Relationships: produced by Command
 
 ### InterfacePolicy
@@ -19,8 +19,11 @@
 - Relationships: defines editor features
 
 ## Validation Rules
-- JSON outputs include status and data fields.
-- Errors are reported with non-zero exit codes and structured payloads in JSON mode.
+- All command outputs are JSON objects.
+- Error payloads include `status` and `message`.
+- Success payloads follow per-command minimum fields from spec.md.
+- Errors return non-zero exit codes.
+- Editor integration `phase` must be `phase2+` or later.
 
 ## State Transitions
 - Command outputs are immutable once returned.

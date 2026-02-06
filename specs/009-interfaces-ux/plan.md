@@ -7,7 +7,7 @@
 
 ## Summary
 
-Define a CLI-first interface, required command surface, output formats, and editor integration depth. The plan documents command inputs/outputs, JSON response schemas, and error handling expectations for predictable UX.
+Implement a CLI-first interface with required command surface, output formats, and editor integration depth. The plan delivers JSON response schemas, error handling, and deterministic ordering guarantees in code and tests.
 
 ## Technical Context
 
@@ -25,9 +25,9 @@ Define a CLI-first interface, required command surface, output formats, and edit
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-- DRY/SOLID: PASS (documentation-only changes, no new code paths).
-- TDD: PASS (no production code changes; future implementation must follow TDD).
-- Determinism and simplicity: PASS (spec emphasizes deterministic CLI outputs).
+- DRY/SOLID: PASS (implementation will centralize output schema helpers).
+- TDD: PASS (tests written first for CLI output and error schema).
+- Determinism and simplicity: PASS (deterministic ordering enforced in outputs).
 
 ## Project Structure
 
@@ -76,7 +76,7 @@ tests/
 
 ## Complexity Tracking
 
-No constitution violations required for this documentation-only feature.
+No constitution violations required; implementation is CLI-only and deterministic.
 
 ## Phase 0: Outline & Research
 
@@ -103,5 +103,5 @@ Key research questions resolved:
 ## Constitution Check (Post-Design)
 
 - DRY/SOLID: PASS
-- TDD: PASS (documentation only)
+- TDD: PASS
 - Determinism: PASS

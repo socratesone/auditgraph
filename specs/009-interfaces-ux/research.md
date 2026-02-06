@@ -14,9 +14,9 @@
 
 ## Decision 3: Output Formats
 
-- **Decision**: JSON for machine-readable outputs and human-readable summaries to stdout.
-- **Rationale**: Supports automation and interactive CLI usage.
-- **Alternatives considered**: JSON-only. Rejected due to poor usability.
+- **Decision**: JSON-only output to stdout for all commands in day 1.
+- **Rationale**: Ensures deterministic, machine-readable outputs for automation.
+- **Alternatives considered**: Mixed JSON + human-readable summaries. Rejected due to ambiguous parsing.
 
 ## Decision 4: Editor Integration Depth
 

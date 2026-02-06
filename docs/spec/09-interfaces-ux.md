@@ -1,40 +1,79 @@
-# Spec Blueprint: Interfaces and UX
+# Interfaces and UX
 
-## Intent (read first)
-This document defines what the actual specification must include. It is not the specification itself.
-The spec produced from this blueprint must be implementable in code and validated by tests.
+## Purpose
+Define the CLI command surface, output schemas, and error handling for day-1 usage.
 
-## Goal
-Produce a concrete, testable interface spec that defines CLI commands, output schemas,
-and UX behavior for day-1 usage.
+## Command Surface (Day 1)
 
-## Source material
-- [SPEC.md](SPEC.md) Interfaces
-- [SPEC.md](SPEC.md) Graph Navigation & Visualization
+All commands output JSON to stdout. Commands accept `--root` and `--config` where applicable.
 
-## Required decisions the spec must make
-- Interface scope (CLI-only vs CLI+TUI vs local UI) for day 1.
-- Required CLI commands and flags.
-- Output schemas for JSON and human-readable outputs.
-- Error handling and exit codes.
-- Editor integration scope (if any) for day 1.
+- `version`
+- `init`
+- `ingest`
+- `import`
+- `normalize`
+- `extract`
+- `link`
+- `index`
+- `rebuild`
+- `query`
+- `node`
+- `neighbors`
+- `diff`
+- `export`
+- `jobs list`
+- `jobs run`
+- `why-connected`
 
-## Required spec sections and outputs
-The spec MUST include the following, with concrete requirements and examples:
+## Output Schemas (Minimum)
 
-1) CLI command list with flags, inputs, and outputs.
-2) JSON output schemas for each command.
-3) Error codes and failure behaviors.
-4) UX expectations for deterministic output ordering.
-5) Test plan with at least:
-	- CLI command output structure
-	- error cases and exit codes
+Stage commands (`ingest`, `normalize`, `extract`, `link`, `index`, `rebuild`):
+- `stage`, `status`, `detail.manifest`
 
-## Definition of done for the spec
-- The spec defines command behavior that can be validated in tests.
-- The spec includes output schemas with required fields.
-- The spec includes acceptance criteria and tests that map to code changes.
+`version`:
+- `version`
 
-## Guardrails
-- Do not leave CLI commands described as placeholders.
-- Avoid ambiguous output reqSuirements; define exact fields.
+`query`:
+- `query`, `results[]`
+
+`node`:
+- `id`, `type`, `name`, `refs[]`
+
+`neighbors`:
+- `center_id`, `neighbors[]`
+
+`diff`:
+- `status`, `added[]`, `removed[]`, `changed[]`
+
+`export`:
+- `format`, `output`
+
+`jobs list`:
+- `jobs[]`
+
+`jobs run`:
+- `status`, `job`, `output`
+
+`why-connected`:
+- `path[]`
+
+## Error Handling
+
+- Errors MUST return JSON with `status` and `message` fields.
+- Error responses MUST return non-zero exit codes.
+
+## Determinism
+
+- Output ordering MUST be deterministic for lists.
+- Stable sorting is required for repeated queries and exports.
+
+## Editor Integration
+
+- Deferred to phase 2+.
+- Planned actions: open results, insert links.
+
+## Acceptance Checks
+
+- Each command returns valid JSON.
+- Stage commands return a manifest path on success.
+- Errors return structured payloads with `status` and `message`.

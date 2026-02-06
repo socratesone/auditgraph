@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 from auditgraph import __version__
@@ -103,6 +104,10 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _emit(payload: dict[str, object]) -> None:
+    print(json.dumps(payload, indent=2))
+
+
 def _print_placeholder(stage: str, args: argparse.Namespace) -> None:
     payload = {
         "stage": stage,
@@ -117,133 +122,137 @@ def main() -> None:
     parser = _build_parser()
     args = parser.parse_args()
     setup_logging(args.log_level)
-
-    if args.command == "version":
-        print(__version__)
-        return
-
-    if args.command == "init":
-        root = Path(args.root).resolve()
-        config_source = Path(args.config_source).resolve()
-        created = initialize_workspace(root, config_source)
-        payload = {
-            "root": str(root),
-            "created": created,
-            "config_source": str(config_source),
-        }
-        print(json.dumps(payload, indent=2))
-        return
-
-    if args.command == "ingest":
-        runner = PipelineRunner()
-        root = Path(args.root).resolve()
-        config = load_config(Path(args.config) if args.config else None)
-        result = runner.run_stage("ingest", root=root, config=config)
-        print(json.dumps({"stage": result.stage, "status": result.status, "detail": result.detail}, indent=2))
-        return
-
-    if args.command == "import":
-        runner = PipelineRunner()
-        root = Path(args.root).resolve()
-        config = load_config(Path(args.config) if args.config else None)
-        result = runner.run_import(root=root, config=config, targets=list(args.paths))
-        print(json.dumps({"stage": result.stage, "status": result.status, "detail": result.detail}, indent=2))
-        return
-
-    if args.command in {"normalize", "extract", "link", "index"}:
-        runner = PipelineRunner()
-        root = Path(args.root).resolve()
-        config = load_config(Path(args.config) if args.config else None)
-        result = runner.run_stage(args.command, root=root, config=config, run_id=args.run_id)
-        print(json.dumps({"stage": result.stage, "status": result.status, "detail": result.detail}, indent=2))
-        return
-
-    if args.command == "rebuild":
-        runner = PipelineRunner()
-        root = Path(args.root).resolve()
-        config = load_config(Path(args.config) if args.config else None)
-        result = runner.run_stage("rebuild", root=root, config=config)
-        print(json.dumps({"stage": result.stage, "status": result.status, "detail": result.detail}, indent=2))
-        return
-
-    if args.command == "query":
-        root = Path(args.root).resolve()
-        config = load_config(Path(args.config) if args.config else None)
-        pkg_root = profile_pkg_root(root, config)
-        profile = config.profile()
-        search_cfg = profile.get("search", {})
-        enable_semantic = bool(search_cfg.get("semantic", {}).get("enabled", False))
-        score_rounding = float(search_cfg.get("ranking", {}).get("score_rounding", 0.000001))
-        results = keyword_search(
-            pkg_root,
-            args.q,
-            enable_semantic=enable_semantic,
-            score_rounding=score_rounding,
-        )
-        print(json.dumps({"query": args.q, "results": results}, indent=2))
-        return
-
-    if args.command == "node":
-        root = Path(args.root).resolve()
-        config = load_config(Path(args.config) if args.config else None)
-        pkg_root = profile_pkg_root(root, config)
-        payload = node_view(pkg_root, args.id)
-        print(json.dumps(payload, indent=2))
-        return
-
-    if args.command == "neighbors":
-        root = Path(args.root).resolve()
-        config = load_config(Path(args.config) if args.config else None)
-        pkg_root = profile_pkg_root(root, config)
-        payload = neighbors(pkg_root, args.id, depth=args.depth)
-        print(json.dumps(payload, indent=2))
-        return
-
-    if args.command == "diff":
-        root = Path(args.root).resolve()
-        config = load_config(Path(args.config) if args.config else None)
-        pkg_root = profile_pkg_root(root, config)
-        payload = diff_runs(pkg_root, args.run_a or "", args.run_b or "")
-        print(json.dumps(payload, indent=2))
-        return
-
-    if args.command == "export":
-        root = Path(args.root).resolve()
-        config = load_config(Path(args.config) if args.config else None)
-        pkg_root = profile_pkg_root(root, config)
-        output_path = Path(args.output) if args.output else root / "exports" / "subgraphs" / f"export.{args.format}"
-        if args.format == "dot":
-            path = export_dot(pkg_root, output_path)
-        elif args.format == "graphml":
-            path = export_graphml(pkg_root, output_path)
-        else:
-            path = export_json(root, pkg_root, output_path)
-        print(json.dumps({"format": args.format, "output": str(path)}, indent=2))
-        return
-
-    if args.command == "why-connected":
-        root = Path(args.root).resolve()
-        config = load_config(Path(args.config) if args.config else None)
-        pkg_root = profile_pkg_root(root, config)
-        payload = why_connected(pkg_root, args.from_id, args.to_id)
-        print(json.dumps(payload, indent=2))
-        return
-
-    if args.command == "jobs":
-        if args.jobs_command == "list":
-            root = Path(".").resolve()
-            config = load_config(None)
-            payload = {"jobs": list_jobs(root, config)}
-            print(json.dumps(payload, indent=2))
+    try:
+        if args.command == "version":
+            _emit({"version": __version__})
             return
-        if args.jobs_command == "run":
+
+        if args.command == "init":
+            root = Path(args.root).resolve()
+            config_source = Path(args.config_source).resolve()
+            created = initialize_workspace(root, config_source)
+            _emit(
+                {
+                    "root": str(root),
+                    "created": created,
+                    "config_source": str(config_source),
+                }
+            )
+            return
+
+        if args.command == "ingest":
+            runner = PipelineRunner()
             root = Path(args.root).resolve()
             config = load_config(Path(args.config) if args.config else None)
-            payload = run_job(root, config, args.name)
-            print(json.dumps(payload, indent=2))
+            result = runner.run_stage("ingest", root=root, config=config)
+            _emit({"stage": result.stage, "status": result.status, "detail": result.detail})
             return
 
-    _print_placeholder(args.command, args)
+        if args.command == "import":
+            runner = PipelineRunner()
+            root = Path(args.root).resolve()
+            config = load_config(Path(args.config) if args.config else None)
+            result = runner.run_import(root=root, config=config, targets=list(args.paths))
+            _emit({"stage": result.stage, "status": result.status, "detail": result.detail})
+            return
+
+        if args.command in {"normalize", "extract", "link", "index"}:
+            runner = PipelineRunner()
+            root = Path(args.root).resolve()
+            config = load_config(Path(args.config) if args.config else None)
+            result = runner.run_stage(args.command, root=root, config=config, run_id=args.run_id)
+            _emit({"stage": result.stage, "status": result.status, "detail": result.detail})
+            return
+
+        if args.command == "rebuild":
+            runner = PipelineRunner()
+            root = Path(args.root).resolve()
+            config = load_config(Path(args.config) if args.config else None)
+            result = runner.run_stage("rebuild", root=root, config=config)
+            _emit({"stage": result.stage, "status": result.status, "detail": result.detail})
+            return
+
+        if args.command == "query":
+            root = Path(args.root).resolve()
+            config = load_config(Path(args.config) if args.config else None)
+            pkg_root = profile_pkg_root(root, config)
+            profile = config.profile()
+            search_cfg = profile.get("search", {})
+            enable_semantic = bool(search_cfg.get("semantic", {}).get("enabled", False))
+            score_rounding = float(search_cfg.get("ranking", {}).get("score_rounding", 0.000001))
+            results = keyword_search(
+                pkg_root,
+                args.q,
+                enable_semantic=enable_semantic,
+                score_rounding=score_rounding,
+            )
+            _emit({"query": args.q, "results": results})
+            return
+
+        if args.command == "node":
+            root = Path(args.root).resolve()
+            config = load_config(Path(args.config) if args.config else None)
+            pkg_root = profile_pkg_root(root, config)
+            payload = node_view(pkg_root, args.id)
+            _emit(payload)
+            return
+
+        if args.command == "neighbors":
+            root = Path(args.root).resolve()
+            config = load_config(Path(args.config) if args.config else None)
+            pkg_root = profile_pkg_root(root, config)
+            payload = neighbors(pkg_root, args.id, depth=args.depth)
+            _emit(payload)
+            return
+
+        if args.command == "diff":
+            root = Path(args.root).resolve()
+            config = load_config(Path(args.config) if args.config else None)
+            pkg_root = profile_pkg_root(root, config)
+            payload = diff_runs(pkg_root, args.run_a or "", args.run_b or "")
+            _emit(payload)
+            return
+
+        if args.command == "export":
+            root = Path(args.root).resolve()
+            config = load_config(Path(args.config) if args.config else None)
+            pkg_root = profile_pkg_root(root, config)
+            output_path = Path(args.output) if args.output else root / "exports" / "subgraphs" / f"export.{args.format}"
+            if args.format == "dot":
+                path = export_dot(pkg_root, output_path)
+            elif args.format == "graphml":
+                path = export_graphml(pkg_root, output_path)
+            else:
+                path = export_json(root, pkg_root, output_path)
+            _emit({"format": args.format, "output": str(path)})
+            return
+
+        if args.command == "why-connected":
+            root = Path(args.root).resolve()
+            config = load_config(Path(args.config) if args.config else None)
+            pkg_root = profile_pkg_root(root, config)
+            payload = why_connected(pkg_root, args.from_id, args.to_id)
+            _emit(payload)
+            return
+
+        if args.command == "jobs":
+            if args.jobs_command == "list":
+                root = Path(".").resolve()
+                config = load_config(None)
+                payload = {"jobs": list_jobs(root, config)}
+                _emit(payload)
+                return
+            if args.jobs_command == "run":
+                root = Path(args.root).resolve()
+                config = load_config(Path(args.config) if args.config else None)
+                payload = run_job(root, config, args.name)
+                _emit(payload)
+                return
+
+        _print_placeholder(args.command, args)
+    except Exception as exc:
+        _emit({"status": "error", "message": str(exc)})
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

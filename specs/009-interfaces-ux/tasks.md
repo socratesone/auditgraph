@@ -8,7 +8,7 @@ description: "Task list for Interfaces and UX"
 **Input**: Design documents from `/specs/009-interfaces-ux/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: Not requested in the feature specification; no test tasks included.
+**Tests**: Required. Follow TDD and add failing tests before production changes.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -22,8 +22,8 @@ description: "Task list for Interfaces and UX"
 
 **Purpose**: Initialize feature documentation scaffolding
 
-- [ ] T001 Create specs/009-interfaces-ux/spec.md from template and set feature metadata
-- [ ] T002 [P] Create specs/009-interfaces-ux/plan.md from template with technical context
+- [x] T001 Verify specs/009-interfaces-ux/spec.md is canonical and up to date
+- [x] T002 [P] Update specs/009-interfaces-ux/plan.md to reflect implementation scope
 
 ---
 
@@ -31,8 +31,8 @@ description: "Task list for Interfaces and UX"
 
 **Purpose**: Establish shared interface terminology and research context used by all stories
 
-- [ ] T003 Define baseline interface policy and command surface in docs/spec/09-interfaces-ux.md
-- [ ] T004 [P] Document key design decisions in specs/009-interfaces-ux/research.md
+- [x] T003 Define baseline interface policy and command surface in docs/spec/09-interfaces-ux.md (aligned to specs/009-interfaces-ux/spec.md)
+- [x] T004 [P] Document key design decisions in specs/009-interfaces-ux/research.md (align to spec.md)
 
 **Checkpoint**: Foundation ready — user story phases can begin
 
@@ -46,9 +46,11 @@ description: "Task list for Interfaces and UX"
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] Document CLI command set and inputs/outputs in docs/spec/09-interfaces-ux.md
-- [ ] T006 [P] [US1] Define Command and OutputPayload entities in specs/009-interfaces-ux/data-model.md
-- [ ] T007 [US1] Update specs/009-interfaces-ux/spec.md with a CLI command summary section
+- [x] T005 [US1] Document CLI command set and inputs/outputs in docs/spec/09-interfaces-ux.md
+- [x] T006 [P] [US1] Define Command and OutputPayload entities in specs/009-interfaces-ux/data-model.md
+- [x] T007 [US1] Update specs/009-interfaces-ux/spec.md with a CLI command summary section
+- [x] T008 [US1] Add tests for CLI command JSON output fields in tests/test_cli_integration.py
+- [x] T009 [US1] Implement CLI output schema enforcement in auditgraph/cli.py
 
 **Checkpoint**: User Story 1 command surface is documented and reviewable
 
@@ -62,9 +64,11 @@ description: "Task list for Interfaces and UX"
 
 ### Implementation for User Story 2
 
-- [ ] T008 [US2] Document output formats and schema fields in docs/spec/09-interfaces-ux.md
-- [ ] T009 [P] [US2] Define output payload schema in specs/009-interfaces-ux/contracts/interfaces-ux.openapi.yaml
-- [ ] T010 [P] [US2] Add output validation rules in specs/009-interfaces-ux/data-model.md
+- [x] T010 [US2] Document output formats and schema fields in docs/spec/09-interfaces-ux.md
+- [x] T011 [P] [US2] Define output payload schema in specs/009-interfaces-ux/contracts/interfaces-ux.openapi.yaml
+- [x] T012 [P] [US2] Add output validation rules in specs/009-interfaces-ux/data-model.md
+- [x] T013 [US2] Add tests for error output schema and status fields in tests/test_cli_integration.py
+- [x] T014 [US2] Implement structured error output in auditgraph/cli.py
 
 **Checkpoint**: Output format requirements are captured
 
@@ -78,9 +82,9 @@ description: "Task list for Interfaces and UX"
 
 ### Implementation for User Story 3
 
-- [ ] T011 [US3] Document editor integration depth in docs/spec/09-interfaces-ux.md
-- [ ] T012 [P] [US3] Document editor integration policy in specs/009-interfaces-ux/spec.md
-- [ ] T013 [US3] Add IntegrationSurface entity and validation rules in specs/009-interfaces-ux/data-model.md
+- [x] T015 [US3] Document editor integration depth in docs/spec/09-interfaces-ux.md
+- [x] T016 [P] [US3] Document editor integration policy in specs/009-interfaces-ux/spec.md
+- [x] T017 [US3] Add IntegrationSurface entity and validation rules in specs/009-interfaces-ux/data-model.md
 
 **Checkpoint**: Editor integration scope is documented and consistent
 
@@ -90,9 +94,9 @@ description: "Task list for Interfaces and UX"
 
 **Purpose**: Ensure documentation consistency and update onboarding references
 
-- [ ] T014 [P] Update specs/009-interfaces-ux/quickstart.md to reference final command/output fields
-- [ ] T015 [P] Update docs/clarifying-answers.md with interface decisions and defaults
-- [ ] T016 Run a consistency pass for docs/spec/09-interfaces-ux.md and specs/009-interfaces-ux/spec.md
+- [x] T018 [P] Update specs/009-interfaces-ux/quickstart.md to reference final command/output fields
+- [x] T019 [P] Update docs/clarifying-answers.md with interface decisions and defaults
+- [x] T020 Run a consistency pass for docs/spec/09-interfaces-ux.md and specs/009-interfaces-ux/spec.md
 
 ---
 
@@ -153,5 +157,5 @@ Task: "Add output validation rules in specs/009-interfaces-ux/data-model.md"
 
 - [P] tasks = different files, no dependencies
 - Each user story is independently reviewable
-- Ensure docs/spec/09-interfaces-ux.md remains the canonical interface definition
+- Treat specs/009-interfaces-ux/spec.md as canonical; docs/spec/09-interfaces-ux.md must align to it
 - Update README.md only if onboarding or navigation changes
