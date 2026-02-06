@@ -54,6 +54,3 @@ Required fields:
 - Query types, dataset targets, embedding constraints, and offline-first policy defined.
 - Ranking formula and deterministic tie-break keys defined.
 - Query response schema and explanation fields defined.
-
-## Resolved
-- None yet.

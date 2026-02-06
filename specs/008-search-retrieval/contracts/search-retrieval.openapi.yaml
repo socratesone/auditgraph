@@ -1,0 +1,85 @@
+openapi: 3.0.3
+info:
+  title: Auditgraph Search and Retrieval
+  version: 0.1.0
+  description: API contract for search queries and results.
+servers:
+  - url: http://localhost:8080
+paths:
+  /query:
+    post:
+      summary: Execute a query
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Query"
+      responses:
+        "200":
+          description: Query results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueryResults"
+components:
+  schemas:
+    Query:
+      type: object
+      required:
+        - type
+        - text
+      properties:
+        type:
+          type: string
+          enum: [keyword, hybrid, graph, sources]
+        text:
+          type: string
+        filters:
+          type: object
+    QueryResults:
+      type: object
+      required:
+        - results
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Result"
+    Result:
+      type: object
+      required:
+        - id
+        - type
+        - score
+        - explanation
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        score:
+          type: number
+        explanation:
+          $ref: "#/components/schemas/Explanation"
+    Explanation:
+      type: object
+      required:
+        - matched_terms
+        - evidence
+        - tie_break
+      properties:
+        matched_terms:
+          type: array
+          items:
+            type: string
+        rule_id:
+          type: string
+        evidence:
+          type: array
+          items:
+            type: object
+        tie_break:
+          type: array
+          items:
+            type: string

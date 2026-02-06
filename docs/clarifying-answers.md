@@ -111,6 +111,12 @@ This document captures the assumed answers to the clarifying questions and ties 
 4) **Offline-first UX**
    - **Answer:** Fully offline core; semantic search optional offline.
 
+5) **Ranking tie-breaks**
+   - **Answer:** Stable ordering with tie-break keys: score, stable_id, normalized path.
+
+6) **Response explanations**
+   - **Answer:** Results include matched terms, rule id when applicable, and evidence references.
+
 ## F) Linking and Navigation
 
 1) **Link generation policy**
