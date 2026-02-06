@@ -68,11 +68,15 @@ auditgraph node <entity_id> --root . --config config/pkg.yaml
 auditgraph neighbors <entity_id> --depth 2 --root . --config config/pkg.yaml
 auditgraph diff --run-a <run_id> --run-b <run_id> --root . --config config/pkg.yaml
 auditgraph export --format json --root . --config config/pkg.yaml
-auditgraph jobs list
-auditgraph jobs run daily_digest --root . --config config/pkg.yaml
+auditgraph jobs list --root .
+auditgraph jobs run changed_since --root . --config config/pkg.yaml
 ```
 
 ## Project Assumptions
 
 See docs/clarifying-answers.md for the current answers to the project discovery questions and
 implementation assumptions. See [SPEC.md](SPEC.md) and the spec breakdown in [docs/spec/00-overview.md](docs/spec/00-overview.md) for the full design scope and open decisions.
+
+## Jobs Configuration
+
+Jobs are configured in `config/jobs.yaml`. Use `auditgraph jobs list --root .` to see configured jobs.

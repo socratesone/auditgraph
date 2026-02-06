@@ -1,0 +1,12 @@
+# Automation jobs configuration
+#
+# Jobs are keyed by name. Each job defines an action type and optional args.
+
+jobs:
+  changed_since:
+    action:
+      type: report.changed_since
+      args:
+        since: 24h
+    output:
+      path: exports/reports/changed_since.md

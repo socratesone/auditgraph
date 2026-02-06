@@ -1,0 +1,7 @@
+jobs:
+  - name: daily_digest
+    action:
+      type: report.changed_since
+  - name: daily_digest
+    action:
+      type: report.changed_since

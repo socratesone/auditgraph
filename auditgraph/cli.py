@@ -93,7 +93,9 @@ def _build_parser() -> argparse.ArgumentParser:
     jobs_run.add_argument("name", help="Job name")
     jobs_run.add_argument("--root", default=".", help="Workspace root")
     jobs_run.add_argument("--config", default=None, help="Config path")
-    jobs_subparsers.add_parser("list", help="List available jobs")
+    jobs_list = jobs_subparsers.add_parser("list", help="List available jobs")
+    jobs_list.add_argument("--root", default=".", help="Workspace root")
+    jobs_list.add_argument("--config", default=None, help="Config path")
 
     why_parser = subparsers.add_parser("why-connected", help="Explain why two nodes are connected")
     why_parser.add_argument("--from", dest="from_id", required=True, help="Source id")
@@ -237,8 +239,8 @@ def main() -> None:
 
         if args.command == "jobs":
             if args.jobs_command == "list":
-                root = Path(".").resolve()
-                config = load_config(None)
+                root = Path(args.root).resolve()
+                config = load_config(Path(args.config) if args.config else None)
                 payload = {"jobs": list_jobs(root, config)}
                 _emit(payload)
                 return

@@ -1,0 +1,5 @@
+jobs:
+  broken_job:
+    action:
+      args:
+        since: 24h

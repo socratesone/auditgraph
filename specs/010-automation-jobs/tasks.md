@@ -13,8 +13,8 @@ description: "Task list for Automation and Jobs"
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create baseline jobs config in config/jobs.yaml with one example job and comments
-- [ ] T002 [P] Add test fixtures for jobs config in tests/fixtures/jobs/ (valid.yaml, invalid.yaml, duplicate.yaml)
+- [x] T001 Create baseline jobs config in config/jobs.yaml with one example job and comments
+- [x] T002 [P] Add test fixtures for jobs config in tests/fixtures/jobs/ (valid.yaml, invalid.yaml, duplicate.yaml)
 
 ---
 
@@ -22,9 +22,9 @@ description: "Task list for Automation and Jobs"
 
 **Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented
 
-- [ ] T003 Add shared job error types and helpers in auditgraph/errors.py
-- [ ] T004 [P] Add YAML loader + config file discovery in auditgraph/jobs/config.py
-- [ ] T005 [P] Add output path resolver stub and JobRun record container in auditgraph/jobs/reports.py
+- [x] T003 Add shared job error types and helpers in auditgraph/errors.py
+- [x] T004 [P] Add YAML loader + config file discovery in auditgraph/jobs/config.py
+- [x] T005 [P] Add output path resolver stub and JobRun record container in auditgraph/jobs/reports.py
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -38,17 +38,17 @@ description: "Task list for Automation and Jobs"
 
 ### Tests for User Story 1 (TDD)
 
-- [ ] T006 [P] [US1] Add failing test for manual job run success in tests/test_user_story_jobs_run.py
-- [ ] T007 [P] [US1] Add failing test for unknown job error and exit code in tests/test_user_story_jobs_run.py
-- [ ] T008 [P] [US1] Add failing contract test for JobsRunResponse and ErrorResponse in tests/test_spec010_automation_jobs_contract.py
+- [x] T006 [P] [US1] Add failing test for manual job run success in tests/test_user_story_jobs_run.py
+- [x] T007 [P] [US1] Add failing test for unknown job error and exit code in tests/test_user_story_jobs_run.py
+- [x] T008 [P] [US1] Add failing contract test for JobsRunResponse and ErrorResponse in tests/test_spec010_automation_jobs_contract.py
 
 ### Implementation for User Story 1
 
-- [ ] T009 [P] [US1] Implement `jobs run` CLI command and response formatting in auditgraph/cli.py
-- [ ] T010 [US1] Implement job action dispatch for report.changed_since in auditgraph/jobs/runner.py
-- [ ] T011 [US1] Record JobRun status/output in auditgraph/jobs/reports.py
-- [ ] T012 [US1] Wire structured errors to non-zero exit codes for `jobs run` in auditgraph/cli.py
-- [ ] T013 [US1] Ensure output writing for manual runs uses resolved path in auditgraph/jobs/runner.py
+- [x] T009 [P] [US1] Implement `jobs run` CLI command and response formatting in auditgraph/cli.py
+- [x] T010 [US1] Implement job action dispatch for report.changed_since in auditgraph/jobs/runner.py
+- [x] T011 [US1] Record JobRun status/output in auditgraph/jobs/reports.py
+- [x] T012 [US1] Wire structured errors to non-zero exit codes for `jobs run` in auditgraph/cli.py
+- [x] T013 [US1] Ensure output writing for manual runs uses resolved path in auditgraph/jobs/runner.py
 
 **Checkpoint**: User Story 1 fully functional and independently testable
 
@@ -62,17 +62,17 @@ description: "Task list for Automation and Jobs"
 
 ### Tests for User Story 2 (TDD)
 
-- [ ] T014 [P] [US2] Add failing test for `jobs list` output in tests/test_user_story_jobs_list.py
-- [ ] T015 [P] [US2] Add failing test for invalid config error in tests/test_user_story_jobs_list.py
-- [ ] T016 [P] [US2] Add failing contract test for JobsListResponse and ErrorResponse in tests/test_spec010_automation_jobs_contract.py
+- [x] T014 [P] [US2] Add failing test for `jobs list` output in tests/test_user_story_jobs_list.py
+- [x] T015 [P] [US2] Add failing test for invalid config error in tests/test_user_story_jobs_list.py
+- [x] T016 [P] [US2] Add failing contract test for JobsListResponse and ErrorResponse in tests/test_spec010_automation_jobs_contract.py
 
 ### Implementation for User Story 2
 
-- [ ] T017 [P] [US2] Implement JobConfig schema + validation rules in auditgraph/jobs/config.py
-- [ ] T018 [P] [US2] Add duplicate job name detection in auditgraph/jobs/config.py
-- [ ] T019 [US2] Implement `jobs list` CLI command in auditgraph/cli.py
-- [ ] T020 [US2] Map config validation errors to structured CLI responses in auditgraph/cli.py
-- [ ] T021 [US2] Ensure missing config file yields structured error in auditgraph/jobs/config.py
+- [x] T017 [P] [US2] Implement JobConfig schema + validation rules in auditgraph/jobs/config.py
+- [x] T018 [P] [US2] Add duplicate job name detection in auditgraph/jobs/config.py
+- [x] T019 [US2] Implement `jobs list` CLI command in auditgraph/cli.py
+- [x] T020 [US2] Map config validation errors to structured CLI responses in auditgraph/cli.py
+- [x] T021 [US2] Ensure missing config file yields structured error in auditgraph/jobs/config.py
 
 **Checkpoint**: User Story 2 fully functional and independently testable
 
@@ -86,14 +86,14 @@ description: "Task list for Automation and Jobs"
 
 ### Tests for User Story 3 (TDD)
 
-- [ ] T022 [P] [US3] Add failing test for default output path rule in tests/test_user_story_job_outputs.py
-- [ ] T023 [P] [US3] Add failing test for output path override in tests/test_user_story_job_outputs.py
+- [x] T022 [P] [US3] Add failing test for default output path rule in tests/test_user_story_job_outputs.py
+- [x] T023 [P] [US3] Add failing test for output path override in tests/test_user_story_job_outputs.py
 
 ### Implementation for User Story 3
 
-- [ ] T024 [P] [US3] Implement default output path resolution in auditgraph/jobs/reports.py
-- [ ] T025 [US3] Apply output path override logic in auditgraph/jobs/config.py
-- [ ] T026 [US3] Ensure JobRun records output path on success/failure in auditgraph/jobs/runner.py
+- [x] T024 [P] [US3] Implement default output path resolution in auditgraph/jobs/reports.py
+- [x] T025 [US3] Apply output path override logic in auditgraph/jobs/config.py
+- [x] T026 [US3] Ensure JobRun records output path on success/failure in auditgraph/jobs/runner.py
 
 **Checkpoint**: User Story 3 fully functional and independently testable
 
@@ -103,10 +103,10 @@ description: "Task list for Automation and Jobs"
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T027 [P] Update README.md with jobs config location and CLI usage
-- [ ] T028 [P] Update docs/environment-setup.md with config/jobs.yaml and jobs commands
-- [ ] T029 [P] Validate specs/010-automation-jobs/quickstart.md steps against CLI behavior
-- [ ] T030 Run full pytest suite in tests/ and fix any regressions
+- [x] T027 [P] Update README.md with jobs config location and CLI usage
+- [x] T028 [P] Update docs/environment-setup.md with config/jobs.yaml and jobs commands
+- [x] T029 [P] Validate specs/010-automation-jobs/quickstart.md steps against CLI behavior
+- [x] T030 Run full pytest suite in tests/ and fix any regressions
 
 ---
 
