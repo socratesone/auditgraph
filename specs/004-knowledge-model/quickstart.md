@@ -7,3 +7,11 @@
 - Contradictions are preserved with explicit flags.
 - Confidence is rule-based only.
 - Type namespaces are required for extensions.
+
+## Example canonical types
+
+- ag:entity
+- ag:note
+- ag:task
+- ag:decision
+- ag:event

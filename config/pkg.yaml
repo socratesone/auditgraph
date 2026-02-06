@@ -33,6 +33,11 @@ profiles:
         - "config/extractors/core.yaml"
       llm:
         enabled: false
+    knowledge_model:
+      primary_namespace: "ag"
+      allow_secondary_namespaces: true
+      confidence_policy: "rule_only"
+      contradiction_policy: "record_both"
     linking:
       rule_packs:
         - "config/link_rules/core.yaml"

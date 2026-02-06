@@ -22,8 +22,8 @@ description: "Task list for knowledge model implementation"
 
 **Purpose**: Establish knowledge model structures
 
-- [ ] T001 Add knowledge model config defaults in config/pkg.yaml and document in docs/spec/04-knowledge-model.md
-- [ ] T002 [P] Add canonical type constants in auditgraph/storage/knowledge_types.py
+- [X] T001 Add knowledge model config defaults in config/pkg.yaml and document in docs/spec/04-knowledge-model.md
+- [X] T002 [P] Add canonical type constants in auditgraph/storage/knowledge_types.py
 
 ---
 
@@ -31,9 +31,9 @@ description: "Task list for knowledge model implementation"
 
 **Purpose**: Core data structures for entities and claims
 
-- [ ] T003 Add entity/claim schema definitions in auditgraph/storage/knowledge_models.py
-- [ ] T004 Add contradiction flags and validity window types in auditgraph/storage/knowledge_models.py
-- [ ] T005 Add namespace resolution helpers in auditgraph/storage/ontology.py
+- [X] T003 Add entity/claim schema definitions in auditgraph/storage/knowledge_models.py
+- [X] T004 Add contradiction flags and validity window types in auditgraph/storage/knowledge_models.py
+- [X] T005 Add namespace resolution helpers in auditgraph/storage/ontology.py
 
 **Checkpoint**: Foundation ready — user story phases can begin
 
@@ -45,9 +45,9 @@ description: "Task list for knowledge model implementation"
 
 **Independent Test**: Create sample records and confirm schema validation for each type.
 
-- [ ] T006 [US1] Implement canonical model validators in auditgraph/storage/knowledge_models.py
-- [ ] T007 [US1] Add canonical key normalization in auditgraph/storage/ontology.py
-- [ ] T008 [US1] Ensure ingest metadata maps to canonical types in auditgraph/ingest/sources.py
+- [X] T006 [US1] Implement canonical model validators in auditgraph/storage/knowledge_models.py
+- [X] T007 [US1] Add canonical key normalization in auditgraph/storage/ontology.py
+- [X] T008 [US1] Ensure ingest metadata maps to canonical types in auditgraph/ingest/sources.py
 
 ---
 
@@ -57,8 +57,8 @@ description: "Task list for knowledge model implementation"
 
 **Independent Test**: Store conflicting claims and verify both are retained with flags and validity windows.
 
-- [ ] T009 [US2] Add contradiction tagging helpers in auditgraph/storage/knowledge_models.py
-- [ ] T010 [US2] Add validity window support to claims in auditgraph/storage/knowledge_models.py
+- [X] T009 [US2] Add contradiction tagging helpers in auditgraph/storage/knowledge_models.py
+- [X] T010 [US2] Add validity window support to claims in auditgraph/storage/knowledge_models.py
 
 ---
 
@@ -68,8 +68,8 @@ description: "Task list for knowledge model implementation"
 
 **Independent Test**: Store rule-derived claims with confidence and verify namespaced types.
 
-- [ ] T011 [US3] Add rule-based confidence assignment in auditgraph/storage/knowledge_models.py
-- [ ] T012 [US3] Enforce namespace prefix on entity types in auditgraph/storage/ontology.py
+- [X] T011 [US3] Add rule-based confidence assignment in auditgraph/storage/knowledge_models.py
+- [X] T012 [US3] Enforce namespace prefix on entity types in auditgraph/storage/ontology.py
 
 ---
 
@@ -77,8 +77,8 @@ description: "Task list for knowledge model implementation"
 
 **Purpose**: Documentation alignment
 
-- [ ] T013 [P] Update README.md with knowledge model summary
-- [ ] T014 [P] Update specs/004-knowledge-model/quickstart.md with example canonical types
+- [X] T013 [P] Update README.md with knowledge model summary
+- [X] T014 [P] Update specs/004-knowledge-model/quickstart.md with example canonical types
 
 ---
 
