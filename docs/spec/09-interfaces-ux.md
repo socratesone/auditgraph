@@ -39,6 +39,3 @@ Define CLI/TUI/web UI scope, required commands, outputs, and integration surface
 - Required CLI command set
 - JSON output schema requirement
 - Editor integration depth defined
-
-## Resolved
-- None yet.
