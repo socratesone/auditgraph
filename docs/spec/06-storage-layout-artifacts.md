@@ -1,78 +1,40 @@
-# Storage Layout & Artifact Schemas
+# Spec Blueprint: Storage Layout and Artifacts
 
-## Purpose
-Finalize directory layout, artifact schemas, shard rules, and stable ID mechanics.
+## Intent (read first)
+This document defines what the actual specification must include. It is not the specification itself.
+The spec produced from this blueprint must be implementable in code and validated by tests.
+
+## Goal
+Produce a concrete, testable storage layout and artifact schema spec covering directories,
+sharding, and stable identifiers.
 
 ## Source material
 - [SPEC.md](SPEC.md) Storage layout, Stable IDs, Example artifacts
 
-## Decisions Required
-- Final directory structure and naming conventions.
-- Artifact schemas (sources, entities, claims, links, indexes).
-- Sharding rules (prefix length, shard size caps).
-- Stable ID canonicalization rules and versioning.
+## Required decisions the spec must make
+- Directory layout and naming conventions under `.pkg/profiles/<profile>/`.
+- Artifact schemas and required fields for each artifact type.
+- Sharding rules and shard placement logic.
+- Stable ID canonicalization rules and versioning strategy.
 
-## Decisions (filled)
+## Required spec sections and outputs
+The spec MUST include the following, with concrete requirements and examples:
 
-### Directory Structure
+1) Directory tree with exact paths for runs, sources, entities, claims, links, indexes, provenance.
+2) Artifact schemas with required fields and version attributes.
+3) Sharding rules with examples showing id -> shard mapping.
+4) Stable ID canonicalization inputs and hashing rules.
+5) Backward compatibility and version bump rules.
+6) Test plan with at least:
+	- artifact path placement
+	- shard resolution correctness
+	- schema validation for required fields
 
-Storage root is profile-scoped under `.pkg/profiles/<profile>/`.
+## Definition of done for the spec
+- The spec defines exact file paths and JSON fields for every artifact.
+- The spec includes examples that a reviewer can validate by inspection.
+- The spec includes acceptance criteria and tests that map to code changes.
 
-```
-.pkg/profiles/<profile>/
-├── runs/<run_id>/
-│   ├── ingest-manifest.json
-│   ├── normalize-manifest.json
-│   ├── extract-manifest.json
-│   ├── link-manifest.json
-│   ├── index-manifest.json
-│   └── serve-manifest.json
-├── sources/
-├── entities/
-├── claims/
-├── links/
-├── indexes/
-└── provenance/
-```
-
-Artifact paths:
-
-| Artifact | Path pattern |
-| --- | --- |
-| Source | `.pkg/profiles/<profile>/sources/<source_hash>.json` |
-| Entity | `.pkg/profiles/<profile>/entities/<shard>/<entity_id>.json` |
-| Claim | `.pkg/profiles/<profile>/claims/<shard>/<claim_id>.json` |
-| Link | `.pkg/profiles/<profile>/links/<shard>/<link_id>.json` |
-| Index | `.pkg/profiles/<profile>/indexes/<index_type>/<index_id>.json` |
-
-### Artifact Schemas
-
-All artifacts include a `version` field.
-
-Required fields:
-
-- **Source**: `version`, `path`, `source_hash`, `size`, `mtime`, `parser_id`, `parse_status`, `skip_reason` (optional)
-- **Entity**: `version`, `id`, `type`, `name`, `canonical_key`, `aliases`, `provenance`, `refs`
-- **Claim**: `version`, `id`, `type`, `predicate`, `object`, `provenance`, `subject_id` (optional), `qualifiers` (optional)
-- **Link**: `version`, `id`, `from_id`, `to_id`, `type`, `rule_id`, `confidence`, `evidence`, `explanation` (optional)
-- **Index**: `version`, `index_id`, `type`, `build_config_hash`, `pipeline_version`, `built_at`, `inputs_manifest_hash`, `shards`
-
-### Sharding Rules
-
-- Shard directory is the first two characters of the ID suffix (e.g., `ent_abcd...` stored under `entities/ab/`).
-- Sharding applies to entities, claims, and links.
-- Sources and indexes are stored without sharding.
-
-### Stable ID Canonicalization
-
-- Canonical inputs are normalized paths and stable text forms.
-- Stable IDs are derived by hashing canonical inputs with sha256.
-- ID prefixes identify artifact type (e.g., `ent_`, `clm_`, `lnk_`).
-- Canonicalization and schema changes require version bumps.
-
-## Resolved
-
-- Canonical storage root under `.pkg/profiles/<profile>/` with run manifests in `runs/<run_id>/`.
-- Artifact schemas and required fields defined for sources, entities, claims, links, and indexes.
-- Sharding uses two-character ID prefixes for entities, claims, and links.
-- Stable IDs use canonicalized inputs hashed with sha256 and type prefixes.
+## Guardrails
+- Do not describe runtime pipeline behavior here except as it affects storage.
+- Avoid ambiguous storage rules; all paths must be deterministic.

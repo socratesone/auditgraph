@@ -16,6 +16,19 @@ DEFAULT_CONFIG: dict[str, Any] = {
         DEFAULT_PROFILE_NAME: {
             "include_paths": ["notes", "repos"],
             "exclude_globs": ["**/node_modules/**", "**/.git/**"],
+            "ingestion": {
+                "allowed_extensions": [
+                    ".md",
+                    ".markdown",
+                    ".txt",
+                    ".log",
+                    ".py",
+                    ".js",
+                    ".ts",
+                    ".tsx",
+                    ".jsx",
+                ]
+            },
             "normalization": {"unicode": "NFC", "line_endings": "LF", "path_style": "posix"},
             "extraction": {"rule_packs": ["config/extractors/core.yaml"], "llm": {"enabled": False}},
             "linking": {"rule_packs": ["config/link_rules/core.yaml"]},

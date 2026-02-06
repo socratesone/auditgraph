@@ -15,10 +15,14 @@ def test_allowlist_allows_markdown_and_skips_pdf(tmp_path: Path) -> None:
     md_path.write_text("# Note", encoding="utf-8")
     pdf_path = tmp_path / "notes" / "file.pdf"
     pdf_path.write_text("%PDF", encoding="utf-8")
+    py_path = tmp_path / "repos" / "app.py"
+    py_path.parent.mkdir()
+    py_path.write_text("print('hi')", encoding="utf-8")
 
     policy = load_policy({})
 
     assert is_allowed(md_path, policy)
+    assert is_allowed(py_path, policy)
     assert not is_allowed(pdf_path, policy)
 
     result = parse_file(pdf_path, policy)

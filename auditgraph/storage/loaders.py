@@ -14,3 +14,13 @@ def _entity_path(pkg_root: Path, entity_id: str) -> Path:
 def load_entity(pkg_root: Path, entity_id: str) -> dict[str, object]:
     path = _entity_path(pkg_root, entity_id)
     return read_json(path)
+
+
+def load_entities(pkg_root: Path) -> list[dict[str, object]]:
+    entities_dir = pkg_root / "entities"
+    if not entities_dir.exists():
+        return []
+    entities: list[dict[str, object]] = []
+    for path in entities_dir.rglob("*.json"):
+        entities.append(read_json(path))
+    return entities

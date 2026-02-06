@@ -5,12 +5,27 @@ from pathlib import Path
 from typing import Iterable
 
 
-DEFAULT_ALLOWED_EXTENSIONS = {".md", ".markdown", ".txt", ".log"}
+DEFAULT_ALLOWED_EXTENSIONS = {
+    ".md",
+    ".markdown",
+    ".txt",
+    ".log",
+    ".py",
+    ".js",
+    ".ts",
+    ".tsx",
+    ".jsx",
+}
 PARSER_BY_SUFFIX = {
     ".md": "text/markdown",
     ".markdown": "text/markdown",
     ".txt": "text/plain",
     ".log": "text/plain",
+    ".py": "text/code",
+    ".js": "text/code",
+    ".ts": "text/code",
+    ".tsx": "text/code",
+    ".jsx": "text/code",
 }
 SKIP_REASON_UNSUPPORTED = "unsupported_extension"
 

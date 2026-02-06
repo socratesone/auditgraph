@@ -20,6 +20,7 @@ def extract_decisions(path: Path) -> list[dict[str, object]]:
     return [
         {
             "id": claim_id,
+            "subject_id": None,
             "type": "decision",
             "predicate": "decided",
             "object": decision,
