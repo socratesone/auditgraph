@@ -1,0 +1,124 @@
+openapi: 3.0.3
+info:
+  title: Auditgraph Interfaces and UX
+  version: 0.1.0
+  description: CLI output payload schemas.
+paths: {}
+components:
+  schemas:
+    VersionResponse:
+      type: object
+      required: [version]
+      properties:
+        version:
+          type: string
+    StageResponse:
+      type: object
+      required: [stage, status, detail]
+      properties:
+        stage:
+          type: string
+        status:
+          type: string
+        detail:
+          type: object
+          required: [manifest]
+          properties:
+            manifest:
+              type: string
+    QueryResponse:
+      type: object
+      required: [query, results]
+      properties:
+        query:
+          type: string
+        results:
+          type: array
+          items:
+            type: object
+    NodeResponse:
+      type: object
+      required: [id, type, name, refs]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        name:
+          type: string
+        refs:
+          type: array
+          items:
+            type: object
+    NeighborsResponse:
+      type: object
+      required: [center_id, neighbors]
+      properties:
+        center_id:
+          type: string
+        neighbors:
+          type: array
+          items:
+            type: object
+    DiffResponse:
+      type: object
+      required: [status, added, removed, changed]
+      properties:
+        status:
+          type: string
+        added:
+          type: array
+          items:
+            type: string
+        removed:
+          type: array
+          items:
+            type: string
+        changed:
+          type: array
+          items:
+            type: string
+    ExportResponse:
+      type: object
+      required: [format, output]
+      properties:
+        format:
+          type: string
+        output:
+          type: string
+    JobsListResponse:
+      type: object
+      required: [jobs]
+      properties:
+        jobs:
+          type: array
+          items:
+            type: string
+    JobsRunResponse:
+      type: object
+      required: [status, job, output]
+      properties:
+        status:
+          type: string
+        job:
+          type: string
+        output:
+          type: string
+    WhyConnectedResponse:
+      type: object
+      required: [path]
+      properties:
+        path:
+          type: array
+          items:
+            type: object
+    ErrorResponse:
+      type: object
+      required: [status, message]
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        detail:
+          type: object

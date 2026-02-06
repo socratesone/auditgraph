@@ -28,9 +28,9 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.10+: Follow standard conventions
 
 ## Recent Changes
+- 009-interfaces-ux: Added Python 3.10+ + None required (stdlib-first)
+- 009-interfaces-ux: Added Python 3.10+ + None required (stdlib-first)
 - 008-search-retrieval: Added Python 3.10+ + None required (stdlib-first)
-- 007-linking-explainability: Added Python 3.10+ + None required (stdlib-first)
-- 006-storage-layout-artifacts: Added Python 3.10+ + None required (stdlib-first)
 
 
 <!-- MANUAL ADDITIONS START -->

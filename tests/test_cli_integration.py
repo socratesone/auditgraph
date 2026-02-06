@@ -10,20 +10,25 @@ from auditgraph.storage.artifacts import profile_pkg_root, read_json, write_json
 from auditgraph.storage.hashing import sha256_text
 
 
-def _run_cli(args: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
+def _run_cli(
+    args: list[str],
+    cwd: Path | None = None,
+    check: bool = True,
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [sys.executable, "-m", "auditgraph.cli", *args],
         cwd=cwd,
         capture_output=True,
         text=True,
-        check=True,
+        check=check,
     )
 
 
 def test_cli_version_returns_value() -> None:
     result = _run_cli(["version"])
+    payload = json.loads(result.stdout)
 
-    assert result.stdout.strip()
+    assert payload["version"]
 
 
 def test_cli_init_creates_workspace(tmp_path: Path) -> None:
@@ -77,3 +82,12 @@ def test_cli_export_json_writes_file(tmp_path: Path) -> None:
     output_path = Path(payload["output"])
     assert output_path.exists()
     assert read_json(output_path)["entities"]
+
+
+def test_cli_error_returns_status_and_message(tmp_path: Path) -> None:
+    result = _run_cli(["node", "missing", "--root", str(tmp_path)], check=False)
+    payload = json.loads(result.stdout)
+
+    assert result.returncode == 1
+    assert payload["status"] == "error"
+    assert payload["message"]

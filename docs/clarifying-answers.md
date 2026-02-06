@@ -142,6 +142,9 @@ This document captures the assumed answers to the clarifying questions and ties 
 3) **Editor integration depth**
    - **Answer:** Open results and insert links (phase 2+).
 
+4) **CLI output format**
+   - **Answer:** JSON-only outputs for all commands, with structured error payloads.
+
 4) **Extensibility model**
    - **Answer:** Script-based plugins (Python) with deterministic outputs.
 
@@ -175,6 +178,7 @@ This document captures the assumed answers to the clarifying questions and ties 
 
 ## Implementation Notes
 
+- The CLI command surface is JSON-only and includes structured error payloads.
 - The CLI scaffold establishes the command surface (init/version/ingest/extract/link/index/query/rebuild) and provides a workspace initializer.
 - The sample `config/pkg.yaml` encodes the assumed defaults for normalization, extraction, linking, and search.
 
