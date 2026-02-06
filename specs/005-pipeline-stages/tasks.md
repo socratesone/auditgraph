@@ -22,8 +22,8 @@ description: "Task list for Pipeline Stages Definition"
 
 **Purpose**: Initialize feature documentation scaffolding
 
-- [ ] T001 Create specs/005-pipeline-stages/spec.md from template and set feature metadata
-- [ ] T002 [P] Create specs/005-pipeline-stages/plan.md from template with technical context
+- [X] T001 Create specs/005-pipeline-stages/spec.md from template and set feature metadata
+- [X] T002 [P] Create specs/005-pipeline-stages/plan.md from template with technical context
 
 ---
 
@@ -31,8 +31,8 @@ description: "Task list for Pipeline Stages Definition"
 
 **Purpose**: Establish shared stage definitions and research context used by all stories
 
-- [ ] T003 Define the baseline stage list and shared terminology in docs/spec/05-pipeline-stages.md
-- [ ] T004 [P] Document key design decisions in specs/005-pipeline-stages/research.md
+- [X] T003 Define the baseline stage list and shared terminology in docs/spec/05-pipeline-stages.md
+- [X] T004 [P] Document key design decisions in specs/005-pipeline-stages/research.md
 
 **Checkpoint**: Foundation ready — user story phases can begin
 
@@ -46,9 +46,9 @@ description: "Task list for Pipeline Stages Definition"
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] Add per-stage contract tables (inputs/outputs/entry/exit) in docs/spec/05-pipeline-stages.md
-- [ ] T006 [P] [US1] Define Stage Contract entity and relationships in specs/005-pipeline-stages/data-model.md
-- [ ] T007 [US1] Update specs/005-pipeline-stages/spec.md with a stage contract summary section
+- [X] T005 [US1] Add per-stage contract tables (inputs/outputs/entry/exit) in docs/spec/05-pipeline-stages.md
+- [X] T006 [P] [US1] Define Stage Contract entity and relationships in specs/005-pipeline-stages/data-model.md
+- [X] T007 [US1] Update specs/005-pipeline-stages/spec.md with a stage contract summary section
 
 **Checkpoint**: User Story 1 contracts are documented and reviewable
 
@@ -62,9 +62,9 @@ description: "Task list for Pipeline Stages Definition"
 
 ### Implementation for User Story 2
 
-- [ ] T008 [US2] Document manifest schema fields and versioning rules in docs/spec/05-pipeline-stages.md
-- [ ] T009 [P] [US2] Define StageManifest schema in specs/005-pipeline-stages/contracts/pipeline-stage-manifests.openapi.yaml
-- [ ] T010 [P] [US2] Add manifest validation rules to specs/005-pipeline-stages/data-model.md
+- [X] T008 [US2] Document manifest schema fields and versioning rules in docs/spec/05-pipeline-stages.md
+- [X] T009 [P] [US2] Define StageManifest schema in specs/005-pipeline-stages/contracts/pipeline-stage-manifests.openapi.yaml
+- [X] T010 [P] [US2] Add manifest validation rules to specs/005-pipeline-stages/data-model.md
 
 **Checkpoint**: Manifest schema requirements are captured in docs and contract
 
@@ -78,9 +78,9 @@ description: "Task list for Pipeline Stages Definition"
 
 ### Implementation for User Story 3
 
-- [ ] T011 [US3] Document atomic write sequence and temp-path rules in docs/spec/05-pipeline-stages.md
-- [ ] T012 [P] [US3] Document recovery rules and rerun expectations in specs/005-pipeline-stages/spec.md
-- [ ] T013 [US3] Add recovery rule entity and state transitions in specs/005-pipeline-stages/data-model.md
+- [X] T011 [US3] Document atomic write sequence and temp-path rules in docs/spec/05-pipeline-stages.md
+- [X] T012 [P] [US3] Document recovery rules and rerun expectations in specs/005-pipeline-stages/spec.md
+- [X] T013 [US3] Add recovery rule entity and state transitions in specs/005-pipeline-stages/data-model.md
 
 **Checkpoint**: Atomicity and recovery rules are documented and consistent
 
@@ -90,9 +90,9 @@ description: "Task list for Pipeline Stages Definition"
 
 **Purpose**: Ensure documentation consistency and update onboarding references
 
-- [ ] T014 [P] Update specs/005-pipeline-stages/quickstart.md to reference final contracts and recovery guidance
-- [ ] T015 [P] Update docs/clarifying-answers.md with pipeline stage decisions and defaults
-- [ ] T016 Run a consistency pass for docs/spec/05-pipeline-stages.md and specs/005-pipeline-stages/spec.md
+- [X] T014 [P] Update specs/005-pipeline-stages/quickstart.md to reference final contracts and recovery guidance
+- [X] T015 [P] Update docs/clarifying-answers.md with pipeline stage decisions and defaults
+- [X] T016 Run a consistency pass for docs/spec/05-pipeline-stages.md and specs/005-pipeline-stages/spec.md
 
 ---
 

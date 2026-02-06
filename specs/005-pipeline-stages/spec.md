@@ -97,6 +97,26 @@ As an operator, I want atomicity and recovery rules documented so that failed ru
 - **FR-007**: The specification MUST define idempotency expectations for reruns with identical inputs and config.
 - **FR-008**: The specification MUST validate stage dependencies by requiring upstream manifests for the same run_id before execution.
 
+## Stage Contract Summary
+
+Stages covered: ingest, normalize, extract, link, index, serve.
+
+Each stage contract documents:
+- Purpose
+- Required inputs
+- Produced outputs
+- Entry criteria
+- Exit criteria
+- Manifest path
+
+Canonical stage definitions live in [docs/spec/05-pipeline-stages.md](docs/spec/05-pipeline-stages.md).
+
+## Atomicity and Recovery Summary
+
+- Artifacts are written to temp paths, then atomically renamed/moved into place.
+- Manifests are written last as completion signals.
+- Missing manifest means discard temp artifacts and rerun the stage.
+
 ### Key Entities *(include if feature involves data)*
 
 - **Stage Contract**: Describes a stage name, inputs, outputs, and entry/exit criteria.

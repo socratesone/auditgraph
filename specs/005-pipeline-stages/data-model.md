@@ -4,7 +4,7 @@
 
 ### Stage Contract
 - Fields: stage_name, description, required_inputs[], produced_outputs[], manifest_path, entry_criteria, exit_criteria
-- Relationships: references manifests produced by upstream stages
+- Relationships: references manifests produced by upstream stages; required_inputs include upstream manifests by stage
 
 ### Stage Manifest
 - Fields: version, stage, run_id, inputs_hash, outputs_hash, config_hash, status, started_at, finished_at, artifacts[]
@@ -23,7 +23,9 @@
 - Stage manifest MUST reference only artifacts produced in the same run.
 - Manifest is written last after successful atomic artifact writes.
 - Inputs hash and outputs hash must be deterministic for identical inputs.
+- Stage execution requires upstream manifests for the same run_id.
+- Missing manifests imply incomplete runs and require rebuild.
 
 ## State Transitions
-- Stage run: pending -> running -> completed | failed.
-- Failed runs without a manifest are considered incomplete and must be rerun.
+- Stage run: pending -> running -> completed | failed | partial.
+- Failed or partial runs without a manifest are considered incomplete and must be rerun.
