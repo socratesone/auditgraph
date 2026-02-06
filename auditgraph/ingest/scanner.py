@@ -4,6 +4,8 @@ import fnmatch
 from pathlib import Path
 from typing import Iterable
 
+from auditgraph.ingest.policy import IngestionPolicy, is_allowed
+
 
 def _matches_exclude(path: Path, root: Path, exclude_globs: Iterable[str]) -> bool:
     try:
@@ -29,3 +31,14 @@ def discover_files(root: Path, include_paths: Iterable[str], exclude_globs: Iter
 
     filtered = [path for path in files if not _matches_exclude(path, root, exclude_globs)]
     return sorted(filtered, key=lambda item: item.as_posix())
+
+
+def split_allowed(paths: Iterable[Path], policy: IngestionPolicy) -> tuple[list[Path], list[Path]]:
+    allowed: list[Path] = []
+    skipped: list[Path] = []
+    for path in paths:
+        if is_allowed(path, policy):
+            allowed.append(path)
+        else:
+            skipped.append(path)
+    return allowed, skipped

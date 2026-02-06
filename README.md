@@ -17,6 +17,12 @@ Auditgraph is a local-first, deterministic personal knowledge graph (PKG) toolki
 - Placeholders remain: extract, link, index (full pipeline still in progress).
 - Specification is split into focused documents under docs/spec for resolving remaining decisions.
 
+## Day-1 Ingestion Scope
+
+- Supported: Markdown, plain text, Git working tree files
+- Not supported (day 1): PDFs, DOCX, HTML, org-mode, email exports, issue tracker exports
+- Capture channels: manual import and directory scan only (no file watchers or editor plugins)
+
 ## Quickstart
 
 ```bash
@@ -35,6 +41,8 @@ auditgraph version
 auditgraph init --root .
 
 auditgraph ingest --root . --config config/pkg.yaml
+
+auditgraph import docs/notes.md logs/ --root . --config config/pkg.yaml
 
 auditgraph query --q "symbol" --root . --config config/pkg.yaml
 auditgraph node <entity_id> --root . --config config/pkg.yaml

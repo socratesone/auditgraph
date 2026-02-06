@@ -25,6 +25,12 @@ profiles:
 auditgraph ingest --root . --config config/pkg.yaml
 ```
 
+## Manual import
+
+```bash
+auditgraph import notes/adr/0001.md logs/ --root . --config config/pkg.yaml
+```
+
 ## Notes
 - Only Markdown/plain text and Git working tree files are in scope for day 1.
 - Unsupported formats should be recorded as skipped with a reason.

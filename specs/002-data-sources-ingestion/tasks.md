@@ -22,8 +22,8 @@ description: "Task list for data sources and ingestion policy implementation"
 
 **Purpose**: Prepare configuration and ingestion policy scaffolding
 
-- [ ] T001 Add ingestion policy defaults and documentation in config/pkg.yaml and docs/spec/02-data-sources-ingestion.md
-- [ ] T002 [P] Add ingestion policy constants and helpers in auditgraph/ingest/policy.py
+- [X] T001 Add ingestion policy defaults and documentation in config/pkg.yaml and docs/spec/02-data-sources-ingestion.md
+- [X] T002 [P] Add ingestion policy constants and helpers in auditgraph/ingest/policy.py
 
 ---
 
@@ -31,9 +31,9 @@ description: "Task list for data sources and ingestion policy implementation"
 
 **Purpose**: Core data structures for tracking ingest status and skip reasons
 
-- [ ] T003 Extend ingest record schema to include skip reason in auditgraph/storage/manifests.py
-- [ ] T004 Update artifact writer to persist skip reason fields in auditgraph/storage/artifacts.py
-- [ ] T005 Update ingest manifest writer to include skipped file counts in auditgraph/ingest/manifest.py
+- [X] T003 Extend ingest record schema to include skip reason in auditgraph/storage/manifests.py
+- [X] T004 Update artifact writer to persist skip reason fields in auditgraph/storage/artifacts.py
+- [X] T005 Update ingest manifest writer to include skipped file counts in auditgraph/ingest/manifest.py
 
 **Checkpoint**: Foundation ready — user story phases can begin
 
@@ -45,10 +45,10 @@ description: "Task list for data sources and ingestion policy implementation"
 
 **Independent Test**: Run `auditgraph ingest` on a mixed workspace and confirm only allowed formats are ingested and unsupported files are reported as skipped.
 
-- [ ] T006 [US1] Implement allowlist and parser selection in auditgraph/ingest/parsers.py
-- [ ] T007 [US1] Implement skip reason mapping for unsupported formats in auditgraph/ingest/parsers.py
-- [ ] T008 [US1] Enforce allowlist in scanner pipeline in auditgraph/ingest/scanner.py
-- [ ] T009 [US1] Persist skipped file records with reasons in auditgraph/ingest/sources.py
+- [X] T006 [US1] Implement allowlist and parser selection in auditgraph/ingest/parsers.py
+- [X] T007 [US1] Implement skip reason mapping for unsupported formats in auditgraph/ingest/parsers.py
+- [X] T008 [US1] Enforce allowlist in scanner pipeline in auditgraph/ingest/scanner.py
+- [X] T009 [US1] Persist skipped file records with reasons in auditgraph/ingest/sources.py
 
 ---
 
@@ -58,9 +58,9 @@ description: "Task list for data sources and ingestion policy implementation"
 
 **Independent Test**: Run directory scan and manual import commands on the same workspace and confirm deterministic file lists.
 
-- [ ] T010 [US2] Add manual import CLI command in auditgraph/cli.py
-- [ ] T011 [US2] Implement manual import handler in auditgraph/ingest/importer.py
-- [ ] T012 [US2] Integrate manual import into pipeline runner in auditgraph/pipeline/runner.py
+- [X] T010 [US2] Add manual import CLI command in auditgraph/cli.py
+- [X] T011 [US2] Implement manual import handler in auditgraph/ingest/importer.py
+- [X] T012 [US2] Integrate manual import into pipeline runner in auditgraph/pipeline/runner.py
 
 ---
 
@@ -70,9 +70,9 @@ description: "Task list for data sources and ingestion policy implementation"
 
 **Independent Test**: Ingest Markdown notes with and without frontmatter and verify normalized fields (title, tags, project, status).
 
-- [ ] T013 [US3] Implement frontmatter parser and schema normalization in auditgraph/ingest/frontmatter.py
-- [ ] T014 [US3] Wire frontmatter normalization into Markdown parsing in auditgraph/ingest/parsers.py
-- [ ] T015 [US3] Add normalized metadata to source records in auditgraph/ingest/sources.py
+- [X] T013 [US3] Implement frontmatter parser and schema normalization in auditgraph/ingest/frontmatter.py
+- [X] T014 [US3] Wire frontmatter normalization into Markdown parsing in auditgraph/ingest/parsers.py
+- [X] T015 [US3] Add normalized metadata to source records in auditgraph/ingest/sources.py
 
 ---
 
@@ -80,8 +80,8 @@ description: "Task list for data sources and ingestion policy implementation"
 
 **Purpose**: Documentation and config alignment
 
-- [ ] T016 [P] Update README.md with day-1 ingestion scope and limitations
-- [ ] T017 [P] Update specs/002-data-sources-ingestion/quickstart.md with manual import examples
+- [X] T016 [P] Update README.md with day-1 ingestion scope and limitations
+- [X] T017 [P] Update specs/002-data-sources-ingestion/quickstart.md with manual import examples
 
 ---
 

@@ -38,6 +38,11 @@ def _build_parser() -> argparse.ArgumentParser:
     ingest_parser.add_argument("--root", default=".", help="Workspace root")
     ingest_parser.add_argument("--config", default=None, help="Config path")
 
+    import_parser = subparsers.add_parser("import", help="Manually import files")
+    import_parser.add_argument("paths", nargs="+", help="Files or directories to import")
+    import_parser.add_argument("--root", default=".", help="Workspace root")
+    import_parser.add_argument("--config", default=None, help="Config path")
+
     for name in ("extract", "link", "index"):
         subparsers.add_parser(name, help=f"Run {name} stage (placeholder)")
 
@@ -126,6 +131,14 @@ def main() -> None:
         root = Path(args.root).resolve()
         config = load_config(Path(args.config) if args.config else None)
         result = runner.run_stage("ingest", root=root, config=config)
+        print(json.dumps({"stage": result.stage, "status": result.status, "detail": result.detail}, indent=2))
+        return
+
+    if args.command == "import":
+        runner = PipelineRunner()
+        root = Path(args.root).resolve()
+        config = load_config(Path(args.config) if args.config else None)
+        result = runner.run_import(root=root, config=config, targets=list(args.paths))
         print(json.dumps({"stage": result.stage, "status": result.status, "detail": result.detail}, indent=2))
         return
 

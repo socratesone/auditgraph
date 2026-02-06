@@ -35,3 +35,9 @@ Define day-1 formats, code languages, structured sources, capture channels, and 
 - Day-1 scope prioritizes deterministic, plain-text inputs to minimize parser variance.
 - AST extraction depth can expand after baseline ingestion and indexing are stable.
 - Directory scanning plus CLI import is sufficient for early workflows.
+
+## Config defaults (day-1)
+
+- Allowed extensions: .md, .markdown, .txt, .log
+- Capture channels: scan, manual
+- Frontmatter schema: title, tags, project, status
