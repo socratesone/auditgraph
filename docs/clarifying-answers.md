@@ -207,3 +207,25 @@ This document captures the assumed answers to the clarifying questions and ties 
 
 4) **Backlinks policy**
    - **Answer:** Backlinks computed on demand in MVP; stored only when performance requires it.
+
+## M) Testing and Quality Gates
+
+1) **Unit tests**
+   - **Answer:** Required for all domain logic with deterministic fixtures.
+
+2) **Integration and golden tests**
+   - **Answer:** Golden fixtures for ingest/extract/link/index and run-to-run determinism checks.
+
+3) **Determinism gates**
+   - **Answer:** Byte-for-byte output comparison for identical inputs plus stable tie-break ordering checks.
+
+4) **Performance targets**
+   - **Answer:** Keyword search p50 < 50ms, p95 < 200ms on small datasets; graph traversal < 1s.
+
+## N) Roadmap and Milestones
+
+1) **Phase definitions**
+   - **Answer:** Phase 1 ingestion/extraction/indexing; Phase 2 linking/explainability; Phase 3 automation/exports; Phase 4 optional semantic search/UI.
+
+2) **Exit criteria**
+   - **Answer:** Each phase requires deterministic outputs and CLI validation for its scope.

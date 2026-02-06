@@ -13,11 +13,31 @@ Define test matrix, determinism checks, and performance gates.
 - Determinism regression gates.
 - Performance test targets and tooling.
 
-## Decisions (to fill)
-- Unit tests:
-- Integration/golden tests:
-- Determinism gates:
-- Performance tests:
+## Decisions (filled)
+
+### Unit Tests
+
+- Required for all domain logic
+- Use deterministic fixtures
+
+### Integration/Golden Tests
+
+- Golden fixtures for ingest, extract, link, index
+- Run-to-run comparisons for determinism
+
+### Determinism Gates
+
+- Byte-for-byte output comparison for identical inputs
+- Stable ordering checks for equal-score queries
+
+### Performance Tests
+
+- Keyword search p50 < 50ms, p95 < 200ms on small datasets
+- Graph traversal and why-connected < 1s
+
+## Resolved
+
+- Unit/integration scope, determinism gates, and performance targets defined
 
 ## Resolved
 - None yet.

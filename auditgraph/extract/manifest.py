@@ -10,8 +10,10 @@ from auditgraph.index.decisions import write_decision_index
 from auditgraph.storage.artifacts import write_json
 
 
-def _shard_dir(root: Path, prefix: str) -> Path:
-    return root / prefix[:2]
+def _shard_dir(root: Path, identifier: str) -> Path:
+    token = identifier.split("_", 1)[-1]
+    shard = token[:2] if token else identifier[:2]
+    return root / shard
 
 
 def write_entities(pkg_root: Path, entities: Iterable[dict[str, object]]) -> list[Path]:

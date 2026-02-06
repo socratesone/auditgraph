@@ -13,11 +13,35 @@ Define scheduler model, job definitions, outputs, and review queue lifecycle.
 - Output storage paths and artifact conventions.
 - Review queue lifecycle and decision storage.
 
-## Decisions (to fill)
-- Scheduler model:
-- jobs.yaml schema:
-- Output conventions:
-- Review queue lifecycle:
+## Decisions (filled)
+
+### Scheduler Model
+
+- Scheduled jobs defined in config
+- Manual trigger via CLI
+
+### jobs.yaml Schema
+
+- `jobs` map with name
+- `schedule` (cron-like string or "manual")
+- `action` with `type` and `args`
+- `output` with `path`
+
+### Output Conventions
+
+- Job outputs stored under `exports/reports/` by default
+- Outputs are plain-text artifacts
+
+### Review Queue Lifecycle
+
+- Proposed links/claims stored as plain-text queue entries
+- Accept/reject decisions recorded as plain-text updates
+
+## Resolved
+
+- Scheduler model and jobs.yaml schema defined
+- Output conventions defined
+- Review queue lifecycle defined
 
 ## Resolved
 - None yet.

@@ -73,6 +73,22 @@ As an engineer, I can rely on consistent frontmatter normalization so that metad
 - **FR-009**: The system MUST apply a canonical frontmatter schema (title, tags, project, status) for Markdown notes.
 - **FR-010**: The system MUST record unsupported sources as skipped with a reason.
 
+## Ingestion Policy Summary
+
+- Day-1 sources: Markdown, plain text, Git working tree files.
+- Unsupported formats are skipped with explicit reasons.
+- Structured sources (OpenAPI, Terraform, CI configs) are deferred.
+
+## Capture Channels Summary
+
+- Manual import and directory scan only in day 1.
+- No editor plugins or file watchers in MVP.
+
+## Normalization Summary
+
+- Canonical frontmatter schema: title, tags, project, status.
+- Best-effort extraction when frontmatter is missing or malformed.
+
 ### Key Entities *(include if feature involves data)*
 
 - **Source**: An ingested file with path, format type, and parse status.

@@ -6,7 +6,9 @@ from auditgraph.storage.artifacts import read_json
 
 
 def _entity_path(pkg_root: Path, entity_id: str) -> Path:
-    return pkg_root / "entities" / entity_id[:2] / f"{entity_id}.json"
+    token = entity_id.split("_", 1)[-1]
+    shard = token[:2] if token else entity_id[:2]
+    return pkg_root / "entities" / shard / f"{entity_id}.json"
 
 
 def load_entity(pkg_root: Path, entity_id: str) -> dict[str, object]:
