@@ -1,41 +1,31 @@
-# Roadmap & Milestones
+# Spec Blueprint: Roadmap and Milestones
 
-## Purpose
-Confirm phased plan scope, deliverables, and exit criteria.
+## Intent (read first)
+This document defines what the actual specification must include. It is not the specification itself.
+The spec produced from this blueprint must be implementable in code and validated by tests.
+
+## Goal
+Produce a concrete, testable roadmap spec that defines phases, deliverables,
+and exit criteria.
 
 ## Source material
 - [SPEC.md](SPEC.md) Milestones / Phased Plan
 
-## Decisions Required
-- Phase definitions and deliverables.
-- Exit criteria per phase.
-- Dependencies and sequencing.
+## Required decisions the spec must make
+- Phase definitions and required deliverables.
+- Exit criteria and validation steps per phase.
+- Dependencies and sequencing rules.
 
-## Decisions (filled)
+## Required spec sections and outputs
+The spec MUST include the following, with concrete requirements and examples:
 
-### Phase Definitions
+1) Phase list with deliverables.
+2) Exit criteria with measurable checks.
+3) Dependencies between phases.
 
-- Phase 1: CLI ingestion + extraction + indexing MVP
-- Phase 2: Linking + explainability + deterministic search
-- Phase 3: Automation jobs + exports
-- Phase 4: Optional semantic search and UI experiments
+## Definition of done for the spec
+- The spec defines concrete milestones and measurable exit criteria.
+- The spec avoids ambiguous timeline language.
 
-### Exit Criteria
-
-- Phase 1: Ingest, extract, index, and query commands verified with deterministic outputs
-- Phase 2: Deterministic links with explainability and stable traversal
-- Phase 3: Daily digest and report automation available
-- Phase 4: Optional semantic search documented and reproducible
-
-### Dependencies
-
-- Phase 2 depends on Phase 1 ingestion and indexing
-- Phase 3 depends on Phase 2 link outputs
-- Phase 4 depends on stable indexing and determinism gates
-
-## Resolved
-
-- Phases, exit criteria, and dependencies defined
-
-## Resolved
-- None yet.
+## Guardrails
+- This is documentation-only. Do not treat this as runtime behavior.

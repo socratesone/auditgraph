@@ -1,47 +1,38 @@
-# Automation & Jobs
+# Spec Blueprint: Automation and Jobs
 
-## Purpose
-Define scheduler model, job definitions, outputs, and review queue lifecycle.
+## Intent (read first)
+This document defines what the actual specification must include. It is not the specification itself.
+The spec produced from this blueprint must be implementable in code and validated by tests.
+
+## Goal
+Produce a concrete, testable automation spec for scheduled/manual jobs, outputs,
+and review workflows.
 
 ## Source material
 - [SPEC.md](SPEC.md) Automation Framework
 - [SPEC.md](SPEC.md) Functional Requirements FR-7
 
-## Decisions Required
-- Job scheduler model and trigger support.
-- jobs.yaml schema and validation rules.
-- Output storage paths and artifact conventions.
-- Review queue lifecycle and decision storage.
+## Required decisions the spec must make
+- Job scheduler scope (manual only vs scheduled).
+- Jobs configuration schema and validation rules.
+- Output storage paths and naming.
+- Review queue lifecycle and decision storage (if in scope).
 
-## Decisions (filled)
+## Required spec sections and outputs
+The spec MUST include the following, with concrete requirements and examples:
 
-### Scheduler Model
+1) Job configuration schema (fields, types, defaults).
+2) Supported job actions and required arguments.
+3) Output artifact rules and storage paths.
+4) Error handling and missing job behavior.
+5) Test plan with at least:
+	- job config parsing
+	- job execution output creation
 
-- Scheduled jobs defined in config
-- Manual trigger via CLI
+## Definition of done for the spec
+- The spec defines exact job config fields and output files.
+- The spec includes acceptance criteria and tests that map to code changes.
 
-### jobs.yaml Schema
-
-- `jobs` map with name
-- `schedule` (cron-like string or "manual")
-- `action` with `type` and `args`
-- `output` with `path`
-
-### Output Conventions
-
-- Job outputs stored under `exports/reports/` by default
-- Outputs are plain-text artifacts
-
-### Review Queue Lifecycle
-
-- Proposed links/claims stored as plain-text queue entries
-- Accept/reject decisions recorded as plain-text updates
-
-## Resolved
-
-- Scheduler model and jobs.yaml schema defined
-- Output conventions defined
-- Review queue lifecycle defined
-
-## Resolved
-- None yet.
+## Guardrails
+- Do not leave job actions unspecified.
+- Avoid non-testable language; requirements must be explicit.

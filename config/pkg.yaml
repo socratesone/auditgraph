@@ -20,6 +20,11 @@ profiles:
         - ".markdown"
         - ".txt"
         - ".log"
+        - ".py"
+        - ".js"
+        - ".ts"
+        - ".tsx"
+        - ".jsx"
       capture_channels:
         - "scan"
         - "manual"

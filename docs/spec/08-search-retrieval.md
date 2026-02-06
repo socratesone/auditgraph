@@ -1,56 +1,41 @@
-# Search & Retrieval
+# Spec Blueprint: Search and Retrieval
 
-## Purpose
-Define query types, ranking model, tie-break rules, indexes, and explanation payloads.
+## Intent (read first)
+This document defines what the actual specification must include. It is not the specification itself.
+The spec produced from this blueprint must be implementable in code and validated by tests.
+
+## Goal
+Produce a concrete, testable search spec that defines query types, ranking,
+index storage, and explanation payloads.
 
 ## Source material
 - [SPEC.md](SPEC.md) Search and Retrieval
 
-## Decisions Required
-- Query types required as first-class.
-- Dataset scale targets (12 months).
-- Local embedding constraints (CPU/GPU, model size).
-- Offline-first requirements (semantic search optional or required).
-- Deterministic ranking formula and tie-break keys.
-- Query response schema and explanation fields.
+## Required decisions the spec must make
+- Supported query types and required response fields.
+- Dataset scale targets and performance budgets.
+- Embedding constraints and whether semantic search is optional.
+- Ranking formula and explicit tie-break keys.
+- Index artifacts and storage paths.
 
-## Decisions (filled)
+## Required spec sections and outputs
+The spec MUST include the following, with concrete requirements and examples:
 
-### Query Types
+1) Query type definitions with inputs and outputs.
+2) Ranking formula and deterministic tie-break ordering.
+3) Explanation payload schema with evidence references.
+4) Index artifacts (keyword, semantic, graph) and storage paths.
+5) Offline-first behavior and semantic search enablement.
+6) Test plan with at least:
+	- keyword query response fields
+	- deterministic ordering for equal scores
+	- missing index handling
 
-- Keyword search
-- Hybrid (keyword + semantic)
-- Graph traversal (neighbors, paths)
-- Show sources for claim
+## Definition of done for the spec
+- The spec defines exact JSON fields for responses and explanations.
+- The spec includes performance targets that can be measured.
+- The spec includes acceptance criteria and tests that map to code changes.
 
-### Dataset Scale Targets
-
-- 12-month target: 10k notes, 50 repos, 1M code symbols
-
-### Embedding Constraints
-
-- CPU-only local embeddings
-- Optional
-- Model size <= 1.5 GB
-
-### Offline-first Policy
-
-- Core search is fully offline
-- Semantic search is optional offline
-
-### Ranking Formula and Tie-break
-
-- Deterministic scoring with stable tie-break keys
-- Tie-break order: score, stable_id, normalized path
-
-### Query Response Schema
-
-Required fields:
-- `results[]` with `id`, `type`, `score`
-- `explanation` object with `matched_terms`, `rule_id` (if applicable), `evidence` references
-
-## Resolved
-
-- Query types, dataset targets, embedding constraints, and offline-first policy defined.
-- Ranking formula and deterministic tie-break keys defined.
-- Query response schema and explanation fields defined.
+## Guardrails
+- Do not describe implementation details without specifying observable behavior.
+- Avoid ambiguous ranking rules; define explicit tie-break keys.

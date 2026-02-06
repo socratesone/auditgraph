@@ -16,6 +16,10 @@ def sha256_text(text: str, encoding: str = "utf-8") -> str:
     return sha256_bytes(text.encode(encoding))
 
 
+def sha256_json(payload: object) -> str:
+    return sha256_text(json.dumps(payload, sort_keys=True))
+
+
 def sha256_file(path: Path) -> str:
     hasher = hashlib.sha256()
     with path.open("rb") as handle:
