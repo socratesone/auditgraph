@@ -12,6 +12,20 @@ profiles:
       unicode: "NFC"
       line_endings: "LF"
       path_style: "posix"
+    ingestion:
+      allowed_extensions:
+        - ".md"
+        - ".markdown"
+        - ".txt"
+        - ".log"
+      capture_channels:
+        - "scan"
+        - "manual"
+      frontmatter_schema:
+        - "title"
+        - "tags"
+        - "project"
+        - "status"
     extraction:
       rule_packs:
         - "config/extractors/core.yaml"

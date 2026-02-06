@@ -1,13 +1,13 @@
-# Implementation Plan: Auditgraph Spec Consolidation
+# Implementation Plan: Data Sources and Ingestion Policy
 
-**Branch**: `001-spec-plan` | **Date**: 2026-02-05 | **Spec**: [specs/001-spec-plan/spec.md](specs/001-spec-plan/spec.md)
-**Input**: Feature specification from `/specs/001-spec-plan/spec.md`
+**Branch**: `002-data-sources-ingestion` | **Date**: 2026-02-05 | **Spec**: [specs/002-data-sources-ingestion/spec.md](specs/002-data-sources-ingestion/spec.md)
+**Input**: Feature specification from `/specs/002-data-sources-ingestion/spec.md`
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
 ## Summary
 
-Auditgraph is a local-first, deterministic PKG toolkit for engineers. It ingests plain-text notes and code, deterministically extracts entities and claims, creates explainable typed links, builds hybrid search indexes, and provides CLI-first navigation with optional local UI. The source of truth remains plain-text; all derived artifacts are reproducible, diffable, and fully audited.
+Define and implement the deterministic day-1 ingestion policy: allowed sources (Markdown, plain text, Git working tree), excluded formats (PDF/DOCX/HTML/org/email/issue exports), limited capture channels (manual import + directory scan), and a canonical Markdown frontmatter schema with best-effort fallback.
 
 ## Technical Context
 
@@ -18,14 +18,14 @@ Auditgraph is a local-first, deterministic PKG toolkit for engineers. It ingests
 -->
 
 **Language/Version**: Python 3.10+  
-**Primary Dependencies**: None required for MVP (stdlib-first); optional: rich (CLI UX), fastapi (optional local UI API)  
-**Storage**: Local filesystem (plain-text JSON/JSONL artifacts)  
+**Primary Dependencies**: None required for MVP (stdlib-first); optional: PyYAML for config  
+**Storage**: Local filesystem (plain-text artifacts)  
 **Testing**: pytest (planned)  
 **Target Platform**: Linux and macOS (MVP)  
 **Project Type**: Single package (CLI-first)  
-**Performance Goals**: p50 < 50ms, p95 < 200ms for keyword search on small datasets; <1s graph traversal for bounded paths  
-**Constraints**: Offline-capable; deterministic outputs; stable sorting; low manual review overhead  
-**Scale/Scope**: Small/medium datasets (10k–100k docs, up to ~1M entities/claims)
+**Performance Goals**: Deterministic ingestion over configured roots; p50 < 50ms for small queries (not the focus of this feature)  
+**Constraints**: Offline-capable; deterministic outputs; strict day-1 format allowlist; no OCR  
+**Scale/Scope**: Small/medium datasets (10k–100k docs)
 
 ## Constitution Check
 
@@ -40,7 +40,7 @@ Post-design check (Phase 1): unchanged; no constitution gates applied.
 ### Documentation (this feature)
 
 ```text
-specs/001-spec-plan/
+specs/002-data-sources-ingestion/
 ├── plan.md              # This file (/speckit.plan command output)
 ├── research.md          # Phase 0 output (/speckit.plan command)
 ├── data-model.md        # Phase 1 output (/speckit.plan command)
@@ -63,18 +63,9 @@ auditgraph/
 ├── cli.py
 ├── config.py
 ├── errors.py
-├── export/
-├── extract/
-├── index/
 ├── ingest/
-├── jobs/
-├── link/
-├── logging.py
 ├── normalize/
 ├── pipeline/
-├── plugins/
-├── query/
-├── scaffold.py
 ├── storage/
 └── utils/
 

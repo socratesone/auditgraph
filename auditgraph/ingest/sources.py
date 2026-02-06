@@ -12,6 +12,8 @@ def build_source_record(
     root: Path,
     parser_id: str,
     parse_status: str,
+    skip_reason: str | None = None,
+    extra_metadata: dict[str, object] | None = None,
 ) -> tuple[IngestRecord, dict[str, object]]:
     stat = path.stat()
     source_hash = sha256_file(path)
@@ -23,6 +25,7 @@ def build_source_record(
         mtime=stat.st_mtime,
         parser_id=parser_id,
         parse_status=parse_status,
+        skip_reason=skip_reason,
     )
     metadata = {
         "path": normalized,
@@ -31,5 +34,8 @@ def build_source_record(
         "mtime": stat.st_mtime,
         "parser_id": parser_id,
         "parse_status": parse_status,
+        "skip_reason": skip_reason,
     }
+    if extra_metadata:
+        metadata.update(extra_metadata)
     return record, metadata

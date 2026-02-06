@@ -16,12 +16,28 @@ Define day-1 formats, code languages, structured sources, capture channels, and 
 - Normalization rules (canonical frontmatter schemas vs best-effort extraction).
 
 ## Decisions (to fill)
-- Day-1 sources:
-- PDF handling policy:
-- Code languages and AST depth:
-- Structured sources:
-- Capture channels:
-- Normalization rules:
+- Day-1 sources: Markdown, plain text, and Git repositories (working tree). Org-mode, PDFs, DOCX, HTML, email exports, and issue tracker exports are out of scope for day 1.
+- PDF handling policy: Not supported in day 1; revisit after deterministic text extraction strategy is pinned.
+- Code languages and AST depth: File-level symbol extraction only for Python, JavaScript, TypeScript; no deep AST call graphs in MVP.
+- Structured sources: JSON/YAML manifests and CI configs are deferred; no OpenAPI/Terraform ingestion in day 1.
+- Capture channels: Manual import via CLI and directory scanning; no editor plugins or filesystem watchers in day 1.
+- Normalization rules: Canonical frontmatter schema for Markdown (title, tags, project, status) with best-effort extraction for missing fields.
 
 ## Resolved
-- None yet.
+- Day-1 sources
+- PDF handling policy
+- Code languages and AST depth
+- Structured sources
+- Capture channels
+- Normalization rules
+
+## Assumptions
+- Day-1 scope prioritizes deterministic, plain-text inputs to minimize parser variance.
+- AST extraction depth can expand after baseline ingestion and indexing are stable.
+- Directory scanning plus CLI import is sufficient for early workflows.
+
+## Config defaults (day-1)
+
+- Allowed extensions: .md, .markdown, .txt, .log
+- Capture channels: scan, manual
+- Frontmatter schema: title, tags, project, status
