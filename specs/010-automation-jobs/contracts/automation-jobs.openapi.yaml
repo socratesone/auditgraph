@@ -1,0 +1,53 @@
+openapi: 3.0.3
+info:
+  title: Auditgraph Automation Jobs
+  version: 0.1.0
+  description: CLI output payload schemas for jobs.
+paths: {}
+components:
+  schemas:
+    JobsListResponse:
+      type: object
+      required: [jobs]
+      properties:
+        jobs:
+          type: array
+          items:
+            type: string
+    JobsRunResponse:
+      type: object
+      required: [status, job, output]
+      properties:
+        status:
+          type: string
+        job:
+          type: string
+        output:
+          type: string
+    ErrorResponse:
+      type: object
+      required: [status, message]
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        detail:
+          type: object
+    JobConfig:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: object
+          required: [type]
+          properties:
+            type:
+              type: string
+            args:
+              type: object
+        output:
+          type: object
+          properties:
+            path:
+              type: string

@@ -9,6 +9,8 @@ Auto-generated from all feature plans. Last updated: 2026-02-05
 - Local filesystem (plain-text artifacts and manifests) (003-determinism-audit-contract)
 - Python 3.10+ + None required (stdlib-first) (005-pipeline-stages)
 - Local filesystem, plain-text JSON/JSONL artifacts under `.pkg/` (005-pipeline-stages)
+- Python 3.10+ + PyYAML (config parsing), stdlib (010-automation-jobs)
+- Local filesystem under workspace root and `.pkg/` (010-automation-jobs)
 
 - Python 3.10+ + None required for MVP (stdlib-first); optional: rich (CLI UX), fastapi (optional local UI API) (001-spec-plan)
 
@@ -28,9 +30,9 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.10+: Follow standard conventions
 
 ## Recent Changes
+- 010-automation-jobs: Added Python 3.10+ + PyYAML (config parsing), stdlib
 - 009-interfaces-ux: Added Python 3.10+ + None required (stdlib-first)
 - 009-interfaces-ux: Added Python 3.10+ + None required (stdlib-first)
-- 008-search-retrieval: Added Python 3.10+ + None required (stdlib-first)
 
 
 <!-- MANUAL ADDITIONS START -->
