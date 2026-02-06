@@ -31,6 +31,12 @@ Auditgraph is a local-first, deterministic personal knowledge graph (PKG) toolki
 - Provenance records are stored under .pkg/profiles/<profile>/provenance
 - Identical inputs + config should yield byte-identical manifests and artifacts
 
+## Knowledge Model
+
+- Canonical node types: entity, claim, note, task, decision, event
+- Claims stored as subject–predicate–object with provenance and optional validity windows
+- Contradictions are preserved and flagged explicitly
+
 ## Quickstart
 
 ```bash
