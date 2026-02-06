@@ -1,43 +1,34 @@
-# Testing & Quality Gates
+# Spec Blueprint: Testing and Quality Gates
 
-## Purpose
-Define test matrix, determinism checks, and performance gates.
+## Intent (read first)
+This document defines what the actual specification must include. It is not the specification itself.
+The spec produced from this blueprint must be implementable in code and validated by tests.
+
+## Goal
+Produce a concrete, testable testing/quality spec that defines required tests,
+determinism checks, and performance gates.
 
 ## Source material
 - [SPEC.md](SPEC.md) Testing Strategy
 - [SPEC.md](SPEC.md) Non-Functional Requirements
 
-## Decisions Required
-- Unit test coverage scope and fixtures.
-- Integration and golden test fixtures.
-- Determinism regression gates.
-- Performance test targets and tooling.
+## Required decisions the spec must make
+- Required unit and integration test scope.
+- Determinism regression gates and fixtures.
+- Performance targets and measurement approach.
+- Quality gates and failure criteria.
 
-## Decisions (filled)
+## Required spec sections and outputs
+The spec MUST include the following, with concrete requirements and examples:
 
-### Unit Tests
+1) Test matrix by stage (ingest, extract, link, index, query).
+2) Determinism checks and fixtures (byte-for-byte, stable ordering).
+3) Performance targets with p50/p95 thresholds.
+4) Quality gate rules (what fails the build).
 
-- Required for all domain logic
-- Use deterministic fixtures
+## Definition of done for the spec
+- The spec defines concrete tests that can be implemented.
+- The spec includes acceptance criteria that map to code changes.
 
-### Integration/Golden Tests
-
-- Golden fixtures for ingest, extract, link, index
-- Run-to-run comparisons for determinism
-
-### Determinism Gates
-
-- Byte-for-byte output comparison for identical inputs
-- Stable ordering checks for equal-score queries
-
-### Performance Tests
-
-- Keyword search p50 < 50ms, p95 < 200ms on small datasets
-- Graph traversal and why-connected < 1s
-
-## Resolved
-
-- Unit/integration scope, determinism gates, and performance targets defined
-
-## Resolved
-- None yet.
+## Guardrails
+- Avoid vague testing goals; define explicit thresholds and checks.

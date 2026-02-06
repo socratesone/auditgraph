@@ -43,10 +43,18 @@ def _build_parser() -> argparse.ArgumentParser:
     import_parser.add_argument("--root", default=".", help="Workspace root")
     import_parser.add_argument("--config", default=None, help="Config path")
 
-    for name in ("extract", "link", "index"):
-        subparsers.add_parser(name, help=f"Run {name} stage (placeholder)")
+    normalize_parser = subparsers.add_parser("normalize", help="Run normalize stage")
+    normalize_parser.add_argument("--root", default=".", help="Workspace root")
+    normalize_parser.add_argument("--config", default=None, help="Config path")
+    normalize_parser.add_argument("--run-id", default=None, help="Run id to normalize")
 
-    rebuild_parser = subparsers.add_parser("rebuild", help="Rebuild all stages (placeholder)")
+    for name in ("extract", "link", "index"):
+        stage_parser = subparsers.add_parser(name, help=f"Run {name} stage")
+        stage_parser.add_argument("--root", default=".", help="Workspace root")
+        stage_parser.add_argument("--config", default=None, help="Config path")
+        stage_parser.add_argument("--run-id", default=None, help=f"Run id to {name}")
+
+    rebuild_parser = subparsers.add_parser("rebuild", help="Rebuild all stages")
     rebuild_parser.add_argument("--root", default=".", help="Workspace root")
     rebuild_parser.add_argument("--config", default=None, help="Config path")
 
@@ -139,6 +147,14 @@ def main() -> None:
         root = Path(args.root).resolve()
         config = load_config(Path(args.config) if args.config else None)
         result = runner.run_import(root=root, config=config, targets=list(args.paths))
+        print(json.dumps({"stage": result.stage, "status": result.status, "detail": result.detail}, indent=2))
+        return
+
+    if args.command in {"normalize", "extract", "link", "index"}:
+        runner = PipelineRunner()
+        root = Path(args.root).resolve()
+        config = load_config(Path(args.config) if args.config else None)
+        result = runner.run_stage(args.command, root=root, config=config, run_id=args.run_id)
         print(json.dumps({"stage": result.stage, "status": result.status, "detail": result.detail}, indent=2))
         return
 

@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Iterable
 
-from auditgraph.storage.artifacts import write_json
+from auditgraph.storage.artifacts import read_json, write_json
 
 
 @dataclass(frozen=True)
@@ -22,5 +22,9 @@ class ProvenanceRecord:
 
 def write_provenance_index(pkg_root: Path, run_id: str, records: Iterable[ProvenanceRecord]) -> Path:
     path = pkg_root / "provenance" / f"{run_id}.json"
-    write_json(path, [record.to_dict() for record in records])
+    existing: list[dict[str, object]] = []
+    if path.exists():
+        existing = list(read_json(path))
+    payload = existing + [record.to_dict() for record in records]
+    write_json(path, payload)
     return path

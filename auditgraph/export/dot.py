@@ -12,7 +12,7 @@ def _load_entities(pkg_root: Path) -> list[dict[str, object]]:
         return entities
     for path in entities_dir.rglob("*.json"):
         entities.append(read_json(path))
-    return entities
+    return sorted(entities, key=lambda item: str(item.get("id", "")))
 
 
 def export_dot(pkg_root: Path, output_path: Path) -> Path:

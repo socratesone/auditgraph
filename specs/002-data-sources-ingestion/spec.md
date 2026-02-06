@@ -1,105 +1,83 @@
 # Feature Specification: Data Sources and Ingestion Policy
 
-**Feature Branch**: `002-data-sources-ingestion`  
-**Created**: 2026-02-05  
-**Status**: Draft  
-**Input**: User description: "Data sources and ingestion policy"
+**Feature Branch**: `specification-updates`
+**Status**: Approved
 
-## User Scenarios & Testing *(mandatory)*
+## Overview
+Auditgraph ingests local files deterministically using a strict allowlist of extensions.
+Day-1 ingestion supports Markdown notes, plain text/log files, and code files from Git working trees.
 
-### User Story 1 - Day-1 Sources Definition (Priority: P1)
+## Scope
+Included:
+- Markdown notes with frontmatter normalization.
+- Plain text and log files.
+- Code files for file-level symbols: Python, JavaScript, TypeScript.
+- Capture channels: directory scan and manual import.
 
-As an engineer, I can configure the tool to ingest only approved day-1 sources so that ingestion remains deterministic and predictable.
+Out of scope (day 1):
+- PDFs, DOCX, HTML, org-mode, email exports, issue tracker exports.
+- OCR and scanned documents.
+- Structured sources (OpenAPI, Terraform, CI configs, JSON/YAML manifests).
+- Editor plugins and filesystem watchers.
 
-**Why this priority**: Defines the minimum viable ingestion scope and prevents non-deterministic parsing on day 1.
-
-**Independent Test**: Configure a workspace with mixed files and confirm only the allowed formats are ingested.
-
-**Acceptance Scenarios**:
-
-1. **Given** a workspace with Markdown, plain text, PDFs, and HTML files, **When** ingestion runs, **Then** only Markdown, plain text, and Git working tree files are ingested.
-2. **Given** a workspace with unsupported formats, **When** ingestion runs, **Then** unsupported files are reported as skipped with a reason.
-
----
-
-### User Story 2 - Capture Channels (Priority: P2)
-
-As an engineer, I can run manual import and directory scan ingestion so that I control when the system processes new content.
-
-**Why this priority**: Establishes reliable ingestion without background automation that can introduce OS-specific variance.
-
-**Independent Test**: Run manual import and directory scan on the same workspace and confirm deterministic file lists.
-
-**Acceptance Scenarios**:
-
-1. **Given** a configured workspace root, **When** I trigger a directory scan, **Then** it produces a deterministic list of ingested files.
-2. **Given** a manual import command, **When** I specify a target path, **Then** only that path is ingested.
-
----
-
-### User Story 3 - Normalization Rules (Priority: P3)
-
-As an engineer, I can rely on consistent frontmatter normalization so that metadata is predictable across notes.
-
-**Why this priority**: Ensures metadata consistency without requiring perfect compliance in all notes.
-
-**Independent Test**: Ingest Markdown notes with and without frontmatter and verify normalized fields are present.
-
-**Acceptance Scenarios**:
-
-1. **Given** a Markdown note with frontmatter, **When** it is ingested, **Then** title, tags, project, and status are normalized.
-2. **Given** a Markdown note without frontmatter, **When** it is ingested, **Then** missing fields are left empty but ingestion succeeds.
-
----
-
-### Edge Cases
-
-- When include paths do not exist, ingestion should skip them without failing the run.
-- When files have unsupported formats, they should be recorded as skipped with a reason.
-- When frontmatter is malformed, ingestion should fall back to best-effort extraction.
-
-## Requirements *(mandatory)*
+## Requirements
 
 ### Functional Requirements
+- **FR-001**: The system MUST only ingest files with allowed extensions.
+- **FR-002**: The default allowed extensions MUST be: `.md`, `.markdown`, `.txt`, `.log`, `.py`, `.js`, `.ts`, `.tsx`, `.jsx`.
+- **FR-003**: Unsupported files MUST be recorded as skipped with a reason of `unsupported_extension`.
+- **FR-004**: Ingested files MUST be discovered in deterministic, sorted order by normalized path.
+- **FR-005**: Manual import MUST ingest only the target paths provided by the user.
+- **FR-006**: Markdown frontmatter MUST be parsed for `title`, `tags`, `project`, `status`.
+- **FR-007**: When frontmatter is missing, the frontmatter payload MUST be empty and ingestion MUST still succeed.
+- **FR-008**: Source artifacts MUST include parse status and skip reason (if any).
 
-- **FR-001**: The system MUST ingest Markdown, plain text, and Git working tree files on day 1.
-- **FR-002**: The system MUST exclude org-mode, PDFs, DOCX, HTML, email exports, and issue tracker exports from day-1 ingestion.
-- **FR-003**: The system MUST not perform OCR or PDF ingestion on day 1.
-- **FR-004**: The system MUST support file-level symbol extraction for Python, JavaScript, and TypeScript on day 1.
-- **FR-005**: The system MUST not require deep AST call graph extraction in the MVP scope.
-- **FR-006**: The system MUST defer structured sources (OpenAPI, Terraform, CI configs, JSON/YAML manifests) for day 1.
-- **FR-007**: The system MUST support manual import and directory scan capture channels on day 1.
-- **FR-008**: The system MUST not require editor plugins or filesystem watchers on day 1.
-- **FR-009**: The system MUST apply a canonical frontmatter schema (title, tags, project, status) for Markdown notes.
-- **FR-010**: The system MUST record unsupported sources as skipped with a reason.
+### Non-Functional Requirements
+- **NFR-001**: Ingestion results MUST be deterministic for identical inputs and config.
 
-## Ingestion Policy Summary
+## Configuration
+The ingestion policy is derived from the active profile:
 
-- Day-1 sources: Markdown, plain text, Git working tree files.
-- Unsupported formats are skipped with explicit reasons.
-- Structured sources (OpenAPI, Terraform, CI configs) are deferred.
+- `profiles.<name>.ingestion.allowed_extensions`: list of allowed extensions (overrides defaults).
+- `profiles.<name>.include_paths`: directories scanned for ingestion.
+- `profiles.<name>.exclude_globs`: glob patterns to skip during discovery.
 
-## Capture Channels Summary
+## Data Outputs
 
-- Manual import and directory scan only in day 1.
-- No editor plugins or file watchers in MVP.
+### Source Artifact Schema
+Each ingested or skipped file produces a source artifact at:
+`.pkg/profiles/<profile>/sources/<source_hash>.json` with required fields:
 
-## Normalization Summary
+- `path`, `source_hash`, `size`, `mtime`
+- `parser_id`, `parse_status`
+- `skip_reason` (only when skipped)
+- `frontmatter` (Markdown only, may be empty)
 
-- Canonical frontmatter schema: title, tags, project, status.
-- Best-effort extraction when frontmatter is missing or malformed.
+### Ingest Manifest
+`.pkg/profiles/<profile>/runs/<run_id>/ingest-manifest.json` MUST include:
 
-### Key Entities *(include if feature involves data)*
+- `run_id`, `pipeline_version`, `config_hash`, `inputs_hash`, `outputs_hash`
+- `records[]` (path, source_hash, parse_status, skip_reason)
+- `ingested_count`, `skipped_count`
 
-- **Source**: An ingested file with path, format type, and parse status.
-- **IngestionPolicy**: The set of allowed sources, excluded formats, and capture channels for day 1.
-- **FrontmatterSchema**: The canonical metadata fields for Markdown notes (title, tags, project, status).
+## User Scenarios
 
-## Success Criteria *(mandatory)*
+### Scenario 1: Allowlist enforcement
+Given a workspace with Markdown, PDF, and HTML files, when ingestion runs,
+then only allowed extensions are ingested and unsupported files are recorded as skipped.
 
-### Measurable Outcomes
+### Scenario 2: Manual import
+Given a manual import of a specific path, when import runs, then only that path is ingested.
 
-- **SC-001**: 100% of ingested files on day 1 are from the approved formats (Markdown, plain text, Git working tree).
-- **SC-002**: 100% of unsupported files are reported as skipped with a reason in the ingest summary.
-- **SC-003**: A new user can configure day-1 sources and run ingestion in under 5 minutes.
-- **SC-004**: At least 95% of Markdown notes with frontmatter produce normalized title, tags, project, and status fields.
+### Scenario 3: Frontmatter parsing
+Given a Markdown file with frontmatter, when ingested, then title/tags/project/status are extracted.
+
+## Acceptance Tests
+- Ingest rejects `.pdf` and records `unsupported_extension`.
+- File discovery order is deterministic and sorted.
+- Frontmatter extraction returns expected fields for Markdown.
+- Manual import ignores excluded paths and non-target files.
+
+## Success Criteria
+- 100% of unsupported files are reported with a skip reason.
+- Repeated runs with identical inputs produce identical manifests.

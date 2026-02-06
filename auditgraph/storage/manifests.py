@@ -17,15 +17,37 @@ class IngestRecord:
 
 @dataclass(frozen=True)
 class IngestManifest:
+    version: str
+    stage: str
     run_id: str
     started_at: str
+    finished_at: str
     pipeline_version: str
     config_hash: str
     inputs_hash: str
     outputs_hash: str
+    status: str
+    artifacts: list[str] = field(default_factory=list)
     records: list[IngestRecord] = field(default_factory=list)
     ingested_count: int = 0
     skipped_count: int = 0
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class StageManifest:
+    version: str
+    stage: str
+    run_id: str
+    inputs_hash: str
+    outputs_hash: str
+    config_hash: str
+    status: str
+    started_at: str
+    finished_at: str
+    artifacts: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

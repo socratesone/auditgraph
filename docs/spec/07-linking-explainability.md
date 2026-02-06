@@ -1,52 +1,42 @@
-# Linking Rules & Explainability
+# Spec Blueprint: Linking and Explainability
 
-## Purpose
-Define deterministic link rules, optional similarity rules, evidence payloads, and backlink strategy.
+## Intent (read first)
+This document defines what the actual specification must include. It is not the specification itself.
+The spec produced from this blueprint must be implementable in code and validated by tests.
+
+## Goal
+Produce a concrete, testable linking spec that defines deterministic rules, explainability payloads,
+and backlink behavior.
 
 ## Source material
 - [SPEC.md](SPEC.md) Linking and Navigation
 - [SPEC.md](SPEC.md) Search explainability
 
-## Decisions Required
-- Link generation policy (strict deterministic vs optional suggestions).
-- Supported link types and required metadata.
-- Explainability payload requirements (rule, evidence snippet, scores).
-- Backlinks policy (stored vs computed on demand).
+## Required decisions the spec must make
+- Link generation policy (authoritative deterministic vs optional suggestions).
+- Supported link types and required metadata fields.
+- Explainability payload schema and evidence requirements.
+- Backlinks strategy (on demand vs stored) and ordering rules.
+- Conflict handling when multiple rules produce links.
 
-## Decisions (filled)
+## Required spec sections and outputs
+The spec MUST include the following, with concrete requirements and examples:
 
-### Link Generation Policy
+1) Link rule list with rule ids and deterministic inputs.
+2) Link artifact schema with required fields and authority flags.
+3) Explainability payload schema with evidence references.
+4) Backlink retrieval rules and ordering.
+5) Link index or adjacency storage location.
+6) Test plan with at least:
+	- deterministic link generation
+	- explainability payload presence
+	- stable ordering for backlinks
 
-- Deterministic rules produce authoritative links.
-- Optional suggestion rules are allowed but must be marked non-authoritative.
+## Definition of done for the spec
+- The spec defines exact JSON fields for links and explanations.
+- The spec includes concrete rule ids and example evidence references.
+- The spec includes acceptance criteria and tests that map to code changes.
 
-### Link Types
-
-Supported types: mentions, defines, implements, depends_on, decided_in, relates_to, cites.
-
-Required metadata for all link types:
-- `rule_id`
-- `confidence`
-- `evidence` (source pointer(s))
-- `authority` (authoritative | suggested)
-
-### Explainability Payload
-
-Explainability must include:
-- `rule_id`
-- `evidence` reference(s)
-- `score` when applicable
-- `matched_terms` when applicable
-
-### Backlinks Policy
-
-- Backlinks are computed on demand in MVP.
-- Backlinks may be stored when performance requires it.
-- Ordering is deterministic: type, rule_id, from_id, to_id.
-
-## Resolved
-
-- Deterministic rules are authoritative; suggestions are explicitly flagged.
-- Supported link types and required metadata are defined.
-- Explainability payload includes rule id, evidence, and scores where applicable.
-- Backlinks computed on demand with deterministic ordering.
+## Guardrails
+- Do not leave linking rules undefined or described only by intent.
+- Avoid ambiguous link types; list explicit supported types.
