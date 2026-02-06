@@ -8,7 +8,7 @@ from auditgraph.storage.hashing import sha256_text
 
 
 def _link_id(rule_id: str, from_id: str, to_id: str) -> str:
-    return f"lnk_{sha256_text(rule_id + ":" + from_id + ":" + to_id)}"
+    return f"lnk_{sha256_text(rule_id + ':' + from_id + ':' + to_id)}"
 
 
 def build_source_cooccurrence_links(
