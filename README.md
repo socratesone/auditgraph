@@ -25,6 +25,12 @@ Auditgraph is a local-first, deterministic personal knowledge graph (PKG) toolki
 - Not supported (day 1): PDFs, DOCX, HTML, org-mode, email exports, issue tracker exports
 - Capture channels: manual import and directory scan only (no file watchers or editor plugins)
 
+## Determinism & Audit Contract
+
+- Runs write manifests, config snapshots, and replay logs under .pkg/profiles/<profile>/runs
+- Provenance records are stored under .pkg/profiles/<profile>/provenance
+- Identical inputs + config should yield byte-identical manifests and artifacts
+
 ## Quickstart
 
 ```bash

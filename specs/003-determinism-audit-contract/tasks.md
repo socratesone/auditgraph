@@ -22,8 +22,8 @@ description: "Task list for determinism and audit contract implementation"
 
 **Purpose**: Add determinism/audit scaffolding
 
-- [ ] T001 Add run metadata fields to config/pkg.yaml and document in docs/spec/03-determinism-audit-contract.md
-- [ ] T002 [P] Add audit contract constants in auditgraph/storage/audit.py
+- [X] T001 Add run metadata fields to config/pkg.yaml and document in docs/spec/03-determinism-audit-contract.md
+- [X] T002 [P] Add audit contract constants in auditgraph/storage/audit.py
 
 ---
 
@@ -31,9 +31,9 @@ description: "Task list for determinism and audit contract implementation"
 
 **Purpose**: Core structures for run manifests, config snapshots, and replay logs
 
-- [ ] T003 Extend run manifest schema with config hash and pipeline version in auditgraph/storage/manifests.py
-- [ ] T004 Add config snapshot writer in auditgraph/storage/config_snapshot.py
-- [ ] T005 Update replay log writer to include inputs/outputs hashes in auditgraph/pipeline/runner.py
+- [X] T003 Extend run manifest schema with config hash and pipeline version in auditgraph/storage/manifests.py
+- [X] T004 Add config snapshot writer in auditgraph/storage/config_snapshot.py
+- [X] T005 Update replay log writer to include inputs/outputs hashes in auditgraph/pipeline/runner.py
 
 **Checkpoint**: Foundation ready — user story phases can begin
 
@@ -45,9 +45,9 @@ description: "Task list for determinism and audit contract implementation"
 
 **Independent Test**: Run ingest twice and compare manifests and artifacts for byte equality.
 
-- [ ] T006 [US1] Implement deterministic run ID computation from input hashes in auditgraph/storage/hashing.py
-- [ ] T007 [US1] Use deterministic run ID and config hash in auditgraph/pipeline/runner.py
-- [ ] T008 [US1] Persist outputs hash in run manifest in auditgraph/storage/manifests.py
+- [X] T006 [US1] Implement deterministic run ID computation from input hashes in auditgraph/storage/hashing.py
+- [X] T007 [US1] Use deterministic run ID and config hash in auditgraph/pipeline/runner.py
+- [X] T008 [US1] Persist outputs hash in run manifest in auditgraph/storage/manifests.py
 
 ---
 
@@ -57,9 +57,9 @@ description: "Task list for determinism and audit contract implementation"
 
 **Independent Test**: Inspect manifests and verify provenance entries exist for a run.
 
-- [ ] T009 [US2] Add provenance record schema in auditgraph/storage/provenance.py
-- [ ] T010 [US2] Record provenance for ingest sources in auditgraph/pipeline/runner.py
-- [ ] T011 [US2] Add provenance index writer in auditgraph/storage/provenance.py
+- [X] T009 [US2] Add provenance record schema in auditgraph/storage/provenance.py
+- [X] T010 [US2] Record provenance for ingest sources in auditgraph/pipeline/runner.py
+- [X] T011 [US2] Add provenance index writer in auditgraph/storage/provenance.py
 
 ---
 
@@ -69,8 +69,8 @@ description: "Task list for determinism and audit contract implementation"
 
 **Independent Test**: Run the same query repeatedly and confirm stable order.
 
-- [ ] T012 [US3] Add stable tie-break ordering in auditgraph/query/ranking.py
-- [ ] T013 [US3] Record tie-break keys in query responses in auditgraph/query/keyword.py
+- [X] T012 [US3] Add stable tie-break ordering in auditgraph/query/ranking.py
+- [X] T013 [US3] Record tie-break keys in query responses in auditgraph/query/keyword.py
 
 ---
 
@@ -78,8 +78,8 @@ description: "Task list for determinism and audit contract implementation"
 
 **Purpose**: Documentation alignment
 
-- [ ] T014 [P] Update README.md with determinism and audit contract notes
-- [ ] T015 [P] Update specs/003-determinism-audit-contract/quickstart.md with replay log example
+- [X] T014 [P] Update README.md with determinism and audit contract notes
+- [X] T015 [P] Update specs/003-determinism-audit-contract/quickstart.md with replay log example
 
 ---
 

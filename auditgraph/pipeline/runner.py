@@ -18,7 +18,10 @@ from auditgraph.ingest.importer import split_imported
 import json
 
 from auditgraph.storage.artifacts import profile_pkg_root, write_json, write_text
-from auditgraph.storage.hashing import sha256_text
+from auditgraph.storage.config_snapshot import write_config_snapshot
+from auditgraph.storage.hashing import deterministic_run_id, inputs_hash, outputs_hash, sha256_text
+from auditgraph.storage.provenance import ProvenanceRecord, write_provenance_index
+from auditgraph.storage.audit import DEFAULT_PIPELINE_VERSION
 
 
 @dataclass
@@ -73,9 +76,23 @@ class PipelineRunner:
             source_path = pkg_root / "sources" / f"{record.source_hash}.json"
             write_json(source_path, metadata)
 
-        run_id = self._compute_run_id(records, config)
+        pipeline_version = str(config.raw.get("run_metadata", {}).get("pipeline_version", DEFAULT_PIPELINE_VERSION))
+        input_hash = inputs_hash(records)
+        config_hash = sha256_text(json.dumps(config.raw, sort_keys=True))
+        run_id = deterministic_run_id(input_hash, config_hash)
+        _, config_hash = write_config_snapshot(pkg_root, run_id, config)
+        output_hash = outputs_hash(records)
+
         started_at = "1970-01-01T00:00:00Z"
-        manifest = build_manifest(run_id=run_id, started_at=started_at, records=records)
+        manifest = build_manifest(
+            run_id=run_id,
+            started_at=started_at,
+            records=records,
+            pipeline_version=pipeline_version,
+            config_hash=config_hash,
+            inputs_hash=input_hash,
+            outputs_hash=output_hash,
+        )
         manifest_path = pkg_root / "runs" / run_id / "ingest-manifest.json"
         write_json(manifest_path, manifest.to_dict())
         replay_path = pkg_root / "runs" / run_id / "replay-log.jsonl"
@@ -83,8 +100,25 @@ class PipelineRunner:
             "stage": "ingest",
             "run_id": run_id,
             "inputs": len(records),
+            "inputs_hash": input_hash,
+            "outputs_hash": output_hash,
+            "config_hash": config_hash,
+            "pipeline_version": pipeline_version,
         }
         write_text(replay_path, f"{json.dumps(replay_line, sort_keys=True)}\n")
+
+        provenance_records = [
+            ProvenanceRecord(
+                artifact_id=record.source_hash,
+                source_path=record.path,
+                source_hash=record.source_hash,
+                rule_id="ingest.source.v1",
+                input_hash=record.source_hash,
+                run_id=run_id,
+            )
+            for record in records
+        ]
+        write_provenance_index(pkg_root, run_id, provenance_records)
 
         return StageResult(
             stage="ingest",
@@ -132,11 +166,38 @@ class PipelineRunner:
             source_path = pkg_root / "sources" / f"{record.source_hash}.json"
             write_json(source_path, metadata)
 
-        run_id = self._compute_run_id(records, config)
+        pipeline_version = str(config.raw.get("run_metadata", {}).get("pipeline_version", DEFAULT_PIPELINE_VERSION))
+        input_hash = inputs_hash(records)
+        config_hash = sha256_text(json.dumps(config.raw, sort_keys=True))
+        run_id = deterministic_run_id(input_hash, config_hash)
+        _, config_hash = write_config_snapshot(pkg_root, run_id, config)
+        output_hash = outputs_hash(records)
+
         started_at = "1970-01-01T00:00:00Z"
-        manifest = build_manifest(run_id=run_id, started_at=started_at, records=records)
+        manifest = build_manifest(
+            run_id=run_id,
+            started_at=started_at,
+            records=records,
+            pipeline_version=pipeline_version,
+            config_hash=config_hash,
+            inputs_hash=input_hash,
+            outputs_hash=output_hash,
+        )
         manifest_path = pkg_root / "runs" / run_id / "ingest-manifest.json"
         write_json(manifest_path, manifest.to_dict())
+
+        provenance_records = [
+            ProvenanceRecord(
+                artifact_id=record.source_hash,
+                source_path=record.path,
+                source_hash=record.source_hash,
+                rule_id="ingest.source.v1",
+                input_hash=record.source_hash,
+                run_id=run_id,
+            )
+            for record in records
+        ]
+        write_provenance_index(pkg_root, run_id, provenance_records)
 
         return StageResult(
             stage="import",
@@ -148,7 +209,3 @@ class PipelineRunner:
             },
         )
 
-    def _compute_run_id(self, records: list[Any], config: Config) -> str:
-        record_hashes = ":".join(sorted(record.source_hash for record in records))
-        config_hash = sha256_text(str(config.raw))
-        return f"run_{sha256_text(record_hashes + config_hash)}"
