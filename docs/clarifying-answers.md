@@ -182,3 +182,14 @@ This document captures the assumed answers to the clarifying questions and ties 
 
 3) **Recovery rule**
    - **Answer:** If the manifest is missing, discard temp artifacts and rerun the stage.
+
+## K) Storage Layout and Artifacts
+
+1) **Storage root**
+   - **Answer:** `.pkg/profiles/<profile>/` with run manifests under `.pkg/profiles/<profile>/runs/<run_id>/`.
+
+2) **Sharding rule**
+   - **Answer:** Two-character ID prefix sharding for entities, claims, and links.
+
+3) **Stable IDs**
+   - **Answer:** Canonicalized inputs hashed with sha256 and type prefixes; changes require version bumps.

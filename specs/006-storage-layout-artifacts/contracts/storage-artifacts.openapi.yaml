@@ -1,0 +1,236 @@
+openapi: 3.0.3
+info:
+  title: Auditgraph Storage Artifacts
+  version: 0.1.0
+  description: API contract for storage artifacts and schemas.
+servers:
+  - url: http://localhost:8080
+paths:
+  /artifacts/sources/{source_hash}:
+    get:
+      summary: Get a source artifact
+      parameters:
+        - name: source_hash
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Source artifact
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SourceArtifact"
+  /artifacts/entities/{entity_id}:
+    get:
+      summary: Get an entity artifact
+      parameters:
+        - name: entity_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Entity artifact
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntityArtifact"
+  /artifacts/claims/{claim_id}:
+    get:
+      summary: Get a claim artifact
+      parameters:
+        - name: claim_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Claim artifact
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClaimArtifact"
+  /artifacts/links/{link_id}:
+    get:
+      summary: Get a link artifact
+      parameters:
+        - name: link_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Link artifact
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkArtifact"
+  /artifacts/indexes/{index_id}:
+    get:
+      summary: Get an index artifact
+      parameters:
+        - name: index_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Index artifact
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IndexArtifact"
+components:
+  schemas:
+    SourceArtifact:
+      type: object
+      required:
+        - version
+        - path
+        - source_hash
+        - size
+        - mtime
+        - parser_id
+        - parse_status
+      properties:
+        version:
+          type: string
+        path:
+          type: string
+        source_hash:
+          type: string
+        size:
+          type: integer
+        mtime:
+          type: number
+        parser_id:
+          type: string
+        parse_status:
+          type: string
+        skip_reason:
+          type: string
+    EntityArtifact:
+      type: object
+      required:
+        - version
+        - id
+        - type
+        - name
+        - canonical_key
+        - provenance
+        - refs
+      properties:
+        version:
+          type: string
+        id:
+          type: string
+        type:
+          type: string
+        name:
+          type: string
+        canonical_key:
+          type: string
+        aliases:
+          type: array
+          items:
+            type: string
+        provenance:
+          type: object
+        refs:
+          type: array
+          items:
+            type: object
+    ClaimArtifact:
+      type: object
+      required:
+        - version
+        - id
+        - type
+        - predicate
+        - object
+        - provenance
+      properties:
+        version:
+          type: string
+        id:
+          type: string
+        type:
+          type: string
+        subject_id:
+          type: string
+        predicate:
+          type: string
+        object:
+          type: object
+        qualifiers:
+          type: object
+        provenance:
+          type: object
+    LinkArtifact:
+      type: object
+      required:
+        - version
+        - id
+        - from_id
+        - to_id
+        - type
+        - rule_id
+        - confidence
+        - evidence
+      properties:
+        version:
+          type: string
+        id:
+          type: string
+        from_id:
+          type: string
+        to_id:
+          type: string
+        type:
+          type: string
+        rule_id:
+          type: string
+        confidence:
+          type: number
+        evidence:
+          type: array
+          items:
+            type: object
+        explanation:
+          type: object
+    IndexArtifact:
+      type: object
+      required:
+        - version
+        - index_id
+        - type
+        - build_config_hash
+        - pipeline_version
+        - built_at
+        - inputs_manifest_hash
+        - shards
+      properties:
+        version:
+          type: string
+        index_id:
+          type: string
+        type:
+          type: string
+        build_config_hash:
+          type: string
+        pipeline_version:
+          type: string
+        built_at:
+          type: string
+        inputs_manifest_hash:
+          type: string
+        shards:
+          type: array
+          items:
+            type: string
