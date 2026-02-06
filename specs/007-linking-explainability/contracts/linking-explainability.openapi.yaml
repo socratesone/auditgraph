@@ -1,0 +1,96 @@
+openapi: 3.0.3
+info:
+  title: Auditgraph Linking and Explainability
+  version: 0.1.0
+  description: API contract for link artifacts and explainability payloads.
+servers:
+  - url: http://localhost:8080
+paths:
+  /links/{link_id}:
+    get:
+      summary: Get a link artifact
+      parameters:
+        - name: link_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Link artifact
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkArtifact"
+  /links/{link_id}/explainability:
+    get:
+      summary: Get link explainability payload
+      parameters:
+        - name: link_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Explainability payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExplainabilityPayload"
+components:
+  schemas:
+    LinkArtifact:
+      type: object
+      required:
+        - version
+        - id
+        - from_id
+        - to_id
+        - type
+        - rule_id
+        - confidence
+        - evidence
+        - explanation
+      properties:
+        version:
+          type: string
+        id:
+          type: string
+        from_id:
+          type: string
+        to_id:
+          type: string
+        type:
+          type: string
+        rule_id:
+          type: string
+        confidence:
+          type: number
+        evidence:
+          type: array
+          items:
+            type: object
+        explanation:
+          $ref: "#/components/schemas/ExplainabilityPayload"
+        authority:
+          type: string
+          enum: [authoritative, suggested]
+    ExplainabilityPayload:
+      type: object
+      required:
+        - rule_id
+        - evidence
+      properties:
+        rule_id:
+          type: string
+        evidence:
+          type: array
+          items:
+            type: object
+        score:
+          type: number
+        matched_terms:
+          type: array
+          items:
+            type: string

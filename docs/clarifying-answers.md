@@ -193,3 +193,17 @@ This document captures the assumed answers to the clarifying questions and ties 
 
 3) **Stable IDs**
    - **Answer:** Canonicalized inputs hashed with sha256 and type prefixes; changes require version bumps.
+
+## L) Linking and Explainability
+
+1) **Link generation policy**
+   - **Answer:** Deterministic rules produce authoritative links; optional suggestions are flagged non-authoritative.
+
+2) **Link types**
+   - **Answer:** mentions, defines, implements, depends_on, decided_in, relates_to, cites.
+
+3) **Explainability payload**
+   - **Answer:** Rule id + evidence snippet reference; include similarity score when applicable.
+
+4) **Backlinks policy**
+   - **Answer:** Backlinks computed on demand in MVP; stored only when performance requires it.
