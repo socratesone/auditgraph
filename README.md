@@ -47,6 +47,11 @@ pip install -e .
 auditgraph init --root .
 ```
 
+Shortcut: `make dev` (creates `.venv` and installs requirements).
+Test shortcut: `make test`.
+
+See docs/environment-setup.md for custom environment and requirements guidance.
+
 ## CLI
 
 ```bash
