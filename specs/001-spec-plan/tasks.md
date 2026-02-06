@@ -223,9 +223,9 @@ description: "Task list for Auditgraph spec implementation"
 
 **Purpose**: Cross-cutting refinements and documentation updates
 
-- [ ] T060 [P] Update README.md with command examples and pipeline notes
-- [ ] T061 [P] Update docs/spec/00-overview.md to link execution artifacts
-- [ ] T062 Run quickstart validation steps and record any fixes in specs/001-spec-plan/quickstart.md
+- [X] T060 [P] Update README.md with command examples and pipeline notes
+- [X] T061 [P] Update docs/spec/00-overview.md to link execution artifacts
+- [X] T062 Run quickstart validation steps and record any fixes in specs/001-spec-plan/quickstart.md
 
 ---
 
