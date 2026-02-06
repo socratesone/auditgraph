@@ -90,6 +90,23 @@ As an operator, I want a clear backlinks policy so that neighborhood traversal r
 - **FR-007**: The specification MUST define how link conflicts are handled and surfaced.
 - **FR-008**: The specification MUST define stable ordering for link outputs to preserve determinism.
 
+## Link Policy Summary
+
+- Deterministic rules produce authoritative links.
+- Optional suggestion rules are allowed but must be marked non-authoritative.
+- Supported link types: mentions, defines, implements, depends_on, decided_in, relates_to, cites.
+
+## Explainability Summary
+
+- Explainability payload includes rule id, evidence references, and scores when applicable.
+- Evidence references point to source artifacts, not duplicated text.
+
+## Backlinks Summary
+
+- Backlinks are computed on demand in MVP.
+- Stored backlinks are allowed only for performance reasons.
+- Ordering is deterministic: type, rule_id, from_id, to_id.
+
 ### Key Entities *(include if feature involves data)*
 
 - **Link Rule**: Deterministic or suggestion rule that produces a link candidate.

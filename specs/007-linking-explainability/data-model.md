@@ -7,7 +7,7 @@
 - Relationships: produces Link Artifacts
 
 ### Link Artifact
-- Fields: version, id, from_id, to_id, type, rule_id, confidence, evidence[], explanation{}
+- Fields: version, id, from_id, to_id, type, rule_id, confidence, evidence[], explanation{}, authority
 - Relationships: referenced by graph indexes and explainability output
 
 ### Explainability Payload
@@ -23,6 +23,7 @@
 - Suggested links are marked non-authoritative.
 - Explainability payload includes rule_id and evidence.
 - Link ordering is deterministic (type, rule_id, from_id, to_id).
+- Backlinks follow the same ordering rules as forward links.
 
 ## State Transitions
 - Links are immutable once written; updated rules create new link artifacts.

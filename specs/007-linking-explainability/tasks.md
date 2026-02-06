@@ -22,8 +22,8 @@ description: "Task list for Linking and Explainability"
 
 **Purpose**: Initialize feature documentation scaffolding
 
-- [ ] T001 Create specs/007-linking-explainability/spec.md from template and set feature metadata
-- [ ] T002 [P] Create specs/007-linking-explainability/plan.md from template with technical context
+- [X] T001 Create specs/007-linking-explainability/spec.md from template and set feature metadata
+- [X] T002 [P] Create specs/007-linking-explainability/plan.md from template with technical context
 
 ---
 
@@ -31,8 +31,8 @@ description: "Task list for Linking and Explainability"
 
 **Purpose**: Establish shared linking terminology and research context used by all stories
 
-- [ ] T003 Define baseline link policy and terminology in docs/spec/07-linking-explainability.md
-- [ ] T004 [P] Document key design decisions in specs/007-linking-explainability/research.md
+- [X] T003 Define baseline link policy and terminology in docs/spec/07-linking-explainability.md
+- [X] T004 [P] Document key design decisions in specs/007-linking-explainability/research.md
 
 **Checkpoint**: Foundation ready — user story phases can begin
 
@@ -46,9 +46,9 @@ description: "Task list for Linking and Explainability"
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] Document link generation policy and supported types in docs/spec/07-linking-explainability.md
-- [ ] T006 [P] [US1] Define Link Rule and Link Artifact entities in specs/007-linking-explainability/data-model.md
-- [ ] T007 [US1] Update specs/007-linking-explainability/spec.md with a link policy summary section
+- [X] T005 [US1] Document link generation policy and supported types in docs/spec/07-linking-explainability.md
+- [X] T006 [P] [US1] Define Link Rule and Link Artifact entities in specs/007-linking-explainability/data-model.md
+- [X] T007 [US1] Update specs/007-linking-explainability/spec.md with a link policy summary section
 
 **Checkpoint**: User Story 1 link rules are documented and reviewable
 
@@ -62,9 +62,9 @@ description: "Task list for Linking and Explainability"
 
 ### Implementation for User Story 2
 
-- [ ] T008 [US2] Document explainability payload fields in docs/spec/07-linking-explainability.md
-- [ ] T009 [P] [US2] Define explainability payload schema in specs/007-linking-explainability/contracts/linking-explainability.openapi.yaml
-- [ ] T010 [P] [US2] Add explainability validation rules in specs/007-linking-explainability/data-model.md
+- [X] T008 [US2] Document explainability payload fields in docs/spec/07-linking-explainability.md
+- [X] T009 [P] [US2] Define explainability payload schema in specs/007-linking-explainability/contracts/linking-explainability.openapi.yaml
+- [X] T010 [P] [US2] Add explainability validation rules in specs/007-linking-explainability/data-model.md
 
 **Checkpoint**: Explainability payload requirements are captured in docs and contract
 
@@ -78,9 +78,9 @@ description: "Task list for Linking and Explainability"
 
 ### Implementation for User Story 3
 
-- [ ] T011 [US3] Document backlinks policy and ordering rules in docs/spec/07-linking-explainability.md
-- [ ] T012 [P] [US3] Document backlinks policy and ordering in specs/007-linking-explainability/spec.md
-- [ ] T013 [US3] Add backlinks policy entity and validation rules in specs/007-linking-explainability/data-model.md
+- [X] T011 [US3] Document backlinks policy and ordering rules in docs/spec/07-linking-explainability.md
+- [X] T012 [P] [US3] Document backlinks policy and ordering in specs/007-linking-explainability/spec.md
+- [X] T013 [US3] Add backlinks policy entity and validation rules in specs/007-linking-explainability/data-model.md
 
 **Checkpoint**: Backlinks policy is documented and consistent
 
@@ -90,9 +90,9 @@ description: "Task list for Linking and Explainability"
 
 **Purpose**: Ensure documentation consistency and update onboarding references
 
-- [ ] T014 [P] Update specs/007-linking-explainability/quickstart.md to reference final payloads and policy
-- [ ] T015 [P] Update docs/clarifying-answers.md with linking policy decisions and defaults
-- [ ] T016 Run a consistency pass for docs/spec/07-linking-explainability.md and specs/007-linking-explainability/spec.md
+- [X] T014 [P] Update specs/007-linking-explainability/quickstart.md to reference final payloads and policy
+- [X] T015 [P] Update docs/clarifying-answers.md with linking policy decisions and defaults
+- [X] T016 Run a consistency pass for docs/spec/07-linking-explainability.md and specs/007-linking-explainability/spec.md
 
 ---
 
