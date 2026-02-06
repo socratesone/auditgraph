@@ -13,11 +13,32 @@ Define CLI/TUI/web UI scope, required commands, outputs, and integration surface
 - Machine-readable output formats and schemas.
 - Minimum editor integration depth.
 
-## Decisions (to fill)
-- Interface preference:
-- CLI command set:
-- Output formats and schemas:
-- Editor integration depth:
+## Decisions (filled)
+
+### Interface Preference
+
+- CLI-first
+- Optional local web UI later
+
+### CLI Command Set
+
+- init, ingest, extract, link, index, query, node, neighbors, diff, export, jobs, rebuild, why-connected
+
+### Output Formats and Schemas
+
+- JSON for machine-readable outputs
+- Human-readable summaries to stdout
+
+### Editor Integration Depth
+
+- Open results and insert links (phase 2+)
+
+## Resolved
+
+- CLI-first with optional local web UI
+- Required CLI command set
+- JSON output schema requirement
+- Editor integration depth defined
 
 ## Resolved
 - None yet.

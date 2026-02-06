@@ -91,6 +91,21 @@ As an engineer, I can interpret confidence levels and namespaces so that the gra
 - **FR-007**: Entity canonical keys MUST be deterministic and stable across runs.
 - **FR-008**: Notes, tasks, decisions, and events MUST be queryable as first-class node types.
 
+## Model Summary
+
+- Canonical types: entity, claim, note, task, decision, event.
+- Claims stored as subject–predicate–object with provenance.
+
+## Contradictions and Time Summary
+
+- Contradictions are preserved and flagged.
+- Optional validity windows for temporal facts.
+
+## Confidence and Ontology Summary
+
+- Rule-based confidence only in day 1.
+- Primary namespace with optional secondary namespaces for extensions.
+
 ### Key Entities *(include if feature involves data)*
 
 - **Entity**: Canonical node representing a person, system, concept, or artifact with stable identity.

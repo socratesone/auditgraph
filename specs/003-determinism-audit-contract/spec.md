@@ -90,6 +90,17 @@ As an engineer, I can rely on stable, deterministic ranking so repeated queries 
 - **FR-007**: The system MUST support immutable config snapshots per run, even if config evolves later.
 - **FR-008**: The system MUST allow deterministic reruns using the recorded manifests and config snapshot.
 
+## Determinism Summary
+
+- Identical inputs + config + pipeline version produce identical outputs.
+- Stable tie-break ordering for equal scores.
+
+## Audit Summary
+
+- Per-run manifests with inputs, config hash, pipeline version.
+- Provenance records for every derived artifact.
+- Replay logs for deterministic reruns.
+
 ### Key Entities *(include if feature involves data)*
 
 - **RunManifest**: Per-run record of inputs, configuration hash, pipeline version, and outputs.

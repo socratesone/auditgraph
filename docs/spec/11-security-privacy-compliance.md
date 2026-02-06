@@ -13,11 +13,29 @@ Define encryption, redaction, profile isolation, and export policy.
 - Multi-profile separation requirements.
 - Export redaction and clean-room sharing policy.
 
-## Decisions (to fill)
-- Encryption policy:
-- Secrets handling:
-- Profile separation:
-- Export policy:
+## Decisions (filled)
+
+### Encryption Policy
+
+- Not required for source store
+- Optional for exports
+
+### Secrets Handling
+
+- Automatic detection and redaction in derived artifacts and exports
+
+### Profile Separation
+
+- Separate profile roots
+- No cross-profile queries
+
+### Export Policy
+
+- Support redaction profiles for clean-room sharing
+
+## Resolved
+
+- Encryption, secrets handling, profile separation, and export policy defined
 
 ## Resolved
 - None yet.
