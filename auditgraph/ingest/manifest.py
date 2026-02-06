@@ -13,13 +13,25 @@ def write_ingest_manifest(root: Path, manifest: IngestManifest) -> Path:
     return manifest_path
 
 
-def build_manifest(run_id: str, started_at: str, records: Iterable[IngestRecord]) -> IngestManifest:
+def build_manifest(
+    run_id: str,
+    started_at: str,
+    records: Iterable[IngestRecord],
+    pipeline_version: str,
+    config_hash: str,
+    inputs_hash: str,
+    outputs_hash: str,
+) -> IngestManifest:
     record_list = list(records)
     skipped = sum(1 for record in record_list if record.parse_status == "skipped")
     ingested = len(record_list) - skipped
     return IngestManifest(
         run_id=run_id,
         started_at=started_at,
+        pipeline_version=pipeline_version,
+        config_hash=config_hash,
+        inputs_hash=inputs_hash,
+        outputs_hash=outputs_hash,
         records=record_list,
         ingested_count=ingested,
         skipped_count=skipped,
