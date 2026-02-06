@@ -22,8 +22,8 @@ description: "Task list for Search and Retrieval"
 
 **Purpose**: Initialize feature documentation scaffolding
 
-- [ ] T001 Create specs/008-search-retrieval/spec.md from template and set feature metadata
-- [ ] T002 [P] Create specs/008-search-retrieval/plan.md from template with technical context
+- [X] T001 Create specs/008-search-retrieval/spec.md from template and set feature metadata
+- [X] T002 [P] Create specs/008-search-retrieval/plan.md from template with technical context
 
 ---
 
@@ -31,8 +31,8 @@ description: "Task list for Search and Retrieval"
 
 **Purpose**: Establish shared search terminology and research context used by all stories
 
-- [ ] T003 Define baseline query types and ranking policy in docs/spec/08-search-retrieval.md
-- [ ] T004 [P] Document key design decisions in specs/008-search-retrieval/research.md
+- [X] T003 Define baseline query types and ranking policy in docs/spec/08-search-retrieval.md
+- [X] T004 [P] Document key design decisions in specs/008-search-retrieval/research.md
 
 **Checkpoint**: Foundation ready — user story phases can begin
 
@@ -46,9 +46,9 @@ description: "Task list for Search and Retrieval"
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] Document query types and response schema in docs/spec/08-search-retrieval.md
-- [ ] T006 [P] [US1] Define Query and Result entities in specs/008-search-retrieval/data-model.md
-- [ ] T007 [US1] Update specs/008-search-retrieval/spec.md with a query types summary section
+- [X] T005 [US1] Document query types and response schema in docs/spec/08-search-retrieval.md
+- [X] T006 [P] [US1] Define Query and Result entities in specs/008-search-retrieval/data-model.md
+- [X] T007 [US1] Update specs/008-search-retrieval/spec.md with a query types summary section
 
 **Checkpoint**: User Story 1 query types are documented and reviewable
 
@@ -62,9 +62,9 @@ description: "Task list for Search and Retrieval"
 
 ### Implementation for User Story 2
 
-- [ ] T008 [US2] Document ranking and tie-break rules in docs/spec/08-search-retrieval.md
-- [ ] T009 [P] [US2] Define ranking policy fields in specs/008-search-retrieval/data-model.md
-- [ ] T010 [P] [US2] Add deterministic ordering rules to specs/008-search-retrieval/spec.md
+- [X] T008 [US2] Document ranking and tie-break rules in docs/spec/08-search-retrieval.md
+- [X] T009 [P] [US2] Define ranking policy fields in specs/008-search-retrieval/data-model.md
+- [X] T010 [P] [US2] Add deterministic ordering rules to specs/008-search-retrieval/spec.md
 
 **Checkpoint**: Ranking and tie-break requirements are captured
 
@@ -78,9 +78,9 @@ description: "Task list for Search and Retrieval"
 
 ### Implementation for User Story 3
 
-- [ ] T011 [US3] Document explanation payload fields in docs/spec/08-search-retrieval.md
-- [ ] T012 [P] [US3] Define explanation schema in specs/008-search-retrieval/contracts/search-retrieval.openapi.yaml
-- [ ] T013 [US3] Add explanation validation rules in specs/008-search-retrieval/data-model.md
+- [X] T011 [US3] Document explanation payload fields in docs/spec/08-search-retrieval.md
+- [X] T012 [P] [US3] Define explanation schema in specs/008-search-retrieval/contracts/search-retrieval.openapi.yaml
+- [X] T013 [US3] Add explanation validation rules in specs/008-search-retrieval/data-model.md
 
 **Checkpoint**: Explainability payload requirements are documented
 
@@ -90,9 +90,9 @@ description: "Task list for Search and Retrieval"
 
 **Purpose**: Ensure documentation consistency and update onboarding references
 
-- [ ] T014 [P] Update specs/008-search-retrieval/quickstart.md to reference final response fields
-- [ ] T015 [P] Update docs/clarifying-answers.md with search/retrieval decisions and defaults
-- [ ] T016 Run a consistency pass for docs/spec/08-search-retrieval.md and specs/008-search-retrieval/spec.md
+- [X] T014 [P] Update specs/008-search-retrieval/quickstart.md to reference final response fields
+- [X] T015 [P] Update docs/clarifying-answers.md with search/retrieval decisions and defaults
+- [X] T016 Run a consistency pass for docs/spec/08-search-retrieval.md and specs/008-search-retrieval/spec.md
 
 ---
 

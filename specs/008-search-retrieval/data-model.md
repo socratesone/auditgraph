@@ -22,6 +22,7 @@
 - Results include id, type, score, and explanation.
 - Explanation includes matched terms and evidence references.
 - Tie-break keys are always populated for stable ordering.
+- Tie-break order is deterministic: score, stable_id, normalized path.
 
 ## State Transitions
 - Query results are immutable once returned; new runs produce new result sets.

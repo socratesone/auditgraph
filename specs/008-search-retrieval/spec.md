@@ -90,6 +90,21 @@ As a reviewer, I want explanation payloads so I can see why results were returne
 - **FR-007**: The specification MUST require stable ordering for equal scores.
 - **FR-008**: The specification MUST require explainability payloads with matched terms and evidence references.
 
+## Query Types Summary
+
+- Keyword, hybrid, graph traversal, and sources-for-claim queries are supported.
+- Each result includes id, type, score, and explanation.
+
+## Ranking Summary
+
+- Deterministic scoring with stable tie-break keys (score, stable_id, normalized path).
+- Equal-score results preserve ordering via tie-break keys.
+
+## Explainability Summary
+
+- Explanation payloads include matched terms and evidence references.
+- Rule ids are included when applicable.
+
 ### Key Entities *(include if feature involves data)*
 
 - **Query**: A user request for search or traversal.
