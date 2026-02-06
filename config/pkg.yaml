@@ -1,5 +1,7 @@
 pkg_root: "."
 active_profile: "default"
+run_metadata:
+  pipeline_version: "v0.1.0"
 profiles:
   default:
     include_paths:

@@ -11,6 +11,7 @@ DEFAULT_PROFILE_NAME = "default"
 DEFAULT_CONFIG: dict[str, Any] = {
     "pkg_root": ".",
     "active_profile": DEFAULT_PROFILE_NAME,
+    "run_metadata": {"pipeline_version": "v0.1.0"},
     "profiles": {
         DEFAULT_PROFILE_NAME: {
             "include_paths": ["notes", "repos"],
