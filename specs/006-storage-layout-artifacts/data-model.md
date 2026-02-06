@@ -4,7 +4,7 @@
 
 ### Artifact Root
 - Fields: profile, root_path
-- Relationships: contains run manifests and artifact directories
+- Relationships: contains run manifests and artifact directories; ties to profile isolation
 
 ### Source Artifact
 - Fields: version, path, source_hash, size, mtime, parser_id, parse_status, skip_reason?
@@ -31,6 +31,7 @@
 - IDs are deterministic and derived from canonical inputs.
 - Shard directories are derived from the first two characters of the ID suffix.
 - Index artifacts must reference the manifests used as inputs.
+- Canonicalization changes require schema version bumps.
 
 ## State Transitions
 - Artifacts are immutable once written; new versions are written under new run IDs.

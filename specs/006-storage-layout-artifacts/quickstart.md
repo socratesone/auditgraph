@@ -9,7 +9,7 @@ Use this spec to understand where artifacts live, how they are named, and what f
 1. Review [specs/006-storage-layout-artifacts/spec.md](specs/006-storage-layout-artifacts/spec.md) for layout and schema requirements.
 2. Read [specs/006-storage-layout-artifacts/data-model.md](specs/006-storage-layout-artifacts/data-model.md) for entity definitions and validation rules.
 3. Use [specs/006-storage-layout-artifacts/contracts/storage-artifacts.openapi.yaml](specs/006-storage-layout-artifacts/contracts/storage-artifacts.openapi.yaml) to align schema fields with API consumers.
-4. Confirm stable ID and sharding rules in the spec.
+4. Confirm stable ID and sharding rules in the spec and canonical layout paths in docs/spec/06-storage-layout-artifacts.md.
 
 ## Success Check
 

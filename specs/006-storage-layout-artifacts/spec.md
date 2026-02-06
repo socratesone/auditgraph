@@ -90,6 +90,16 @@ As an operator, I want sharding and stable ID rules documented so that large sto
 - **FR-007**: The specification MUST define how schema or canonicalization changes are versioned.
 - **FR-008**: The specification MUST define how index artifacts reference their input manifests.
 
+## Directory Layout Summary
+
+Artifacts are stored under `.pkg/profiles/<profile>/` with run manifests under `runs/<run_id>/`. Canonical paths are documented in [docs/spec/06-storage-layout-artifacts.md](docs/spec/06-storage-layout-artifacts.md).
+
+## Stable ID Canonicalization Summary
+
+- Canonical inputs are normalized paths and stable text forms.
+- IDs are derived by hashing canonical inputs with sha256 and type prefixes.
+- Canonicalization and schema changes require version bumps.
+
 ### Key Entities *(include if feature involves data)*
 
 - **Artifact Root**: Profile-scoped directory containing all derived outputs.
