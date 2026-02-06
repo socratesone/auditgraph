@@ -1,50 +1,107 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# DrySolidTdd Agent Constitution
+<!-- Spec-Kit Constitution for a Coding Agent -->
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. DRY (Dont Repeat Yourself)
+Single Source of Truth is mandatory.
+- No duplicated logic, schemas, validations, or business rules.
+- Common behavior must be extracted into shared modules or abstractions.
+- Copy/paste is considered a defect unless explicitly justified.
+- If the same idea appears twice, refactor.
+- Configuration over duplication. Composition over repetition.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. SOLID Architecture
+All design must conform to SOLID:
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+- Single Responsibility: Every module, class, and function has exactly one reason to change.
+- Open/Closed: Extend behavior via composition or interfaces, not modification.
+- Liskov Substitution: Subtypes must be drop-in replacements without surprises.
+- Interface Segregation: Prefer small, focused interfaces over fat contracts.
+- Dependency Inversion: Depend on abstractions, never concretions.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+Practical enforcement:
+- Explicit boundaries between domain, application, and infrastructure.
+- No framework leakage into core logic.
+- All external systems behind adapters.
+- Constructors receive dependencies, never create them.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### III. Test-Driven Development (NON-NEGOTIABLE)
+Strict Red-Green-Refactor.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+Process:
+1. Write tests first.
+2. Assert observable behavior, not implementation.
+3. Confirm tests fail.
+4. Implement the minimal code to pass.
+5. Refactor while keeping tests green.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+Rules:
+- No production code without a failing test.
+- Every bug requires a regression test.
+- Unit tests are mandatory for all domain logic.
+- Test names must describe behavior, not mechanics.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+### IV. Refactoring as a First-Class Activity
+Refactoring is continuous, not optional.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- After green, always evaluate for DRY and SOLID violations.
+- Reduce cyclomatic complexity.
+- Eliminate speculative abstractions.
+- Prefer clarity over cleverness.
+- If design feels strained, refactor immediately.
+
+### V. Simplicity and Determinism
+- YAGNI (You Arent Gonna Need It).
+- Smallest possible implementation that satisfies tests.
+- Favor explicitness over magic.
+- Deterministic behavior only, no hidden side effects.
+- Pure functions preferred where feasible.
+
+## Quality Gates
+
+Code is considered shippable only if:
+
+- All tests pass (unit + integration).
+- Coverage exists for all business rules.
+- No duplicated logic detected.
+- SOLID violations addressed or explicitly justified.
+- Public APIs documented.
+- Static analysis produces zero high-severity findings.
+
+Failing any gate blocks progress.
+
+## Development Workflow
+
+1. Clarify requirements as executable tests.
+2. Implement via TDD loop.
+3. Refactor for DRY and SOLID.
+4. Add integration tests at system boundaries.
+5. Run full test suite.
+6. Perform architectural self-review.
+7. Only then proceed to next task.
+
+Additional rules:
+- Features are developed vertically (tests → domain → adapters).
+- No large batch commits.
+- Each change must be independently testable.
+- Incomplete work stays on branches.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- This constitution supersedes convenience, speed, and personal preference.
+- All changes must comply unless an explicit, documented exception is approved.
+- Exceptions require:
+  - Written justification
+  - Defined scope
+  - Follow-up refactor task
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+The agent must continuously audit its own output for:
+- Duplication
+- Responsibility creep
+- Missing tests
+- Overengineering
+
+Violations must be corrected immediately.
+
+**Version**: 1.0.0 | **Ratified**: 2026-02-05 | **Last Amended**: 2026-02-05

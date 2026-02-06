@@ -26,9 +26,9 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.10+: Follow standard conventions
 
 ## Recent Changes
+- 004-knowledge-model: Added Python 3.10+ + None required for MVP (stdlib-first)
 - 003-determinism-audit-contract: Added Python 3.10+ + None required for MVP (stdlib-first)
 - 002-data-sources-ingestion: Added Python 3.10+ + None required for MVP (stdlib-first); optional: PyYAML for config
-- 001-spec-plan: Added Python 3.10+ + None required for MVP (stdlib-first); optional: rich (CLI UX), fastapi (optional local UI API)
 
 
 <!-- MANUAL ADDITIONS START -->
