@@ -4,8 +4,9 @@ from pathlib import Path
 from typing import Any
 
 from auditgraph.config import Config
+from auditgraph.errors import JobConfigError, JobNotFoundError
 from auditgraph.jobs.config import load_jobs_config, resolve_jobs_path
-from auditgraph.jobs.reports import report_changed_since
+from auditgraph.jobs.reports import record_job_run, report_changed_since, resolve_output_path
 from auditgraph.storage.artifacts import profile_pkg_root
 
 
@@ -21,19 +22,20 @@ def run_job(root: Path, config: Config, name: str) -> dict[str, Any]:
     jobs = payload.get("jobs", {})
     job = jobs.get(name)
     if not job:
-        return {"status": "missing_job", "job": name}
+        raise JobNotFoundError(f"Job not found: {name}")
 
     action = job.get("action", {})
     action_type = action.get("type")
     args = action.get("args", {})
     output = job.get("output", {})
-    output_path = Path(output.get("path", "exports/reports/job.md"))
-    output_path = (root / output_path).resolve()
+    output_path = resolve_output_path(root, name, output.get("path"))
 
     pkg_root = profile_pkg_root(root, config)
     if action_type == "report.changed_since":
         since = int(args.get("since", "24h").replace("h", "") or 24)
         report_changed_since(pkg_root, output_path, since_hours=since)
+        record_job_run(name, "ok", output_path, None, None)
         return {"status": "ok", "job": name, "output": str(output_path)}
 
-    return {"status": "unsupported_action", "job": name, "type": action_type}
+    record_job_run(name, "failed", output_path, None, None)
+    raise JobConfigError(f"Unsupported job action: {action_type}")

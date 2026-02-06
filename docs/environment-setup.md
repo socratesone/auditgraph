@@ -41,6 +41,10 @@ Notes:
 - `make dev` installs the development requirements from `requirements-dev.txt`.
 - `make test` runs the test suite using the virtual environment.
 
+## Jobs Configuration
+
+Automation jobs are configured in `config/jobs.yaml` and read by `auditgraph jobs list` and `auditgraph jobs run`.
+
 ## Optional Dependencies
 
 Install optional tools as needed:
