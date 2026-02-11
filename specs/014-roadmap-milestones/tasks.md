@@ -10,14 +10,14 @@ description: "Task list for implementing Roadmap and Milestones"
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 Create roadmap phase table in specs/014-roadmap-milestones/spec.md
+- [X] T001 Create roadmap phase table in specs/014-roadmap-milestones/spec.md
 
 ---
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-- [ ] T002 [P] Add phase dependencies section to specs/014-roadmap-milestones/spec.md
-- [ ] T003 [P] Add measurable exit criteria section to specs/014-roadmap-milestones/spec.md
+- [X] T002 [P] Add phase dependencies section to specs/014-roadmap-milestones/spec.md
+- [X] T003 [P] Add measurable exit criteria section to specs/014-roadmap-milestones/spec.md
 
 **Checkpoint**: Foundation ready (roadmap structure complete)
 
@@ -31,7 +31,7 @@ description: "Task list for implementing Roadmap and Milestones"
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Validate phase 0–6 deliverables in specs/014-roadmap-milestones/spec.md
+- [X] T004 [US1] Validate phase 0–6 deliverables in specs/014-roadmap-milestones/spec.md
 
 **Checkpoint**: US1 passes and is independently testable.
 
@@ -45,7 +45,7 @@ description: "Task list for implementing Roadmap and Milestones"
 
 ### Implementation for User Story 2
 
-- [ ] T005 [US2] Validate dependency ordering and completeness in specs/014-roadmap-milestones/spec.md
+- [X] T005 [US2] Validate dependency ordering and completeness in specs/014-roadmap-milestones/spec.md
 
 **Checkpoint**: US2 passes and is independently testable.
 
@@ -59,7 +59,7 @@ description: "Task list for implementing Roadmap and Milestones"
 
 ### Implementation for User Story 3
 
-- [ ] T006 [US3] Validate roadmap completeness and wording in specs/014-roadmap-milestones/spec.md
+- [X] T006 [US3] Validate roadmap completeness and wording in specs/014-roadmap-milestones/spec.md
 
 **Checkpoint**: US3 passes and is independently testable.
 
@@ -67,7 +67,7 @@ description: "Task list for implementing Roadmap and Milestones"
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T007 [P] Validate specs/014-roadmap-milestones/quickstart.md against the roadmap; update if mismatched
+- [X] T007 [P] Validate specs/014-roadmap-milestones/quickstart.md against the roadmap; update if mismatched
 
 ---
 
