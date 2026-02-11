@@ -1,0 +1,112 @@
+openapi: 3.0.3
+info:
+  title: Auditgraph Distribution and Upgrade Policy API
+  version: "1.0.0"
+  description: Contracts describing compatibility checks and budget enforcement.
+servers:
+  - url: http://localhost
+paths:
+  /compatibility/check:
+    post:
+      summary: Check artifact schema compatibility
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompatibilityCheckRequest"
+      responses:
+        "200":
+          description: Compatibility result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompatibilityCheckResponse"
+  /budget/check:
+    post:
+      summary: Check disk footprint budget
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BudgetCheckRequest"
+      responses:
+        "200":
+          description: Budget evaluation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BudgetCheckResponse"
+components:
+  schemas:
+    CompatibilityCheckRequest:
+      type: object
+      required:
+        - current_schema_version
+        - artifact_schema_version
+      properties:
+        current_schema_version:
+          type: string
+        artifact_schema_version:
+          type: string
+    CompatibilityCheckResponse:
+      type: object
+      required:
+        - compatible
+        - action
+      properties:
+        compatible:
+          type: boolean
+        action:
+          type: string
+          enum:
+            - proceed
+            - rebuild_required
+        message:
+          type: string
+    BudgetCheckRequest:
+      type: object
+      required:
+        - source_bytes
+        - artifact_bytes
+        - multiplier
+        - warn_threshold
+        - block_threshold
+      properties:
+        source_bytes:
+          type: integer
+          format: int64
+        artifact_bytes:
+          type: integer
+          format: int64
+        multiplier:
+          type: number
+          format: float
+        warn_threshold:
+          type: number
+          format: float
+        block_threshold:
+          type: number
+          format: float
+    BudgetCheckResponse:
+      type: object
+      required:
+        - status
+        - usage_ratio
+        - limit_bytes
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+            - warn
+            - block
+        usage_ratio:
+          type: number
+          format: float
+        limit_bytes:
+          type: integer
+          format: int64
+        message:
+          type: string
