@@ -1,0 +1,47 @@
+openapi: 3.0.3
+info:
+  title: Auditgraph Roadmap and Milestones API
+  version: "1.0.0"
+  description: Contracts describing roadmap phases, deliverables, and exit criteria.
+servers:
+  - url: http://localhost
+paths:
+  /roadmap/phases:
+    get:
+      summary: List roadmap phases
+      responses:
+        "200":
+          description: Roadmap phases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Phase"
+components:
+  schemas:
+    Phase:
+      type: object
+      required:
+        - phase_id
+        - name
+        - deliverables
+        - exit_criteria
+        - dependencies
+      properties:
+        phase_id:
+          type: string
+        name:
+          type: string
+        deliverables:
+          type: array
+          items:
+            type: string
+        exit_criteria:
+          type: array
+          items:
+            type: string
+        dependencies:
+          type: array
+          items:
+            type: string
