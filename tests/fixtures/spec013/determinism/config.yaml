@@ -1,0 +1,6 @@
+fixture_path: tests/fixtures/spec013/workspace
+run_output: tests/fixtures/spec013/runs
+
+golden_dir: tests/fixtures/spec013/golden
+ordering_file: ordering.json
+ordering_key: ids

@@ -1,0 +1,10 @@
+gates:
+  - metric: keyword_p50
+    target: 0.05
+    allowance: 0.10
+  - metric: keyword_p95
+    target: 0.20
+    allowance: 0.10
+  - metric: ingest_extract_100_files
+    target: 10.0
+    allowance: 0.10
