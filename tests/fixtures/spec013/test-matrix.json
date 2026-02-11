@@ -1,0 +1,9 @@
+{
+  "stages": [
+    {"stage": "ingest", "unit_tests": ["tests/test_spec002_ingestion_policy.py::test_extract_frontmatter"], "integration_tests": ["tests/test_smoke.py::test_pipeline_ingest_smoke"]},
+    {"stage": "extract", "unit_tests": ["tests/test_spec004_knowledge_model.py::test_validate_entity_and_claim"], "integration_tests": ["tests/test_spec005_pipeline_stages.py::test_rebuild_writes_stage_manifests"]},
+    {"stage": "link", "unit_tests": ["tests/test_spec007_linking_explainability.py::test_links_have_evidence"], "integration_tests": ["tests/test_spec007_linking_explainability.py::test_explainable_links_written"]},
+    {"stage": "index", "unit_tests": ["tests/test_user_story_query_graph.py::test_bm25_index_builds"], "integration_tests": ["tests/test_user_story_query_graph.py::test_keyword_query_returns_results"]},
+    {"stage": "query", "unit_tests": ["tests/test_spec003_determinism_audit.py::test_ranking_tie_break_is_stable"], "integration_tests": ["tests/test_cli_integration.py::test_cli_query_returns_results"]}
+  ]
+}

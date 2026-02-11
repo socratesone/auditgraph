@@ -1,0 +1,127 @@
+openapi: 3.0.3
+info:
+  title: Auditgraph Testing and Quality Gates API
+  version: "1.0.0"
+  description: Contracts describing test matrix, determinism, and performance gate checks.
+servers:
+  - url: http://localhost
+paths:
+  /quality-gates/check:
+    post:
+      summary: Run quality gate checks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QualityGateRequest"
+      responses:
+        "200":
+          description: Quality gate results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QualityGateResponse"
+components:
+  schemas:
+    QualityGateRequest:
+      type: object
+      required:
+        - matrix
+        - determinism_fixture
+        - performance_gates
+      properties:
+        matrix:
+          $ref: "#/components/schemas/TestMatrix"
+        determinism_fixture:
+          $ref: "#/components/schemas/DeterminismFixture"
+        performance_gates:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceGate"
+    QualityGateResponse:
+      type: object
+      required:
+        - status
+        - results
+      properties:
+        status:
+          type: string
+          enum:
+            - pass
+            - fail
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/QualityGateResult"
+    TestMatrix:
+      type: object
+      required:
+        - stage
+        - unit_tests
+        - integration_tests
+      properties:
+        stage:
+          type: string
+        unit_tests:
+          type: array
+          items:
+            type: string
+        integration_tests:
+          type: array
+          items:
+            type: string
+    DeterminismFixture:
+      type: object
+      required:
+        - fixture_path
+        - golden_outputs
+        - config_path
+      properties:
+        fixture_path:
+          type: string
+        golden_outputs:
+          type: array
+          items:
+            type: string
+        config_path:
+          type: string
+    PerformanceGate:
+      type: object
+      required:
+        - metric
+        - target
+        - allowance
+      properties:
+        metric:
+          type: string
+        target:
+          type: number
+          format: float
+        allowance:
+          type: number
+          format: float
+    QualityGateResult:
+      type: object
+      required:
+        - status
+        - stage
+        - threshold
+        - observed
+        - message
+      properties:
+        status:
+          type: string
+          enum:
+            - pass
+            - fail
+        stage:
+          type: string
+        threshold:
+          type: number
+          format: float
+        observed:
+          type: number
+          format: float
+        message:
+          type: string

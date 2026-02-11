@@ -15,6 +15,8 @@ Auto-generated from all feature plans. Last updated: 2026-02-05
 - Filesystem artifacts under `.pkg/profiles/<profile>/...` and `exports/...` (011-security-privacy-compliance)
 - Python >=3.10 + stdlib, PyYAML (config), pytest (tests) (012-distribution-packaging-upgrades)
 - Filesystem artifacts under per-profile `.pkg` directories (012-distribution-packaging-upgrades)
+- Python >=3.10 + stdlib, pytest (013-testing-quality-gates)
+- Filesystem artifacts under `.pkg` (fixtures and golden artifacts) (013-testing-quality-gates)
 
 - Python 3.10+ + None required for MVP (stdlib-first); optional: rich (CLI UX), fastapi (optional local UI API) (001-spec-plan)
 
@@ -34,9 +36,9 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.10+: Follow standard conventions
 
 ## Recent Changes
+- 013-testing-quality-gates: Added Python >=3.10 + stdlib, pytest
 - 012-distribution-packaging-upgrades: Added Python >=3.10 + stdlib, PyYAML (config), pytest (tests)
 - 011-security-privacy-compliance: Added Python >=3.10 + stdlib, `pyyaml` (config), `pytest` (tests)
-- 010-automation-jobs: Added Python 3.10+ + PyYAML (config parsing), stdlib
 
 
 <!-- MANUAL ADDITIONS START -->
