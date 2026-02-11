@@ -1,0 +1,80 @@
+openapi: 3.0.3
+info:
+  title: Auditgraph Security, Privacy, and Compliance
+  version: 0.1.0
+  description: Schemas for redacted exports and metadata required for clean-room sharing.
+paths: {}
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [status, message]
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        detail:
+          type: object
+
+    RedactionSummary:
+      type: object
+      required: [total_matches, counts_by_category]
+      properties:
+        total_matches:
+          type: integer
+          minimum: 0
+        counts_by_category:
+          type: object
+          additionalProperties:
+            type: integer
+            minimum: 0
+
+    ExportMetadata:
+      type: object
+      required:
+        - created_at
+        - profile
+        - root_id
+        - redaction_policy_id
+        - redaction_policy_version
+        - redaction_summary
+        - clean_room
+      properties:
+        created_at:
+          type: string
+          description: ISO8601 timestamp.
+        profile:
+          type: string
+        root_id:
+          type: string
+          description: Non-sensitive workspace identifier.
+        redaction_policy_id:
+          type: string
+        redaction_policy_version:
+          type: string
+        redaction_summary:
+          $ref: '#/components/schemas/RedactionSummary'
+        clean_room:
+          type: boolean
+
+    GraphExport:
+      type: object
+      required: [export_metadata, entities]
+      properties:
+        export_metadata:
+          $ref: '#/components/schemas/ExportMetadata'
+        entities:
+          type: array
+          items:
+            type: object
+            description: Entity records; fields are schema-flexible but must be redacted.
+
+    ExportCommandResponse:
+      type: object
+      required: [format, output]
+      properties:
+        format:
+          type: string
+        output:
+          type: string
