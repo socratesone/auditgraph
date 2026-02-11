@@ -14,6 +14,7 @@ from auditgraph.pipeline.runner import PipelineRunner
 from auditgraph.query import diff_runs, keyword_search, neighbors, node_view, why_connected
 from auditgraph.scaffold import initialize_workspace
 from auditgraph.storage.artifacts import profile_pkg_root
+from auditgraph.utils.paths import ensure_within_base
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -219,13 +220,20 @@ def main() -> None:
             root = Path(args.root).resolve()
             config = load_config(Path(args.config) if args.config else None)
             pkg_root = profile_pkg_root(root, config)
-            output_path = Path(args.output) if args.output else root / "exports" / "subgraphs" / f"export.{args.format}"
-            if args.format == "dot":
-                path = export_dot(pkg_root, output_path)
-            elif args.format == "graphml":
-                path = export_graphml(pkg_root, output_path)
+            export_base = (root / "exports" / "subgraphs").resolve()
+            if args.output:
+                target = Path(args.output)
+                resolved = target.resolve() if target.is_absolute() else (root / target).resolve()
+                ensure_within_base(resolved, export_base, label="export output path")
+                output_path = resolved
             else:
-                path = export_json(root, pkg_root, output_path)
+                output_path = export_base / f"export.{args.format}"
+            if args.format == "dot":
+                path = export_dot(pkg_root, output_path, config=config)
+            elif args.format == "graphml":
+                path = export_graphml(pkg_root, output_path, config=config)
+            else:
+                path = export_json(root, pkg_root, output_path, config=config)
             _emit({"format": args.format, "output": str(path)})
             return
 

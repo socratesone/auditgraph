@@ -12,3 +12,11 @@ class JobConfigError(AuditgraphError):
 
 class JobNotFoundError(AuditgraphError):
     """Requested job is not defined."""
+
+
+class SecurityPolicyError(AuditgraphError):
+    """Security policy validation failure."""
+
+
+class PathPolicyError(AuditgraphError):
+    """Path policy validation failure."""

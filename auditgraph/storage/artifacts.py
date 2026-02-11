@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Any
 
 from auditgraph.config import Config
+from auditgraph.utils.paths import ensure_within_base
+from auditgraph.utils.profile import validate_profile_name
 
 
 def ensure_dir(path: Path) -> None:
@@ -26,5 +28,8 @@ def write_text(path: Path, text: str) -> None:
 
 
 def profile_pkg_root(root: Path, config: Config) -> Path:
-    profile = config.active_profile()
-    return root / ".pkg" / "profiles" / profile
+    profile = validate_profile_name(config.active_profile())
+    base = root / ".pkg" / "profiles"
+    target = base / profile
+    ensure_within_base(target, base, label="profile pkg root")
+    return target

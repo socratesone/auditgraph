@@ -2,6 +2,18 @@ pkg_root: "."
 active_profile: "default"
 run_metadata:
   pipeline_version: "v0.1.0"
+security:
+  redaction:
+    enabled: true
+    policy_id: "redaction.policy.v1"
+    policy_version: "v1"
+    detectors:
+      - "pem_private_key"
+      - "jwt"
+      - "bearer_token"
+      - "credential_kv"
+      - "url_credentials"
+      - "vendor_token"
 profiles:
   default:
     include_paths:

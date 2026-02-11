@@ -31,6 +31,13 @@ Auditgraph is a local-first, deterministic personal knowledge graph (PKG) toolki
 - Provenance records are stored under .pkg/profiles/<profile>/provenance
 - Identical inputs + config should yield byte-identical manifests and artifacts
 
+## Security, Privacy, and Compliance
+
+- Redaction is enabled by default and applied before persistence, indexing, and export.
+- Redaction markers are deterministic and profile-scoped (stored under .pkg/profiles/<profile>/secrets/redaction.key).
+- Exports include an export_metadata block with policy identifiers and redaction summary counts.
+- Workspace-relative export/job output paths must remain under exports/ (export defaults to exports/subgraphs/).
+
 ## Knowledge Model
 
 - Canonical node types: entity, claim, note, task, decision, event

@@ -81,7 +81,9 @@ def test_cli_export_json_writes_file(tmp_path: Path) -> None:
 
     output_path = Path(payload["output"])
     assert output_path.exists()
-    assert read_json(output_path)["entities"]
+    payload = read_json(output_path)
+    assert "entities" in payload
+    assert payload["entities"]
 
 
 def test_cli_error_returns_status_and_message(tmp_path: Path) -> None:
