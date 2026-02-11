@@ -5,6 +5,7 @@ from pathlib import Path
 from auditgraph.config import load_config
 from auditgraph.pipeline.runner import PipelineRunner
 from auditgraph.storage.artifacts import read_json, profile_pkg_root
+from auditgraph.storage.audit import ARTIFACT_SCHEMA_VERSION
 
 
 def test_ingest_manifest_path_under_runs(tmp_path: Path) -> None:
@@ -18,6 +19,7 @@ def test_ingest_manifest_path_under_runs(tmp_path: Path) -> None:
 
     manifest_path = Path(result.detail["manifest"])
     manifest = read_json(manifest_path)
+    assert manifest["schema_version"] == ARTIFACT_SCHEMA_VERSION
     pkg_root = profile_pkg_root(tmp_path, config)
     expected = pkg_root / "runs" / manifest["run_id"] / "ingest-manifest.json"
 
@@ -40,3 +42,4 @@ def test_rebuild_writes_stage_manifests(tmp_path: Path) -> None:
         manifest_path = pkg_root / "runs" / run_id / f"{stage}-manifest.json"
         manifest = read_json(manifest_path)
         assert manifest["stage"] == stage
+        assert manifest["schema_version"] == ARTIFACT_SCHEMA_VERSION

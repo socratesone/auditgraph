@@ -20,3 +20,11 @@ class SecurityPolicyError(AuditgraphError):
 
 class PathPolicyError(AuditgraphError):
     """Path policy validation failure."""
+
+
+class CompatibilityError(AuditgraphError):
+    """Artifact schema compatibility failure."""
+
+
+class BudgetError(AuditgraphError):
+    """Disk footprint budget failure."""

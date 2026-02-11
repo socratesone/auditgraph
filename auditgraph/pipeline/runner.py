@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from auditgraph.config import Config
+from auditgraph.config import Config, footprint_budget_settings
 from auditgraph.ingest import (
     build_manifest,
     build_source_record,
@@ -31,8 +31,10 @@ from auditgraph.storage.config_snapshot import write_config_snapshot
 from auditgraph.storage.hashing import deterministic_run_id, inputs_hash, outputs_hash, sha256_json, sha256_text
 from auditgraph.storage.loaders import load_entities
 from auditgraph.storage.provenance import ProvenanceRecord, write_provenance_index
-from auditgraph.storage.audit import DEFAULT_PIPELINE_VERSION
+from auditgraph.storage.audit import ARTIFACT_SCHEMA_VERSION, DEFAULT_PIPELINE_VERSION
 from auditgraph.storage.manifests import StageManifest
+from auditgraph.utils.compatibility import check_latest_manifest_compatibility, ensure_latest_manifest_compatibility
+from auditgraph.utils.budget import evaluate_pkg_budget, enforce_budget
 
 
 @dataclass
@@ -100,6 +102,7 @@ class PipelineRunner:
     ) -> Path:
         manifest = StageManifest(
             version="v1",
+            schema_version=ARTIFACT_SCHEMA_VERSION,
             stage=stage,
             run_id=run_id,
             inputs_hash=inputs_hash,
@@ -114,7 +117,7 @@ class PipelineRunner:
         write_json(manifest_path, manifest.to_dict())
         return manifest_path
 
-    def run_ingest(self, root: Path, config: Config) -> StageResult:
+    def run_ingest(self, root: Path, config: Config, *, enforce_compatibility: bool = True) -> StageResult:
         profile = config.profile()
         policy = load_policy(profile)
         include_paths = profile.get("include_paths", [])
@@ -122,10 +125,14 @@ class PipelineRunner:
 
         redactor = build_redactor(root, config)
 
+        pkg_root = profile_pkg_root(root, config)
+        if enforce_compatibility:
+            ensure_latest_manifest_compatibility(pkg_root, ARTIFACT_SCHEMA_VERSION)
+
         files = discover_files(root, include_paths, exclude_globs)
         allowed, skipped = split_allowed(files, policy)
-        pkg_root = profile_pkg_root(root, config)
         records = []
+        source_payloads: list[tuple[Any, dict[str, object]]] = []
         for path in allowed:
             result = parse_file(path, policy)
             record, metadata = build_source_record(
@@ -137,9 +144,7 @@ class PipelineRunner:
                 extra_metadata=result.metadata,
             )
             records.append(record)
-
-            source_path = pkg_root / "sources" / f"{record.source_hash}.json"
-            write_json_redacted(source_path, metadata, redactor)
+            source_payloads.append((record, metadata))
 
         for path in skipped:
             record, metadata = build_source_record(
@@ -150,6 +155,19 @@ class PipelineRunner:
                 skip_reason=SKIP_REASON_UNSUPPORTED,
             )
             records.append(record)
+            source_payloads.append((record, metadata))
+
+        source_bytes = sum(int(record.size) for record in records)
+        budget_settings = footprint_budget_settings(config)
+        budget_status = evaluate_pkg_budget(
+            pkg_root,
+            source_bytes,
+            budget_settings,
+            additional_bytes=source_bytes,
+        )
+        enforce_budget(budget_status)
+
+        for record, metadata in source_payloads:
             source_path = pkg_root / "sources" / f"{record.source_hash}.json"
             write_json_redacted(source_path, metadata, redactor)
 
@@ -203,15 +221,19 @@ class PipelineRunner:
         ]
         write_provenance_index(pkg_root, run_id, provenance_records)
 
-        return StageResult(
-            stage="ingest",
-            status="ok",
-            detail={
-                "files": len(files),
-                "manifest": str(manifest_path),
-                "profile": config.active_profile(),
-            },
-        )
+        detail = {
+            "files": len(files),
+            "manifest": str(manifest_path),
+            "profile": config.active_profile(),
+        }
+        if budget_status.status == "warn":
+            detail["budget"] = {
+                "status": budget_status.status,
+                "usage_ratio": budget_status.usage_ratio,
+                "limit_bytes": budget_status.limit_bytes,
+                "projected_bytes": budget_status.projected_bytes,
+            }
+        return StageResult(stage="ingest", status="ok", detail=detail)
 
     def run_normalize(self, root: Path, config: Config, run_id: str | None = None) -> StageResult:
         pkg_root = profile_pkg_root(root, config)
@@ -497,7 +519,9 @@ class PipelineRunner:
         )
 
     def run_rebuild(self, root: Path, config: Config) -> StageResult:
-        ingest = self.run_ingest(root=root, config=config)
+        pkg_root = profile_pkg_root(root, config)
+        check_latest_manifest_compatibility(pkg_root, ARTIFACT_SCHEMA_VERSION)
+        ingest = self.run_ingest(root=root, config=config, enforce_compatibility=False)
         if ingest.status != "ok":
             return ingest
         manifest_path = Path(str(ingest.detail.get("manifest", "")))
