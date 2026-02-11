@@ -8,6 +8,7 @@ from auditgraph.extract.entities import build_log_claim
 from auditgraph.extract.logs import extract_log_signatures
 from auditgraph.index.decisions import write_decision_index
 from auditgraph.storage.artifacts import write_json
+from auditgraph.utils.redaction import Redactor
 
 
 def _shard_dir(root: Path, identifier: str) -> Path:
@@ -62,9 +63,9 @@ def extract_adr_claims(pkg_root: Path, paths: Iterable[Path]) -> list[dict[str, 
     return claims
 
 
-def extract_log_claims(paths: Iterable[Path]) -> list[dict[str, object]]:
+def extract_log_claims(paths: Iterable[Path], redactor: Redactor | None = None) -> list[dict[str, object]]:
     claims: list[dict[str, object]] = []
     for path in paths:
         for signature in extract_log_signatures(path):
-            claims.append(build_log_claim(signature))
+            claims.append(build_log_claim(signature, redactor=redactor))
     return claims

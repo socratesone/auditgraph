@@ -49,6 +49,7 @@ def test_us10_export_json_includes_entities(tmp_path: Path) -> None:
     json_path = export_json(tmp_path, pkg, tmp_path / "exports" / "subgraphs" / "export.json")
 
     payload = read_json(json_path)
+    assert "entities" in payload
     assert payload["entities"]
 
 

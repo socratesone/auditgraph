@@ -25,6 +25,8 @@ from auditgraph.link.adjacency import write_adjacency
 from auditgraph.index.bm25 import build_bm25_index
 from auditgraph.index.semantic import build_semantic_index
 from auditgraph.storage.artifacts import profile_pkg_root, read_json, write_json, write_text
+from auditgraph.storage.safe_artifacts import write_json_redacted
+from auditgraph.utils.redaction import build_redactor
 from auditgraph.storage.config_snapshot import write_config_snapshot
 from auditgraph.storage.hashing import deterministic_run_id, inputs_hash, outputs_hash, sha256_json, sha256_text
 from auditgraph.storage.loaders import load_entities
@@ -118,6 +120,8 @@ class PipelineRunner:
         include_paths = profile.get("include_paths", [])
         exclude_globs = profile.get("exclude_globs", [])
 
+        redactor = build_redactor(root, config)
+
         files = discover_files(root, include_paths, exclude_globs)
         allowed, skipped = split_allowed(files, policy)
         pkg_root = profile_pkg_root(root, config)
@@ -135,7 +139,7 @@ class PipelineRunner:
             records.append(record)
 
             source_path = pkg_root / "sources" / f"{record.source_hash}.json"
-            write_json(source_path, metadata)
+            write_json_redacted(source_path, metadata, redactor)
 
         for path in skipped:
             record, metadata = build_source_record(
@@ -147,7 +151,7 @@ class PipelineRunner:
             )
             records.append(record)
             source_path = pkg_root / "sources" / f"{record.source_hash}.json"
-            write_json(source_path, metadata)
+            write_json_redacted(source_path, metadata, redactor)
 
         pipeline_version = str(config.raw.get("run_metadata", {}).get("pipeline_version", DEFAULT_PIPELINE_VERSION))
         input_hash = inputs_hash(records)
@@ -248,6 +252,7 @@ class PipelineRunner:
 
     def run_extract(self, root: Path, config: Config, run_id: str | None = None) -> StageResult:
         pkg_root = profile_pkg_root(root, config)
+        redactor = build_redactor(root, config)
         resolved = self._resolve_run_id(pkg_root, run_id)
         if not resolved:
             return StageResult(stage="extract", status="missing_manifest", detail={"run_id": run_id})
@@ -281,21 +286,21 @@ class PipelineRunner:
                     title = frontmatter.get("title")
                 if not title:
                     title = Path(source_path).stem
-                note_entity = build_note_entity(str(title), source_path, source_hash)
+                note_entity = build_note_entity(str(title), source_path, source_hash, redactor=redactor)
                 entities[note_entity["id"]] = note_entity
 
         code_symbols = extract_code_symbols(root, ok_paths)
         for symbol in code_symbols:
             source_path = str(symbol.get("source_path", ""))
             source_hash = str(source_map.get(source_path, ""))
-            entity = build_entity(symbol, source_hash)
+            entity = build_entity(symbol, source_hash, redactor=redactor)
             entities[entity["id"]] = entity
 
         adr_claims = extract_adr_claims(pkg_root, ok_paths)
         if adr_claims:
             claims.extend(adr_claims)
 
-        log_claims = extract_log_claims(ok_paths)
+        log_claims = extract_log_claims(ok_paths, redactor=redactor)
         if log_claims:
             claims.extend(log_claims)
 

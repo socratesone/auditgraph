@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from auditgraph.storage.hashing import sha256_text
+from auditgraph.utils.redaction import Redactor
 from auditgraph.storage.ontology import canonical_key, resolve_type
 from auditgraph.storage.audit import DEFAULT_PIPELINE_VERSION
 
@@ -11,12 +12,16 @@ def _entity_id(canonical_key: str) -> str:
     return f"ent_{sha256_text(canonical_key)}"
 
 
-def build_entity(symbol: dict[str, Any], source_hash: str) -> dict[str, Any]:
-    canonical_key = symbol["canonical_key"]
+def build_entity(symbol: dict[str, Any], source_hash: str, redactor: Redactor | None = None) -> dict[str, Any]:
+    canonical_key = str(symbol["canonical_key"])
+    name = str(symbol["name"])
+    if redactor:
+        canonical_key = str(redactor.redact_text(canonical_key).value)
+        name = str(redactor.redact_text(name).value)
     return {
         "id": _entity_id(canonical_key),
         "type": symbol["type"],
-        "name": symbol["name"],
+        "name": name,
         "canonical_key": canonical_key,
         "aliases": [],
         "provenance": {
@@ -34,13 +39,16 @@ def build_entity(symbol: dict[str, Any], source_hash: str) -> dict[str, Any]:
     }
 
 
-def build_note_entity(title: str, source_path: str, source_hash: str) -> dict[str, Any]:
-    canonical = canonical_key(title)
+def build_note_entity(title: str, source_path: str, source_hash: str, redactor: Redactor | None = None) -> dict[str, Any]:
+    redacted_title = title
+    if redactor:
+        redacted_title = str(redactor.redact_text(title).value)
+    canonical = canonical_key(redacted_title)
     entity_type = resolve_type({"type": "note"}, primary="ag", allow_secondary=True)
     return {
         "id": _entity_id(canonical),
         "type": entity_type,
-        "name": title,
+        "name": redacted_title,
         "canonical_key": canonical,
         "aliases": [],
         "provenance": {
@@ -58,8 +66,10 @@ def build_note_entity(title: str, source_path: str, source_hash: str) -> dict[st
     }
 
 
-def build_log_claim(signature: dict[str, Any]) -> dict[str, Any]:
+def build_log_claim(signature: dict[str, Any], redactor: Redactor | None = None) -> dict[str, Any]:
     text = str(signature.get("signature", ""))
+    if redactor:
+        text = str(redactor.redact_text(text).value)
     claim_id = f"clm_{sha256_text(text)}"
     return {
         "id": claim_id,

@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Iterable
 
 from auditgraph.ingest.policy import IngestionPolicy, is_allowed
+from auditgraph.utils.paths import ensure_within_base
 
 
 def _matches_exclude(path: Path, root: Path, exclude_globs: Iterable[str]) -> bool:
@@ -20,6 +21,7 @@ def discover_files(root: Path, include_paths: Iterable[str], exclude_globs: Iter
     root = root.resolve()
     for include in include_paths:
         base = (root / include).resolve()
+        ensure_within_base(base, root, label="include path")
         if not base.exists():
             continue
         if base.is_file():

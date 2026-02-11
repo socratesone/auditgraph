@@ -61,6 +61,7 @@ def test_export_json_empty_entities(tmp_path: Path) -> None:
     export_json(tmp_path, pkg_root, output_path)
 
     payload = read_json(output_path)
+    assert "entities" in payload
     assert payload["entities"] == []
 
 

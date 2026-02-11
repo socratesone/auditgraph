@@ -11,6 +11,8 @@ Auto-generated from all feature plans. Last updated: 2026-02-05
 - Local filesystem, plain-text JSON/JSONL artifacts under `.pkg/` (005-pipeline-stages)
 - Python 3.10+ + PyYAML (config parsing), stdlib (010-automation-jobs)
 - Local filesystem under workspace root and `.pkg/` (010-automation-jobs)
+- Python >=3.10 + stdlib, `pyyaml` (config), `pytest` (tests) (011-security-privacy-compliance)
+- Filesystem artifacts under `.pkg/profiles/<profile>/...` and `exports/...` (011-security-privacy-compliance)
 
 - Python 3.10+ + None required for MVP (stdlib-first); optional: rich (CLI UX), fastapi (optional local UI API) (001-spec-plan)
 
@@ -30,8 +32,8 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.10+: Follow standard conventions
 
 ## Recent Changes
+- 011-security-privacy-compliance: Added Python >=3.10 + stdlib, `pyyaml` (config), `pytest` (tests)
 - 010-automation-jobs: Added Python 3.10+ + PyYAML (config parsing), stdlib
-- 009-interfaces-ux: Added Python 3.10+ + None required (stdlib-first)
 - 009-interfaces-ux: Added Python 3.10+ + None required (stdlib-first)
 
 

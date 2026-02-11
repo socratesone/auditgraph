@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Iterable
 
 from auditgraph.config import load_config
 from auditgraph.extract.entities import build_entity
@@ -23,3 +24,14 @@ def make_entity(name: str, source_path: str) -> dict[str, object]:
         },
         source_hash,
     )
+
+
+def assert_no_secret_in_dir(base_dir: Path, secret: str, *, allowlist: Iterable[Path] | None = None) -> None:
+    allowset = {path.resolve() for path in (allowlist or [])}
+    for path in base_dir.rglob("*"):
+        if not path.is_file():
+            continue
+        if path.resolve() in allowset:
+            continue
+        content = path.read_text(encoding="utf-8", errors="ignore")
+        assert secret not in content, f"Found secret in {path}"

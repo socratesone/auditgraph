@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+from auditgraph.utils.profile import validate_profile_name
 
 
 DEFAULT_PROFILE_NAME = "default"
@@ -12,6 +15,21 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "pkg_root": ".",
     "active_profile": DEFAULT_PROFILE_NAME,
     "run_metadata": {"pipeline_version": "v0.1.0"},
+    "security": {
+        "redaction": {
+            "enabled": True,
+            "policy_id": "redaction.policy.v1",
+            "policy_version": "v1",
+            "detectors": [
+                "pem_private_key",
+                "jwt",
+                "bearer_token",
+                "credential_kv",
+                "url_credentials",
+                "vendor_token",
+            ],
+        }
+    },
     "profiles": {
         DEFAULT_PROFILE_NAME: {
             "include_paths": ["notes", "repos"],
@@ -57,11 +75,25 @@ class Config:
         return {}
 
     def active_profile(self) -> str:
-        return str(self.raw.get("active_profile", DEFAULT_PROFILE_NAME))
+        return validate_profile_name(str(self.raw.get("active_profile", DEFAULT_PROFILE_NAME)))
 
 
 class ConfigError(RuntimeError):
     pass
+
+
+def redaction_settings(config: Config) -> dict[str, Any]:
+    defaults = deepcopy(DEFAULT_CONFIG.get("security", {}).get("redaction", {}))
+    security = config.raw.get("security", {})
+    if not isinstance(security, dict):
+        return defaults
+    redaction = security.get("redaction", {})
+    if not isinstance(redaction, dict):
+        return defaults
+    merged = {**defaults, **redaction}
+    if "detectors" not in redaction:
+        merged["detectors"] = defaults.get("detectors", [])
+    return merged
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
