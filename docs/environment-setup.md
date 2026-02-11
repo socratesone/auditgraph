@@ -8,6 +8,7 @@ for a custom environment.
 
 - Python 3.10+ (see `pyproject.toml`)
 - `pip` (bundled with most Python installs)
+- Supported OS targets: Linux (x86_64) and macOS (Intel/Apple Silicon); Windows is not supported for day 1.
 
 ## Create and Activate `.venv`
 

@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from auditgraph import __version__
-from auditgraph.config import load_config
+from auditgraph.config import footprint_budget_settings, load_config
 from auditgraph.export import export_dot, export_graphml, export_json
 from auditgraph.logging import setup_logging
 from auditgraph.jobs.runner import list_jobs, run_job
@@ -14,6 +14,7 @@ from auditgraph.pipeline.runner import PipelineRunner
 from auditgraph.query import diff_runs, keyword_search, neighbors, node_view, why_connected
 from auditgraph.scaffold import initialize_workspace
 from auditgraph.storage.artifacts import profile_pkg_root
+from auditgraph.utils.budget import evaluate_pkg_budget, latest_source_bytes
 from auditgraph.utils.paths import ensure_within_base
 
 
@@ -220,6 +221,9 @@ def main() -> None:
             root = Path(args.root).resolve()
             config = load_config(Path(args.config) if args.config else None)
             pkg_root = profile_pkg_root(root, config)
+            budget_settings = footprint_budget_settings(config)
+            source_bytes = latest_source_bytes(pkg_root)
+            budget_status = evaluate_pkg_budget(pkg_root, source_bytes, budget_settings, additional_bytes=0)
             export_base = (root / "exports" / "subgraphs").resolve()
             if args.output:
                 target = Path(args.output)
@@ -234,7 +238,15 @@ def main() -> None:
                 path = export_graphml(pkg_root, output_path, config=config)
             else:
                 path = export_json(root, pkg_root, output_path, config=config)
-            _emit({"format": args.format, "output": str(path)})
+            payload = {"format": args.format, "output": str(path)}
+            if budget_status.status == "warn":
+                payload["budget"] = {
+                    "status": budget_status.status,
+                    "usage_ratio": budget_status.usage_ratio,
+                    "limit_bytes": budget_status.limit_bytes,
+                    "projected_bytes": budget_status.projected_bytes,
+                }
+            _emit(payload)
             return
 
         if args.command == "why-connected":

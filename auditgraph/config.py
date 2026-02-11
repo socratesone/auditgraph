@@ -30,6 +30,13 @@ DEFAULT_CONFIG: dict[str, Any] = {
             ],
         }
     },
+    "storage": {
+        "footprint_budget": {
+            "multiplier": 3.0,
+            "warn_threshold": 0.8,
+            "block_threshold": 1.0,
+        }
+    },
     "profiles": {
         DEFAULT_PROFILE_NAME: {
             "include_paths": ["notes", "repos"],
@@ -93,6 +100,18 @@ def redaction_settings(config: Config) -> dict[str, Any]:
     merged = {**defaults, **redaction}
     if "detectors" not in redaction:
         merged["detectors"] = defaults.get("detectors", [])
+    return merged
+
+
+def footprint_budget_settings(config: Config) -> dict[str, Any]:
+    defaults = deepcopy(DEFAULT_CONFIG.get("storage", {}).get("footprint_budget", {}))
+    storage = config.raw.get("storage", {})
+    if not isinstance(storage, dict):
+        return defaults
+    budget = storage.get("footprint_budget", {})
+    if not isinstance(budget, dict):
+        return defaults
+    merged = {**defaults, **budget}
     return merged
 
 

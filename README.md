@@ -44,6 +44,18 @@ Auditgraph is a local-first, deterministic personal knowledge graph (PKG) toolki
 - Claims stored as subject–predicate–object with provenance and optional validity windows
 - Contradictions are preserved and flagged explicitly
 
+## Supported Platforms
+
+- Linux (x86_64) and macOS (Intel/Apple Silicon)
+- Windows is not supported for day 1
+
+## Installation
+
+```bash
+pip install auditgraph
+auditgraph version
+```
+
 ## Quickstart
 
 ```bash

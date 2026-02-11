@@ -18,6 +18,7 @@ class IngestRecord:
 @dataclass(frozen=True)
 class IngestManifest:
     version: str
+    schema_version: str
     stage: str
     run_id: str
     started_at: str
@@ -39,6 +40,7 @@ class IngestManifest:
 @dataclass(frozen=True)
 class StageManifest:
     version: str
+    schema_version: str
     stage: str
     run_id: str
     inputs_hash: str

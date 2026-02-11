@@ -6,6 +6,7 @@ from auditgraph.config import load_config
 from auditgraph.pipeline.runner import PipelineRunner
 from auditgraph.query.ranking import apply_ranking
 from auditgraph.storage.artifacts import read_json, profile_pkg_root
+from auditgraph.storage.audit import ARTIFACT_SCHEMA_VERSION
 from auditgraph.storage.hashing import deterministic_run_id, inputs_hash, outputs_hash
 from auditgraph.storage.manifests import IngestRecord
 
@@ -51,6 +52,7 @@ def test_ingest_writes_provenance_index(tmp_path: Path) -> None:
 
     manifest = read_json(Path(result.detail["manifest"]))
     run_id = manifest["run_id"]
+    assert manifest["schema_version"] == ARTIFACT_SCHEMA_VERSION
     provenance_path = profile_pkg_root(tmp_path, config) / "provenance" / f"{run_id}.json"
 
     assert provenance_path.exists()

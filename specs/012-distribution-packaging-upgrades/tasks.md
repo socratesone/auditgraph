@@ -10,17 +10,17 @@ description: "Task list for implementing Distribution, Packaging, and Upgrades"
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 Add artifact schema version constant in auditgraph/storage/audit.py
+- [X] T001 Add artifact schema version constant in auditgraph/storage/audit.py
 
 ---
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-- [ ] T002 [P] Add compatibility and budget error types in auditgraph/errors.py
-- [ ] T003 Add `schema_version` to manifest models in auditgraph/storage/manifests.py
-- [ ] T004 Add `schema_version` propagation when building/writing manifests in auditgraph/ingest/manifest.py and auditgraph/pipeline/runner.py
-- [ ] T005 Add footprint budget defaults + parsing helpers in auditgraph/config.py
-- [ ] T006 Add footprint budget defaults to config/pkg.yaml
+- [X] T002 [P] Add compatibility and budget error types in auditgraph/errors.py
+- [X] T003 Add `schema_version` to manifest models in auditgraph/storage/manifests.py
+- [X] T004 Add `schema_version` propagation when building/writing manifests in auditgraph/ingest/manifest.py and auditgraph/pipeline/runner.py
+- [X] T005 Add footprint budget defaults + parsing helpers in auditgraph/config.py
+- [X] T006 Add footprint budget defaults to config/pkg.yaml
 
 **Checkpoint**: Foundation ready (schema versioning + budget config available)
 
@@ -34,8 +34,8 @@ description: "Task list for implementing Distribution, Packaging, and Upgrades"
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] Document supported OS targets + install steps in README.md
-- [ ] T008 [US1] Update docs/environment-setup.md with Python 3.10+ and supported OS guidance
+- [X] T007 [US1] Document supported OS targets + install steps in README.md
+- [X] T008 [US1] Update docs/environment-setup.md with Python 3.10+ and supported OS guidance
 
 **Checkpoint**: US1 documentation is complete and usable.
 
@@ -49,14 +49,14 @@ description: "Task list for implementing Distribution, Packaging, and Upgrades"
 
 ### Tests for User Story 2 (TDD)
 
-- [ ] T009 [P] [US2] Add compatibility helper unit tests in tests/test_spec012_compatibility.py
-- [ ] T010 [P] [US2] Add ingest compatibility integration test in tests/test_spec012_compatibility.py
+- [X] T009 [P] [US2] Add compatibility helper unit tests in tests/test_spec012_compatibility.py
+- [X] T010 [P] [US2] Add ingest compatibility integration test in tests/test_spec012_compatibility.py
 
 ### Implementation for User Story 2
 
-- [ ] T011 [US2] Implement compatibility helper in auditgraph/utils/compatibility.py
-- [ ] T012 [US2] Enforce compatibility check before ingest/rebuild in auditgraph/pipeline/runner.py
-- [ ] T013 [US2] Update manifest-related tests for schema_version changes in tests/test_spec003_determinism_audit.py and tests/test_spec005_pipeline_stages.py
+- [X] T011 [US2] Implement compatibility helper in auditgraph/utils/compatibility.py
+- [X] T012 [US2] Enforce compatibility check before ingest/rebuild in auditgraph/pipeline/runner.py
+- [X] T013 [US2] Update manifest-related tests for schema_version changes in tests/test_spec003_determinism_audit.py and tests/test_spec005_pipeline_stages.py
 
 **Checkpoint**: US2 passes and is independently testable.
 
@@ -70,15 +70,15 @@ description: "Task list for implementing Distribution, Packaging, and Upgrades"
 
 ### Tests for User Story 3 (TDD)
 
-- [ ] T014 [P] [US3] Add budget evaluation unit tests in tests/test_spec012_budget.py
-- [ ] T015 [P] [US3] Add budget enforcement integration test in tests/test_spec012_budget.py
+- [X] T014 [P] [US3] Add budget evaluation unit tests in tests/test_spec012_budget.py
+- [X] T015 [P] [US3] Add budget enforcement integration test in tests/test_spec012_budget.py
 
 ### Implementation for User Story 3
 
-- [ ] T016 [US3] Implement footprint budget evaluator in auditgraph/utils/budget.py
-- [ ] T017 [US3] Enforce budget checks before writing ingest artifacts in auditgraph/pipeline/runner.py
-- [ ] T018 [US3] Enforce budget checks for exports in auditgraph/export/json.py
-- [ ] T019 [US3] Include budget warning/block details in CLI output in auditgraph/cli.py
+- [X] T016 [US3] Implement footprint budget evaluator in auditgraph/utils/budget.py
+- [X] T017 [US3] Enforce budget checks before writing ingest artifacts in auditgraph/pipeline/runner.py
+- [X] T018 [US3] Enforce budget checks for exports in auditgraph/export/json.py
+- [X] T019 [US3] Include budget warning/block details in CLI output in auditgraph/cli.py
 
 **Checkpoint**: US3 passes and is independently testable.
 
@@ -86,7 +86,7 @@ description: "Task list for implementing Distribution, Packaging, and Upgrades"
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T020 [P] Validate specs/012-distribution-packaging-upgrades/quickstart.md against real CLI behavior; update if mismatched
+- [X] T020 [P] Validate specs/012-distribution-packaging-upgrades/quickstart.md against real CLI behavior; update if mismatched
 - [ ] T021 Run full test suite and fix regressions: `pytest -q`
 
 ---

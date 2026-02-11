@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Iterable
 
 from auditgraph.storage.artifacts import write_json
+from auditgraph.storage.audit import ARTIFACT_SCHEMA_VERSION
 from auditgraph.storage.manifests import IngestManifest, IngestRecord
 
 
@@ -30,6 +31,7 @@ def build_manifest(
     ingested = len(record_list) - skipped
     return IngestManifest(
         version="v1",
+        schema_version=ARTIFACT_SCHEMA_VERSION,
         stage="ingest",
         run_id=run_id,
         started_at=started_at,
