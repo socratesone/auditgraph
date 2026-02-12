@@ -37,17 +37,15 @@ Auditgraph solves the "where did this fact come from?" problem for technical not
 
 ## Installation
 
-```bash
-pip install auditgraph
-auditgraph version
-```
-
-Development install:
+Auditgraph is not published to PyPI yet. Install from source:
 
 ```bash
+git clone https://github.com/socratesone/auditgraph
+cd auditgraph
 python -m venv .venv
 source .venv/bin/activate
 pip install -e .
+auditgraph version
 ```
 
 Shortcut: `make dev` (creates `.venv` and installs requirements).
@@ -66,6 +64,50 @@ Run ingestion and query:
 auditgraph ingest --root . --config config/pkg.yaml
 auditgraph query --q "symbol" --root . --config config/pkg.yaml
 ```
+
+### Example: Ingest a full codebase and query it
+
+1) Create a workspace and copy or clone the target repo into it.
+
+```bash
+mkdir -p ~/auditgraph-workspaces/my-codebase
+cd ~/auditgraph-workspaces/my-codebase
+git clone <repo-url> source
+```
+
+2) Initialize auditgraph in the workspace root.
+
+```bash
+auditgraph init --root .
+```
+
+3) Point the config at the codebase by updating `config/pkg.yaml`.
+
+```yaml
+profiles:
+	default:
+		include_paths:
+			- "source"
+		exclude_globs:
+			- "**/node_modules/**"
+			- "**/.git/**"
+```
+
+4) Run a full rebuild once (required when schema changes or when starting fresh).
+
+```bash
+auditgraph rebuild --root . --config config/pkg.yaml
+```
+
+5) Ingest and query.
+
+```bash
+auditgraph ingest --root . --config config/pkg.yaml
+auditgraph query --q "auth" --root . --config config/pkg.yaml
+auditgraph neighbors <entity_id> --depth 2 --root . --config config/pkg.yaml
+```
+
+If you see an error like “Missing schema_version in manifest,” run `auditgraph rebuild` once to regenerate artifacts.
 
 Inspect nodes and neighbors:
 
