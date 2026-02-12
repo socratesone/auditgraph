@@ -1,0 +1,336 @@
+{
+  "format": "openai",
+  "tools": [
+    {
+      "name": "ag_diff",
+      "description": "Diff two runs.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "run_a": {
+            "type": "string"
+          },
+          "run_b": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ag_export",
+      "description": "Export a subgraph.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          },
+          "output": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ag_extract",
+      "description": "Run extract stage.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ag_import",
+      "description": "Manually import files or directories.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "paths"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ag_index",
+      "description": "Run index stage.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ag_ingest",
+      "description": "Run ingest stage.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ag_init",
+      "description": "Initialize an auditgraph workspace.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string"
+          },
+          "config_source": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ag_jobs_list",
+      "description": "List available automation jobs.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ag_jobs_run",
+      "description": "Run a named automation job.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ag_link",
+      "description": "Run link stage.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ag_neighbors",
+      "description": "Fetch neighbors for a node.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "depth": {
+            "type": "integer"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ag_node",
+      "description": "Fetch a node by id.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ag_normalize",
+      "description": "Run normalize stage.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ag_query",
+      "description": "Run a keyword query over the graph.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "q": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ag_rebuild",
+      "description": "Rebuild all stages.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ag_version",
+      "description": "Return the auditgraph CLI version.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ag_why_connected",
+      "description": "Explain why two nodes are connected.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "from_id": {
+            "type": "string"
+          },
+          "to_id": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "from_id",
+          "to_id"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

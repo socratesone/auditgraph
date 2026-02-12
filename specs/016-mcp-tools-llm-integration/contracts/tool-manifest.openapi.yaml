@@ -1,0 +1,93 @@
+openapi: 3.0.3
+info:
+  title: Auditgraph Tool Manifest API
+  version: "1.0.0"
+  description: Contracts describing tool manifest structure and schemas.
+servers:
+  - url: http://localhost
+paths:
+  /tool-manifest:
+    get:
+      summary: Fetch tool manifest
+      responses:
+        "200":
+          description: Tool manifest
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ToolManifest"
+components:
+  schemas:
+    ToolManifest:
+      type: object
+      required:
+        - manifest_version
+        - project
+        - tools
+      properties:
+        manifest_version:
+          type: string
+        project:
+          type: object
+          required:
+            - name
+            - version
+            - runtime
+            - execution_model
+            - entrypoint
+            - description
+          properties:
+            name:
+              type: string
+            version:
+              type: string
+            runtime:
+              type: string
+            execution_model:
+              type: string
+            entrypoint:
+              type: string
+            description:
+              type: string
+        tools:
+          type: array
+          items:
+            $ref: "#/components/schemas/ToolDefinition"
+    ToolDefinition:
+      type: object
+      required:
+        - name
+        - title
+        - description
+        - risk
+        - idempotency
+        - timeout_ms
+        - input_schema
+        - output_schema
+        - error_schema
+        - examples
+      properties:
+        name:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        risk:
+          type: string
+        idempotency:
+          type: string
+        timeout_ms:
+          type: integer
+        input_schema:
+          type: object
+        output_schema:
+          type: object
+        error_schema:
+          type: object
+        examples:
+          type: array
+          items:
+            type: object
+        constraints:
+          type: object

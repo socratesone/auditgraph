@@ -91,6 +91,22 @@ auditgraph jobs list --root .
 auditgraph jobs run changed_since --root . --config config/pkg.yaml
 ```
 
+## LLM Tooling (MCP)
+
+The MCP/LLM integration artifacts live under `llm-tooling/`:
+
+- `llm-tooling/tool.manifest.json` is the source of truth.
+- `llm-tooling/skill.md` and `llm-tooling/adapters/openai.functions.json` are generated outputs.
+
+Regenerate artifacts after manifest updates:
+
+```bash
+python llm-tooling/generate_skill_doc.py
+python llm-tooling/generate_adapters.py
+```
+
+MCP server utilities live in `llm-tooling/mcp/server.py`. Set `READ_ONLY=1` to block write or high-risk tools.
+
 ## Project Assumptions
 
 See docs/clarifying-answers.md for the current answers to the project discovery questions and

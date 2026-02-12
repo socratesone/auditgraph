@@ -1,0 +1,682 @@
+{
+  "manifest_version": "1.0.0",
+  "project": {
+    "name": "auditgraph",
+    "version": "0.1.0",
+    "runtime": "python",
+    "execution_model": "subprocess",
+    "entrypoint": "auditgraph",
+    "description": "Auditgraph CLI tool manifest for MCP and adapter generation."
+  },
+  "tools": [
+    {
+      "name": "ag_version",
+      "title": "Auditgraph Version",
+      "description": "Return the auditgraph CLI version.",
+      "risk": "low",
+      "idempotency": "idempotent",
+      "timeout_ms": 5000,
+      "command": "version",
+      "input_schema": {
+        "type": "object",
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "version": { "type": "string" }
+        },
+        "required": ["version"],
+        "additionalProperties": false
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": {},
+          "output": { "version": "0.1.0" }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": true
+      }
+    },
+    {
+      "name": "ag_query",
+      "title": "Query Auditgraph",
+      "description": "Run a keyword query over the graph.",
+      "risk": "low",
+      "idempotency": "idempotent",
+      "timeout_ms": 5000,
+      "command": "query",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "q": { "type": "string" },
+          "root": { "type": "string" },
+          "config": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object"
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "q": "payments" },
+          "output": { "query": "payments", "results": [] }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": true
+      }
+    },
+    {
+      "name": "ag_node",
+      "title": "Node Details",
+      "description": "Fetch a node by id.",
+      "risk": "low",
+      "idempotency": "idempotent",
+      "timeout_ms": 5000,
+      "command": "node",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "root": { "type": "string" },
+          "config": { "type": "string" }
+        },
+        "required": ["id"],
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object"
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "id": "entity:123" },
+          "output": { "id": "entity:123" }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": true
+      }
+    },
+    {
+      "name": "ag_neighbors",
+      "title": "Node Neighbors",
+      "description": "Fetch neighbors for a node.",
+      "risk": "low",
+      "idempotency": "idempotent",
+      "timeout_ms": 5000,
+      "command": "neighbors",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "depth": { "type": "integer" },
+          "root": { "type": "string" },
+          "config": { "type": "string" }
+        },
+        "required": ["id"],
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object"
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "id": "entity:123", "depth": 1 },
+          "output": { "id": "entity:123", "neighbors": [] }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": true
+      }
+    },
+    {
+      "name": "ag_diff",
+      "title": "Diff Runs",
+      "description": "Diff two runs.",
+      "risk": "low",
+      "idempotency": "idempotent",
+      "timeout_ms": 5000,
+      "command": "diff",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "run_a": { "type": "string" },
+          "run_b": { "type": "string" },
+          "root": { "type": "string" },
+          "config": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object"
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "run_a": "run-1", "run_b": "run-2" },
+          "output": { "diff": [] }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": true
+      }
+    },
+    {
+      "name": "ag_jobs_list",
+      "title": "List Jobs",
+      "description": "List available automation jobs.",
+      "risk": "low",
+      "idempotency": "idempotent",
+      "timeout_ms": 5000,
+      "command": "jobs list",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "root": { "type": "string" },
+          "config": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object"
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": {},
+          "output": { "jobs": [] }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": true
+      }
+    },
+    {
+      "name": "ag_why_connected",
+      "title": "Why Connected",
+      "description": "Explain why two nodes are connected.",
+      "risk": "low",
+      "idempotency": "idempotent",
+      "timeout_ms": 5000,
+      "command": "why-connected",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "from_id": { "type": "string" },
+          "to_id": { "type": "string" },
+          "root": { "type": "string" },
+          "config": { "type": "string" }
+        },
+        "required": ["from_id", "to_id"],
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object"
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "from_id": "entity:1", "to_id": "entity:2" },
+          "output": { "path": [] }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": true
+      }
+    },
+    {
+      "name": "ag_init",
+      "title": "Initialize Workspace",
+      "description": "Initialize an auditgraph workspace.",
+      "risk": "high",
+      "idempotency": "non-idempotent",
+      "timeout_ms": 30000,
+      "command": "init",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "root": { "type": "string" },
+          "config_source": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object"
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "root": "." },
+          "output": { "created": true }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": false
+      }
+    },
+    {
+      "name": "ag_ingest",
+      "title": "Ingest",
+      "description": "Run ingest stage.",
+      "risk": "high",
+      "idempotency": "non-idempotent",
+      "timeout_ms": 30000,
+      "command": "ingest",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "root": { "type": "string" },
+          "config": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object"
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "root": "." },
+          "output": { "stage": "ingest", "status": "ok" }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": false
+      }
+    },
+    {
+      "name": "ag_import",
+      "title": "Import Files",
+      "description": "Manually import files or directories.",
+      "risk": "high",
+      "idempotency": "non-idempotent",
+      "timeout_ms": 30000,
+      "command": "import",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "paths": { "type": "array", "items": { "type": "string" } },
+          "root": { "type": "string" },
+          "config": { "type": "string" }
+        },
+        "required": ["paths"],
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object"
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "paths": ["./src"] },
+          "output": { "stage": "import", "status": "ok" }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": false
+      }
+    },
+    {
+      "name": "ag_normalize",
+      "title": "Normalize",
+      "description": "Run normalize stage.",
+      "risk": "high",
+      "idempotency": "non-idempotent",
+      "timeout_ms": 30000,
+      "command": "normalize",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "root": { "type": "string" },
+          "config": { "type": "string" },
+          "run_id": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object"
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "root": "." },
+          "output": { "stage": "normalize", "status": "ok" }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": false
+      }
+    },
+    {
+      "name": "ag_extract",
+      "title": "Extract",
+      "description": "Run extract stage.",
+      "risk": "high",
+      "idempotency": "non-idempotent",
+      "timeout_ms": 30000,
+      "command": "extract",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "root": { "type": "string" },
+          "config": { "type": "string" },
+          "run_id": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object"
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "root": "." },
+          "output": { "stage": "extract", "status": "ok" }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": false
+      }
+    },
+    {
+      "name": "ag_link",
+      "title": "Link",
+      "description": "Run link stage.",
+      "risk": "high",
+      "idempotency": "non-idempotent",
+      "timeout_ms": 30000,
+      "command": "link",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "root": { "type": "string" },
+          "config": { "type": "string" },
+          "run_id": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object"
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "root": "." },
+          "output": { "stage": "link", "status": "ok" }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": false
+      }
+    },
+    {
+      "name": "ag_index",
+      "title": "Index",
+      "description": "Run index stage.",
+      "risk": "high",
+      "idempotency": "non-idempotent",
+      "timeout_ms": 30000,
+      "command": "index",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "root": { "type": "string" },
+          "config": { "type": "string" },
+          "run_id": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object"
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "root": "." },
+          "output": { "stage": "index", "status": "ok" }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": false
+      }
+    },
+    {
+      "name": "ag_rebuild",
+      "title": "Rebuild",
+      "description": "Rebuild all stages.",
+      "risk": "high",
+      "idempotency": "non-idempotent",
+      "timeout_ms": 30000,
+      "command": "rebuild",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "root": { "type": "string" },
+          "config": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object"
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "root": "." },
+          "output": { "stage": "rebuild", "status": "ok" }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": false
+      }
+    },
+    {
+      "name": "ag_export",
+      "title": "Export",
+      "description": "Export a subgraph.",
+      "risk": "high",
+      "idempotency": "non-idempotent",
+      "timeout_ms": 30000,
+      "command": "export",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "format": { "type": "string" },
+          "root": { "type": "string" },
+          "config": { "type": "string" },
+          "output": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object"
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "format": "json", "output": "exports/graph.json" },
+          "output": { "format": "json", "path": "exports/graph.json" }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": false,
+        "output_base": "exports/"
+      }
+    },
+    {
+      "name": "ag_jobs_run",
+      "title": "Run Job",
+      "description": "Run a named automation job.",
+      "risk": "high",
+      "idempotency": "non-idempotent",
+      "timeout_ms": 30000,
+      "command": "jobs run",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "root": { "type": "string" },
+          "config": { "type": "string" }
+        },
+        "required": ["name"],
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object"
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "name": "daily" },
+          "output": { "job": "daily", "status": "queued" }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": false
+      }
+    }
+  ]
+}
