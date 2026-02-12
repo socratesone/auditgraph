@@ -7,10 +7,18 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "run_a": { "type": "string" },
-          "run_b": { "type": "string" },
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "run_a": {
+            "type": "string"
+          },
+          "run_b": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       }
@@ -21,10 +29,18 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "format": { "type": "string" },
-          "root": { "type": "string" },
-          "config": { "type": "string" },
-          "output": { "type": "string" }
+          "format": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          },
+          "output": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       }
@@ -35,9 +51,15 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "root": { "type": "string" },
-          "config": { "type": "string" },
-          "run_id": { "type": "string" }
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       }
@@ -48,11 +70,22 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "paths": { "type": "array", "items": { "type": "string" } },
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
-        "required": ["paths"],
+        "required": [
+          "paths"
+        ],
         "additionalProperties": false
       }
     },
@@ -62,9 +95,15 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "root": { "type": "string" },
-          "config": { "type": "string" },
-          "run_id": { "type": "string" }
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       }
@@ -75,8 +114,12 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       }
@@ -87,8 +130,12 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "root": { "type": "string" },
-          "config_source": { "type": "string" }
+          "root": {
+            "type": "string"
+          },
+          "config_source": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       }
@@ -99,8 +146,12 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       }
@@ -111,11 +162,19 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "name": { "type": "string" },
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "name": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "additionalProperties": false
       }
     },
@@ -125,9 +184,15 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "root": { "type": "string" },
-          "config": { "type": "string" },
-          "run_id": { "type": "string" }
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       }
@@ -138,12 +203,22 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "depth": { "type": "integer" },
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "id": {
+            "type": "string"
+          },
+          "depth": {
+            "type": "integer"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
-        "required": ["id"],
+        "required": [
+          "id"
+        ],
         "additionalProperties": false
       }
     },
@@ -153,11 +228,19 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "id": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
-        "required": ["id"],
+        "required": [
+          "id"
+        ],
         "additionalProperties": false
       }
     },
@@ -167,9 +250,15 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "root": { "type": "string" },
-          "config": { "type": "string" },
-          "run_id": { "type": "string" }
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       }
@@ -180,9 +269,15 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "q": { "type": "string" },
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "q": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       }
@@ -193,8 +288,12 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       }
@@ -213,12 +312,23 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "from_id": { "type": "string" },
-          "to_id": { "type": "string" },
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "from_id": {
+            "type": "string"
+          },
+          "to_id": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
-        "required": ["from_id", "to_id"],
+        "required": [
+          "from_id",
+          "to_id"
+        ],
         "additionalProperties": false
       }
     }

@@ -77,6 +77,7 @@ description: "Task list for implementing MCP Tools and LLM Integration"
 
 - [x] T018 [US2] Implement subprocess adapter with argument allowlist in llm-tooling/mcp/adapters/project.py
 - [x] T019 [US2] Implement MCP server entry and tool dispatch in llm-tooling/mcp/server.py
+- [x] T034 [US2] Add MCP stdio entrypoint in llm-tooling/mcp/entrypoint.py
 - [x] T020 [US2] Enforce read-only mode for write/high-risk tools in llm-tooling/mcp/server.py
 - [x] T021 [US2] Enforce path constraints for export-related tools in llm-tooling/mcp/adapters/project.py
 - [x] T022 [US2] Emit structured tool execution logs in llm-tooling/mcp/server.py
