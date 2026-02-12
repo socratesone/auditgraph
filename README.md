@@ -2,52 +2,38 @@
 
 # auditgraph
 
-Auditgraph is a local-first, deterministic personal knowledge graph (PKG) toolkit for engineers. It ingests plain-text notes and code, deterministically extracts entities and claims, creates explainable typed links, builds hybrid search indexes, and provides CLI-first navigation with optional local UI. The source of truth remains plain-text; derived artifacts are reproducible, diffable, and fully audited.
+Local-first, deterministic personal knowledge graph tooling for engineers.
 
-## Purpose and Scope
+[![License](https://img.shields.io/badge/license-SEE%20LICENSE-blue)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
+[![MCP](https://img.shields.io/badge/MCP-enabled-brightgreen)](MCP_GUIDE.md)
 
-- Local-first, offline-capable PKG for engineers and engineering teams.
-- Deterministic ingestion, extraction, linking, indexing, and query with stable IDs and audit logs.
-- Source of truth is plain-text content; derived artifacts are rebuildable and versioned.
-- CLI-first workflows, with optional local UI planned.
-- Optional LLM-assisted extraction is supported only as a replayable, fully logged step.
+Auditgraph ingests plain-text notes and code, deterministically extracts entities and claims, builds explainable links, and provides CLI-first navigation. Your source of truth stays in plain text; derived artifacts are reproducible, diffable, and fully audited.
 
-## Current Status
+## Overview
 
-- CLI scaffold and workspace initializer are implemented.
-- Implemented: ingest, query, node, neighbors, diff, export, jobs (basic functionality).
-- Placeholders remain: extract, link, index (full pipeline still in progress).
-- Specification is split into focused documents under docs/spec for resolving remaining decisions.
+Auditgraph solves the "where did this fact come from?" problem for technical notes and code. It turns local content into a deterministic knowledge graph with stable IDs, audit logs, and reproducible outputs so you can trace and verify every derived artifact.
 
-## Day-1 Ingestion Scope
+## Table of Contents
 
-- Supported: Markdown, plain text, Git working tree files
-- Not supported (day 1): PDFs, DOCX, HTML, org-mode, email exports, issue tracker exports
-- Capture channels: manual import and directory scan only (no file watchers or editor plugins)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [CLI Reference](#cli-reference)
+- [MCP (LLM Tooling)](#mcp-llm-tooling)
+- [Contributing](#contributing)
+- [Tests](#tests)
+- [License](#license)
+- [Contact](#contact)
 
-## Determinism & Audit Contract
+## Features
 
-- Runs write manifests, config snapshots, and replay logs under .pkg/profiles/<profile>/runs
-- Provenance records are stored under .pkg/profiles/<profile>/provenance
-- Identical inputs + config should yield byte-identical manifests and artifacts
-
-## Security, Privacy, and Compliance
-
-- Redaction is enabled by default and applied before persistence, indexing, and export.
-- Redaction markers are deterministic and profile-scoped (stored under .pkg/profiles/<profile>/secrets/redaction.key).
-- Exports include an export_metadata block with policy identifiers and redaction summary counts.
-- Workspace-relative export/job output paths must remain under exports/ (export defaults to exports/subgraphs/).
-
-## Knowledge Model
-
-- Canonical node types: entity, claim, note, task, decision, event
-- Claims stored as subject–predicate–object with provenance and optional validity windows
-- Contradictions are preserved and flagged explicitly
-
-## Supported Platforms
-
-- Linux (x86_64) and macOS (Intel/Apple Silicon)
-- Windows is not supported for day 1
+- Local-first, offline-capable PKG for engineers and teams.
+- Deterministic ingestion, extraction, linking, indexing, and query with stable IDs.
+- Audit trail for runs, manifests, and provenance.
+- CLI-first workflows with optional local UI planned.
+- Optional LLM-assisted extraction as a replayable, fully logged step.
 
 ## Installation
 
@@ -56,42 +42,81 @@ pip install auditgraph
 auditgraph version
 ```
 
-## Quickstart
+Development install:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -e .
-
-auditgraph init --root .
 ```
 
 Shortcut: `make dev` (creates `.venv` and installs requirements).
-Test shortcut: `make test`.
 
-See docs/environment-setup.md for custom environment and requirements guidance.
+## Usage
 
-## CLI
+Initialize a workspace:
+
+```bash
+auditgraph init --root .
+```
+
+Run ingestion and query:
+
+```bash
+auditgraph ingest --root . --config config/pkg.yaml
+auditgraph query --q "symbol" --root . --config config/pkg.yaml
+```
+
+Inspect nodes and neighbors:
+
+```bash
+auditgraph node <entity_id> --root . --config config/pkg.yaml
+auditgraph neighbors <entity_id> --depth 2 --root . --config config/pkg.yaml
+```
+
+Diff runs and export:
+
+```bash
+auditgraph diff --run-a <run_id> --run-b <run_id> --root . --config config/pkg.yaml
+auditgraph export --format json --root . --config config/pkg.yaml
+```
+
+Jobs:
+
+```bash
+auditgraph jobs list --root .
+auditgraph jobs run changed_since --root . --config config/pkg.yaml
+```
+
+## Configuration
+
+- Jobs configuration: `config/jobs.yaml`
+- Package configuration: `config/pkg.yaml`
+- Redaction key: `.pkg/profiles/<profile>/secrets/redaction.key`
+
+See [docs/environment-setup.md](docs/environment-setup.md) for environment details.
+
+## CLI Reference
 
 ```bash
 auditgraph version
-
 auditgraph init --root .
-
 auditgraph ingest --root . --config config/pkg.yaml
-
 auditgraph import docs/notes.md logs/ --root . --config config/pkg.yaml
-
+auditgraph normalize --root . --config config/pkg.yaml
+auditgraph extract --root . --config config/pkg.yaml
+auditgraph link --root . --config config/pkg.yaml
+auditgraph index --root . --config config/pkg.yaml
 auditgraph query --q "symbol" --root . --config config/pkg.yaml
 auditgraph node <entity_id> --root . --config config/pkg.yaml
 auditgraph neighbors <entity_id> --depth 2 --root . --config config/pkg.yaml
 auditgraph diff --run-a <run_id> --run-b <run_id> --root . --config config/pkg.yaml
 auditgraph export --format json --root . --config config/pkg.yaml
 auditgraph jobs list --root .
-auditgraph jobs run changed_since --root . --config config/pkg.yaml
+auditgraph jobs run <job_name> --root . --config config/pkg.yaml
 ```
 
-## LLM Tooling (MCP)
+## MCP (LLM Tooling)
 
 The MCP/LLM integration artifacts live under `llm-tooling/`:
 
@@ -107,11 +132,40 @@ python llm-tooling/generate_adapters.py
 
 MCP server utilities live in `llm-tooling/mcp/server.py`. Set `READ_ONLY=1` to block write or high-risk tools.
 
-## Project Assumptions
+For VS Code MCP setup, see [MCP_GUIDE.md](MCP_GUIDE.md).
 
-See docs/clarifying-answers.md for the current answers to the project discovery questions and
-implementation assumptions. See [SPEC.md](SPEC.md) and the spec breakdown in [docs/spec/00-overview.md](docs/spec/00-overview.md) for the full design scope and open decisions.
+## Contributing
 
-## Jobs Configuration
+1. Fork the repo and create a feature branch.
+2. Create a virtual environment and install dev dependencies.
+3. Run tests before opening a PR.
 
-Jobs are configured in `config/jobs.yaml`. Use `auditgraph jobs list --root .` to see configured jobs.
+Dev setup:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
+```
+
+Project assumptions and decisions live in [docs/clarifying-answers.md](docs/clarifying-answers.md) and [SPEC.md](SPEC.md).
+
+## Tests
+
+```bash
+make test
+```
+
+Or:
+
+```bash
+pytest
+```
+
+## License
+
+See [LICENSE](LICENSE).
+
+## Contact
+
+Open an issue in the repository for questions, bug reports, or feature requests.
