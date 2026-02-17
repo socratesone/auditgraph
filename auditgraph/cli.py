@@ -9,6 +9,7 @@ from auditgraph import __version__
 from auditgraph.config import footprint_budget_settings, load_config
 from auditgraph.export import export_dot, export_graphml, export_json
 from auditgraph.logging import setup_logging
+from auditgraph.neo4j import export_neo4j, sync_neo4j
 from auditgraph.jobs.runner import list_jobs, run_job
 from auditgraph.pipeline.runner import PipelineRunner
 from auditgraph.query import diff_runs, keyword_search, neighbors, node_view, why_connected
@@ -104,6 +105,16 @@ def _build_parser() -> argparse.ArgumentParser:
     why_parser.add_argument("--to", dest="to_id", required=True, help="Target id")
     why_parser.add_argument("--root", default=".", help="Workspace root")
     why_parser.add_argument("--config", default=None, help="Config path")
+
+    export_neo4j_parser = subparsers.add_parser("export-neo4j", help="Export graph to Neo4j Cypher")
+    export_neo4j_parser.add_argument("--root", default=".", help="Workspace root")
+    export_neo4j_parser.add_argument("--config", default=None, help="Config path")
+    export_neo4j_parser.add_argument("--output", default=None, help="Output .cypher path")
+
+    sync_neo4j_parser = subparsers.add_parser("sync-neo4j", help="Sync graph to Neo4j database")
+    sync_neo4j_parser.add_argument("--root", default=".", help="Workspace root")
+    sync_neo4j_parser.add_argument("--config", default=None, help="Config path")
+    sync_neo4j_parser.add_argument("--dry-run", action="store_true", help="Validate without mutating target")
 
     return parser
 
@@ -255,6 +266,21 @@ def main() -> None:
             pkg_root = profile_pkg_root(root, config)
             payload = why_connected(pkg_root, args.from_id, args.to_id)
             _emit(payload)
+            return
+
+        if args.command == "export-neo4j":
+            root = Path(args.root).resolve()
+            config = load_config(Path(args.config) if args.config else None)
+            output_path = Path(args.output).resolve() if args.output else None
+            payload = export_neo4j(root, config, output_path=output_path)
+            _emit(payload.to_dict())
+            return
+
+        if args.command == "sync-neo4j":
+            root = Path(args.root).resolve()
+            config = load_config(Path(args.config) if args.config else None)
+            payload = sync_neo4j(root, config, dry_run=bool(args.dry_run))
+            _emit(payload.to_dict())
             return
 
         if args.command == "jobs":

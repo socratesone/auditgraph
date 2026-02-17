@@ -1,3 +1,4 @@
 -e .
 pyyaml
 pytest
+neo4j>=5,<6
