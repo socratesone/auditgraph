@@ -121,3 +121,20 @@ If the server is connected, Copilot should surface tool calls and results.
 - The MCP server only exposes tools defined in `llm-tooling/tool.manifest.json`.
 - Write tools are blocked when `READ_ONLY=1` is set.
 - Output paths for export must be under `exports/`.
+
+## Neo4j Environment Variables (for Neo4j tools)
+
+When using `export-neo4j` or `sync-neo4j` workflows, configure:
+
+```bash
+export NEO4J_URI="bolt://localhost:7687"
+export NEO4J_USER="neo4j"
+export NEO4J_PASSWORD="<your_password>"
+export NEO4J_DATABASE="neo4j"
+```
+
+If `cypher-shell` is unavailable on the host, you can execute it from a Neo4j container:
+
+```bash
+cat exports/neo4j/graph.cypher | docker exec -i <neo4j-container> cypher-shell -u "$NEO4J_USER" -p "$NEO4J_PASSWORD"
+```

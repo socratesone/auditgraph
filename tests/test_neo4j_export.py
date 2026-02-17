@@ -4,7 +4,7 @@ from pathlib import Path
 
 from auditgraph.config import load_config
 from auditgraph.neo4j.export import export_neo4j
-from auditgraph.storage.artifacts import profile_pkg_root
+from auditgraph.storage.artifacts import profile_pkg_root, write_json
 from tests.fixtures.neo4j_fixtures import write_test_graph
 
 
@@ -42,3 +42,49 @@ def test_export_neo4j_is_deterministic_except_timestamp(tmp_path: Path) -> None:
     text_a = _normalize_export_text(output_a.read_text(encoding="utf-8"))
     text_b = _normalize_export_text(output_b.read_text(encoding="utf-8"))
     assert text_a == text_b
+
+
+def test_export_neo4j_profile_isolation(tmp_path: Path) -> None:
+    config = load_config(None)
+    default_pkg_root = profile_pkg_root(tmp_path, config)
+    write_test_graph(default_pkg_root)
+
+    other_pkg_root = tmp_path / ".pkg" / "profiles" / "other"
+    write_json(
+        other_pkg_root / "entities" / "zz" / "ent_zz01.json",
+        {
+            "id": "ent_zz01",
+            "type": "note",
+            "name": "Other profile note",
+            "canonical_key": "note:other",
+            "refs": [{"source_path": "other/note.md", "source_hash": "hz"}],
+        },
+    )
+
+    output_path = tmp_path / "exports" / "neo4j" / "profile-isolation.cypher"
+    summary = export_neo4j(tmp_path, config, output_path=output_path)
+    content = output_path.read_text(encoding="utf-8")
+
+    assert summary.nodes_processed == 2
+    assert "ent_zz01" not in content
+
+
+def test_export_neo4j_redacts_sensitive_values(tmp_path: Path) -> None:
+    config = load_config(None)
+    pkg_root = profile_pkg_root(tmp_path, config)
+    write_json(
+        pkg_root / "entities" / "aa" / "ent_aa99.json",
+        {
+            "id": "ent_aa99",
+            "type": "note",
+            "name": "token=super-secret-token",
+            "canonical_key": "note:aa99",
+            "refs": [{"source_path": "notes/sec.md", "source_hash": "hsec"}],
+        },
+    )
+
+    output_path = tmp_path / "exports" / "neo4j" / "redaction.cypher"
+    export_neo4j(tmp_path, config, output_path=output_path)
+    content = output_path.read_text(encoding="utf-8")
+
+    assert "super-secret-token" not in content

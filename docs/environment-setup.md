@@ -58,6 +58,31 @@ Notes:
 - `pyyaml` is required if you want to load YAML config files.
 - `pytest` is required to run the test suite.
 
+## Neo4j Environment (Optional)
+
+For Neo4j export/sync workflows, set:
+
+```bash
+export NEO4J_URI="bolt://localhost:7687"
+export NEO4J_USER="neo4j"
+export NEO4J_PASSWORD="<your_password>"
+export NEO4J_DATABASE="neo4j"
+```
+
+Common commands:
+
+```bash
+auditgraph export-neo4j --root . --config config/pkg.yaml --output exports/neo4j/graph.cypher
+auditgraph sync-neo4j --root . --config config/pkg.yaml --dry-run
+auditgraph sync-neo4j --root . --config config/pkg.yaml
+```
+
+Import exported Cypher with `cypher-shell`:
+
+```bash
+cat exports/neo4j/graph.cypher | cypher-shell -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASSWORD"
+```
+
 ## Requirements Files (Optional)
 
 If you want a pinned requirements file for a custom environment, generate one

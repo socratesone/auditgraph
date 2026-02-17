@@ -67,7 +67,7 @@
 - [X] T021 [P] [US1] Create test_neo4j_cypher_builder.py with tests for statement generation, batching, deterministic output
 - [X] T022 [P] [US1] Create test_neo4j_export.py with tests for full export flow, deterministic ordering (SC-002), file format validation
 - [X] T023 [US1] Verify export command produces valid .cypher files with correct batching and ordering
-- [ ] T024 [US1] Import generated .cypher file into a test Neo4j instance and verify nodes/relationships are queryable end-to-end
+- [X] T024 [US1] Import generated .cypher file into a test Neo4j instance and verify nodes/relationships are queryable end-to-end
 
 **Checkpoint**: User Story 1 complete - engineers can export graphs to .cypher format and import manually
 
@@ -114,7 +114,7 @@
 - [X] T042 [US3] Add error tracking to ExportSummary: add errors field (list of dicts with message and affected record IDs)
 - [X] T043 [US3] Update CLI output formatting in cli.py to display ExportSummary with counts (processed, created, updated, skipped, failed) and duration
 - [X] T044 [P] [US3] Add tests to test_neo4j_sync.py for dry-run mode (no commits), error handling (connection failures, auth errors), summary reporting
-- [ ] T045 [US3] Verify dry-run produces summary without mutations, invalid credentials produce actionable errors
+- [X] T045 [US3] Verify dry-run produces summary without mutations, invalid credentials produce actionable errors
 
 **Checkpoint**: User Story 3 complete - all safety and observability features functional
 
@@ -124,21 +124,21 @@
 
 **Purpose**: Performance validation, documentation, and final quality gates
 
-- [ ] T046 [P] Update README.md with Neo4j export/sync feature description and link to quickstart
+- [X] T046 [P] Update README.md with Neo4j export/sync feature description and link to quickstart
 - [X] T047 [P] Finalize dependency lock by pinning neo4j-driver to `neo4j>=5,<6` in requirements-dev.txt and removing any unbounded temporary entry from T002
 - [ ] T048 Validate performance: export 100K nodes + 300K relationships completes within 2 minutes (SC-001)
 - [ ] T049 Measure and record sync idempotency overhead, targeting <10% overhead versus baseline sync path
-- [ ] T050 Add profile isolation test: verify export/sync only processes active profile artifacts (FR-008)
-- [ ] T051 Add redaction integration test: verify sensitive fields redacted in cypher output (FR-009)
+- [X] T050 Add profile isolation test: verify export/sync only processes active profile artifacts (FR-008)
+- [X] T051 Add redaction integration test: verify sensitive fields redacted in cypher output (FR-009)
 - [X] T052 Run full targeted Neo4j test suite: pytest tests/test_neo4j_*.py and ensure all tests pass (exit code 0)
-- [ ] T053 Run quickstart.md validation: execute all export and sync examples from quickstart guide
+- [X] T053 Run quickstart.md validation: execute all export and sync examples from quickstart guide
 - [ ] T054 Run user-acceptance validation for SC-004 with at least 10 participants using a scripted task and record timing/results
 - [ ] T055 Measure SC-003 reliability over a 14-day window with at least 200 sync runs and publish completion-rate evidence
-- [ ] T056 Update CHANGELOG.md with Neo4j export/sync feature addition
-- [ ] T057 Update root QUICKSTART.md with Neo4j export/sync setup and command examples
-- [ ] T058 Update MCP_GUIDE.md and docs/environment-setup.md with Neo4j environment variables and cypher-shell usage notes
+- [X] T056 Update CHANGELOG.md with Neo4j export/sync feature addition
+- [X] T057 Update root QUICKSTART.md with Neo4j export/sync setup and command examples
+- [X] T058 Update MCP_GUIDE.md and docs/environment-setup.md with Neo4j environment variables and cypher-shell usage notes
 - [X] T059 Run full repository test suite (pytest) and ensure all tests pass before completion gate
-- [ ] T060 Record final test evidence (commands, exit codes, summary) in feature documentation/checklist
+- [X] T060 Record final test evidence (commands, exit codes, summary) in feature documentation/checklist
 
 **Checkpoint**: All tasks complete, documentation updated, and full test suite passing for PR readiness
 

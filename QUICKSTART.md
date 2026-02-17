@@ -57,6 +57,32 @@ auditgraph neighbors <entity_id> --depth 2 --root . --config config/pkg.yaml
 auditgraph export --format json --root . --config config/pkg.yaml
 ```
 
+## 6) Export/sync with Neo4j (optional)
+
+Set connection values:
+
+```bash
+export NEO4J_URI="bolt://localhost:7687"
+export NEO4J_USER="neo4j"
+export NEO4J_PASSWORD="<your_password>"
+export NEO4J_DATABASE="neo4j"
+```
+
+Export Neo4j Cypher:
+
+```bash
+auditgraph export-neo4j --root . --config config/pkg.yaml --output exports/neo4j/graph.cypher
+```
+
+Dry-run and live sync:
+
+```bash
+auditgraph sync-neo4j --root . --config config/pkg.yaml --dry-run
+auditgraph sync-neo4j --root . --config config/pkg.yaml
+```
+
+Detailed guide: `specs/001-neo4j-export-sync/quickstart.md`.
+
 ## Common fixes
 
 - If you see `Missing schema_version in manifest`, run:
