@@ -130,6 +130,39 @@ auditgraph jobs list --root .
 auditgraph jobs run changed_since --root . --config config/pkg.yaml
 ```
 
+### Neo4j export and sync
+
+Auditgraph supports exporting graph artifacts to Neo4j-compatible Cypher and syncing directly to a running Neo4j instance.
+
+Set Neo4j connection variables:
+
+```bash
+export NEO4J_URI="bolt://localhost:7687"
+export NEO4J_USER="neo4j"
+export NEO4J_PASSWORD="<your_password>"
+export NEO4J_DATABASE="neo4j"
+```
+
+Export to a `.cypher` artifact:
+
+```bash
+auditgraph export-neo4j --root . --config config/pkg.yaml --output exports/neo4j/graph.cypher
+```
+
+Dry-run sync (no DB mutation):
+
+```bash
+auditgraph sync-neo4j --root . --config config/pkg.yaml --dry-run
+```
+
+Live sync:
+
+```bash
+auditgraph sync-neo4j --root . --config config/pkg.yaml
+```
+
+For full feature guidance, see `specs/001-neo4j-export-sync/quickstart.md`.
+
 ## Configuration
 
 - Jobs configuration: `config/jobs.yaml`

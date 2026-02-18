@@ -24,6 +24,8 @@ profiles:
     include_paths:
       - "notes"
       - "repos"
+      - "auditgraph"
+      - "docs"
     exclude_globs:
       - "**/node_modules/**"
       - "**/.git/**"
