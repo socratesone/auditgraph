@@ -33,6 +33,7 @@ Auditgraph solves the "where did this fact come from?" problem for technical not
 - Deterministic ingestion, extraction, linking, indexing, and query with stable IDs.
 - Audit trail for runs, manifests, and provenance.
 - CLI-first workflows with optional local UI planned.
+- Neo4j export/sync support with deterministic Cypher output and direct database sync.
 - Optional LLM-assisted extraction as a replayable, fully logged step.
 
 ## Installation
@@ -138,7 +139,7 @@ Set Neo4j connection variables:
 
 ```bash
 export NEO4J_URI="bolt://localhost:7687"
-export NEO4J_USER="neo4j"
+export NEO4J_USER="neo4j"      # or NEO4J_USERNAME
 export NEO4J_PASSWORD="<your_password>"
 export NEO4J_DATABASE="neo4j"
 ```
@@ -187,6 +188,9 @@ auditgraph node <entity_id> --root . --config config/pkg.yaml
 auditgraph neighbors <entity_id> --depth 2 --root . --config config/pkg.yaml
 auditgraph diff --run-a <run_id> --run-b <run_id> --root . --config config/pkg.yaml
 auditgraph export --format json --root . --config config/pkg.yaml
+auditgraph export-neo4j --root . --config config/pkg.yaml --output exports/neo4j/graph.cypher
+auditgraph sync-neo4j --root . --config config/pkg.yaml --dry-run
+auditgraph sync-neo4j --root . --config config/pkg.yaml
 auditgraph jobs list --root .
 auditgraph jobs run <job_name> --root . --config config/pkg.yaml
 ```
