@@ -21,6 +21,8 @@ Auto-generated from all feature plans. Last updated: 2026-02-05
 - Generated artifacts under `llm-tooling/` (016-mcp-tools-llm-integration)
 - Python 3.10+ + neo4j-driver (official Neo4j Python driver), pyyaml (existing), pytest (existing) (001-neo4j-export-sync)
 - File-based artifacts remain authoritative; Neo4j as optional projection target (001-neo4j-export-sync)
+- Python 3.10+ + existing `pyyaml`, `pytest`; add `pypdf` (PDF extraction), add `python-docx` (DOCX extraction) (001-pdf-doc-ingestion)
+- File-based `.pkg` artifacts (authoritative), existing manifest/audit logs (001-pdf-doc-ingestion)
 
 - Python 3.10+ + None required for MVP (stdlib-first); optional: rich (CLI UX), fastapi (optional local UI API) (001-spec-plan)
 
@@ -40,9 +42,9 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.10+: Follow standard conventions
 
 ## Recent Changes
+- 001-pdf-doc-ingestion: Added Python 3.10+ + existing `pyyaml`, `pytest`; add `pypdf` (PDF extraction), add `python-docx` (DOCX extraction)
 - 001-neo4j-export-sync: Added Python 3.10+ + neo4j-driver (official Neo4j Python driver), pyyaml (existing), pytest (existing)
 - 016-mcp-tools-llm-integration: Added Python >=3.10 + stdlib, pytest
-- 014-roadmap-milestones: Added Python >=3.10 + stdlib
 
 
 <!-- MANUAL ADDITIONS START -->
