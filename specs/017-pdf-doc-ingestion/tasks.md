@@ -9,8 +9,9 @@
 
 - [ ] T001 Add PDF/DOCX extractor dependencies to requirements in requirements-dev.txt
 - [ ] T002 Add/verify ingestion config keys for OCR policy and token chunking in config/pkg.yaml
-- [ ] T003 Create document fixture set under tests/fixtures/documents/README.md
+- [ ] T003 Add concrete fixture assets `sample.pdf`, `scanned.pdf`, `sample.docx` under tests/fixtures/documents/
 - [ ] T004 Add fixture loading helpers for spec017 tests in tests/support.py
+- [ ] T048 Add deterministic fixture-generation script and fixture manifest checksums in tests/fixtures/documents/generate_fixtures.py
 
 ---
 
@@ -20,6 +21,9 @@
 
 **⚠️ CRITICAL**: No user story implementation starts before this phase completes.
 
+- [ ] T049 [P] Add failing foundational parser-routing contract tests in tests/test_spec017_foundation.py
+- [ ] T050 [P] Add failing foundational config-hash and status-shape tests in tests/test_spec017_foundation.py
+- [ ] T051 [P] Add failing foundational normalization/chunk helper contract tests in tests/test_spec017_foundation.py
 - [ ] T005 Define document extraction result and segment/chunk types in auditgraph/extract/document_types.py
 - [ ] T006 [P] Implement deterministic text normalization helpers in auditgraph/utils/document_text.py
 - [ ] T007 [P] Implement token-based chunking helper with overlap in auditgraph/utils/chunking.py
@@ -44,6 +48,9 @@
 - [ ] T013 [P] [US1] Add deterministic normalization and chunk boundary tests in tests/test_spec017_document_ingestion.py
 - [ ] T014 [P] [US1] Add unchanged-hash skip reason tests in tests/test_spec017_document_ingestion.py
 - [ ] T015 [P] [US1] Add OCR default-off behavior tests for image-only fixtures in tests/test_spec017_document_ingestion.py
+- [ ] T052 [P] [US1] Add OCR `auto` mode behavior tests (text-layer fallback conditions) in tests/test_spec017_document_ingestion.py
+- [ ] T053 [P] [US1] Add OCR `on` mode behavior tests (forced OCR path) in tests/test_spec017_document_ingestion.py
+- [ ] T054 [P] [US1] Add overwrite-in-place regression tests with hash-history traceability in tests/test_spec017_document_ingestion.py
 
 ### Implementation for User Story 1
 
@@ -55,6 +62,8 @@
 - [ ] T021 [US1] Enforce deterministic IDs for document/segment/chunk records in auditgraph/storage/hashing.py
 - [ ] T022 [US1] Enforce OCR policy default-off and explicit opt-in handling in auditgraph/config.py
 - [ ] T023 [US1] Emit explicit per-file reasons for `.doc`, encrypted/corrupt, and oversized failures in auditgraph/ingest/manifest.py
+- [ ] T055 [US1] Implement OCR mode matrix handling (`off|auto|on`) in auditgraph/ingest/parsers.py and auditgraph/extract/pdf_backend.py
+- [ ] T056 [US1] Implement overwrite-in-place update flow and hash-history audit logging in auditgraph/ingest/importer.py and auditgraph/ingest/manifest.py
 
 **Checkpoint**: US1 delivers day-1 ingestion MVP independently.
 
@@ -128,7 +137,7 @@
 ### Phase Dependencies
 
 - **Phase 1 (Setup)**: starts immediately.
-- **Phase 2 (Foundational)**: depends on Phase 1; blocks all story work.
+- **Phase 2 (Foundational)**: depends on Phase 1; blocks all story work. Foundational tests (`T049`-`T051`) must fail before foundational implementation (`T005`-`T011`).
 - **Phase 3 (US1)**: depends on Phase 2.
 - **Phase 4 (US2)**: depends on Phase 2 and US1 artifact persistence.
 - **Phase 5 (US3)**: depends on Phase 2 and US1 ingestion artifacts.
@@ -149,9 +158,9 @@
 
 ## Parallel Opportunities
 
-- Setup parallel tasks: `T003`, `T004`.
-- Foundational parallel tasks: `T006`, `T007`.
-- US1 parallel tests: `T012`–`T015`; parallel backend work: `T016`, `T017`.
+- Setup parallel tasks: `T003`, `T004`, `T048`.
+- Foundational parallel tests: `T049`-`T051`; foundational implementation: `T006`, `T007`.
+- US1 parallel tests: `T012`-`T015`, `T052`-`T054`; parallel backend work: `T016`, `T017`.
 - US2 parallel tests: `T024`–`T026`; parallel loader/query prep: `T027`, `T031`.
 - US3 parallel tests: `T032`–`T034`; parallel mapping work: `T035`, `T039`.
 - Polish parallel docs: `T040`, `T041`, `T042`.
@@ -164,6 +173,9 @@ Task: T012 [US1] tests/test_spec017_document_ingestion.py
 Task: T013 [US1] tests/test_spec017_document_ingestion.py
 Task: T014 [US1] tests/test_spec017_document_ingestion.py
 Task: T015 [US1] tests/test_spec017_document_ingestion.py
+Task: T052 [US1] tests/test_spec017_document_ingestion.py
+Task: T053 [US1] tests/test_spec017_document_ingestion.py
+Task: T054 [US1] tests/test_spec017_document_ingestion.py
 
 # Implement independent extractors in parallel
 Task: T016 [US1] auditgraph/extract/pdf_backend.py
