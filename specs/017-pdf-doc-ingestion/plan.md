@@ -1,7 +1,7 @@
 # Implementation Plan: PDF and DOC Ingestion
 
-**Branch**: `001-pdf-doc-ingestion` | **Date**: 2026-02-18 | **Spec**: [spec.md](spec.md)
-**Input**: Feature specification from `/specs/001-pdf-doc-ingestion/spec.md`
+**Branch**: `017-pdf-doc-ingestion` | **Date**: 2026-02-18 | **Spec**: [spec.md](spec.md)
+**Input**: Feature specification from `/specs/017-pdf-doc-ingestion/spec.md`
 
 ## Summary
 
@@ -15,7 +15,7 @@ Implement day-1 deterministic document ingestion for `.pdf` and `.docx` in the e
 **Testing**: `pytest` with unit + fixture/golden + integration tests  
 **Target Platform**: Linux/macOS CLI (Windows compatibility via Python runtime)  
 **Project Type**: Single CLI project  
-**Performance Goals**: deterministic re-ingest outputs; per-file memory bounded by page/paragraph streaming strategy where possible  
+**Performance Goals**: deterministic re-ingest outputs; peak RSS ≤ 512 MB per file up to 200 MB input; peak RSS ≤ 4× input file size (stricter bound); batch (100 files, total ≤ 2 GB) peak RSS ≤ 1.5 GB; repeated fixture runs vary peak RSS by ≤ 10%  
 **Constraints**: `.doc` out of day-1 scope, OCR default `off`, metadata-only citations, batch should continue on per-file failures  
 **Scale/Scope**: day-1 fixture and moderate batch directories; unchanged-file skips by hash
 
@@ -48,7 +48,7 @@ Implement day-1 deterministic document ingestion for `.pdf` and `.docx` in the e
 ### Documentation (this feature)
 
 ```text
-specs/001-pdf-doc-ingestion/
+specs/017-pdf-doc-ingestion/
 ├── plan.md
 ├── research.md
 ├── data-model.md

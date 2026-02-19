@@ -1,6 +1,6 @@
 # Tasks: PDF and DOC Ingestion
 
-**Input**: Design documents from `/specs/001-pdf-doc-ingestion/`
+**Input**: Design documents from `/specs/017-pdf-doc-ingestion/`
 **Prerequisites**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `contracts/document-ingestion-contract.yaml`, `quickstart.md`
 
 ## Phase 1: Setup (Shared Infrastructure)
@@ -8,6 +8,8 @@
 **Purpose**: Prepare dependencies, fixtures, and config surfaces required by all user stories.
 
 - [ ] T001 Add PDF/DOCX extractor dependencies to requirements in requirements-dev.txt
+- [ ] T057 Add runtime/package dependency declarations for `pypdf` and `python-docx` in pyproject.toml
+- [ ] T058 Add dependency consistency check between pyproject.toml and requirements-dev.txt in tests/test_spec017_foundation.py
 - [ ] T002 Add/verify ingestion config keys for OCR policy and token chunking in config/pkg.yaml
 - [ ] T003 Add concrete fixture assets `sample.pdf`, `scanned.pdf`, `sample.docx` under tests/fixtures/documents/
 - [ ] T004 Add fixture loading helpers for spec017 tests in tests/support.py
@@ -128,7 +130,11 @@
 - [ ] T044 Run focused test suite for retrieval/export provenance in tests/test_spec017_query_citations.py
 - [ ] T045 Run focused test suite for export/sync provenance in tests/test_spec017_export_sync_provenance.py
 - [ ] T046 Run full repository tests and resolve only regressions caused by this feature in tests/
-- [ ] T047 Validate quickstart end-to-end commands in specs/001-pdf-doc-ingestion/quickstart.md
+- [ ] T047 Validate quickstart end-to-end commands in specs/017-pdf-doc-ingestion/quickstart.md
+- [ ] T059 Validate SC-001 determinism + unchanged-skip thresholds with repeat-run assertion script in tests/test_spec017_success_criteria.py
+- [ ] T060 Validate SC-002 citation metadata completeness (100%) in tests/test_spec017_success_criteria.py
+- [ ] T061 Validate SC-003 batch failure-isolation and machine-readable reasons in tests/test_spec017_success_criteria.py
+- [ ] T062 Validate SC-004 export + Neo4j sync provenance retention checks in tests/test_spec017_success_criteria.py
 
 ---
 
@@ -158,7 +164,7 @@
 
 ## Parallel Opportunities
 
-- Setup parallel tasks: `T003`, `T004`, `T048`.
+- Setup parallel tasks: `T003`, `T004`, `T048`, `T057`, `T058`.
 - Foundational parallel tests: `T049`-`T051`; foundational implementation: `T006`, `T007`.
 - US1 parallel tests: `T012`-`T015`, `T052`-`T054`; parallel backend work: `T016`, `T017`.
 - US2 parallel tests: `T024`–`T026`; parallel loader/query prep: `T027`, `T031`.
@@ -209,7 +215,7 @@ Task: T039 [US3] auditgraph/export/json.py
 1. Ship US1 (core ingestion).
 2. Add US2 (query-time citations).
 3. Add US3 (export/sync provenance retention).
-4. Finish with Phase 6 polish and full validation.
+4. Finish with Phase 6 polish and SC validation tasks (`T059`-`T062`).
 
 ### Team Parallel Strategy
 

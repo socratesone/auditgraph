@@ -1,6 +1,6 @@
 # Feature Specification: PDF and DOC Ingestion
 
-**Feature Branch**: `001-pdf-doc-ingestion`  
+**Feature Branch**: `017-pdf-doc-ingestion`  
 **Created**: 2026-02-18  
 **Status**: Draft  
 **Input**: User description: "Add deterministic PDF and DOCX ingestion with provenance, optional OCR, and Neo4j-compatible export/sync support"
