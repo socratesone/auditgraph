@@ -5,11 +5,11 @@ from pathlib import Path
 from auditgraph.ingest.frontmatter import extract_frontmatter
 from auditgraph.ingest.importer import collect_import_paths
 from auditgraph.ingest.parsers import parse_file
-from auditgraph.ingest.policy import SKIP_REASON_UNSUPPORTED, is_allowed, load_policy
+from auditgraph.ingest.policy import is_allowed, load_policy
 from auditgraph.ingest.scanner import discover_files
 
 
-def test_allowlist_allows_markdown_and_skips_pdf(tmp_path: Path) -> None:
+def test_allowlist_allows_markdown_and_routes_pdf(tmp_path: Path) -> None:
     md_path = tmp_path / "notes" / "note.md"
     md_path.parent.mkdir()
     md_path.write_text("# Note", encoding="utf-8")
@@ -23,11 +23,11 @@ def test_allowlist_allows_markdown_and_skips_pdf(tmp_path: Path) -> None:
 
     assert is_allowed(md_path, policy)
     assert is_allowed(py_path, policy)
-    assert not is_allowed(pdf_path, policy)
+    assert is_allowed(pdf_path, policy)
 
     result = parse_file(pdf_path, policy)
-    assert result.status == "skipped"
-    assert result.skip_reason == SKIP_REASON_UNSUPPORTED
+    assert result.parser_id == "document/pdf"
+    assert result.status in {"ok", "failed"}
 
 
 def test_discover_files_sorted(tmp_path: Path) -> None:

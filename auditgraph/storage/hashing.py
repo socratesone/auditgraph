@@ -39,6 +39,7 @@ def outputs_hash(records: Iterable[IngestRecord]) -> str:
             "path": record.path,
             "source_hash": record.source_hash,
             "parse_status": record.parse_status,
+            "status_reason": record.status_reason,
             "skip_reason": record.skip_reason,
         }
         for record in sorted(records, key=lambda item: item.path)
@@ -48,3 +49,15 @@ def outputs_hash(records: Iterable[IngestRecord]) -> str:
 
 def deterministic_run_id(input_hash: str, config_hash: str) -> str:
     return f"run_{sha256_text(input_hash + config_hash)}"
+
+
+def deterministic_document_id(source_path: str, source_hash: str = "") -> str:
+    return f"doc_{sha256_text(source_path)[:24]}"
+
+
+def deterministic_segment_id(document_id: str, segment_type: str, order: int, text: str) -> str:
+    return f"seg_{sha256_text(f'{document_id}:{segment_type}:{order}:{text}')[:24]}"
+
+
+def deterministic_chunk_id(document_id: str, order: int, text: str) -> str:
+    return f"chk_{sha256_text(f'{document_id}:{order}:{text}')[:24]}"

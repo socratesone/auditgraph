@@ -12,6 +12,7 @@ class IngestRecord:
     mtime: float
     parser_id: str
     parse_status: str
+    status_reason: str | None = None
     skip_reason: str | None = None
 
 
@@ -32,6 +33,7 @@ class IngestManifest:
     records: list[IngestRecord] = field(default_factory=list)
     ingested_count: int = 0
     skipped_count: int = 0
+    failed_count: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

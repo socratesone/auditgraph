@@ -1,0 +1,128 @@
+openapi: 3.0.3
+info:
+  title: Auditgraph Document Ingestion Contract
+  version: 0.1.0
+  description: >-
+    Contract for day-1 PDF/DOCX ingestion outcomes and citation-bearing chunk
+    payloads used by query/export/sync workflows.
+paths: {}
+components:
+  schemas:
+    DocumentIngestResult:
+      type: object
+      required:
+        - source_path
+        - source_hash
+        - status
+      properties:
+        source_path:
+          type: string
+        source_hash:
+          type: string
+        status:
+          type: string
+          enum: [ok, skipped, failed]
+        status_reason:
+          type: string
+          nullable: true
+        mime_type:
+          type: string
+        extractor_id:
+          type: string
+        extractor_version:
+          type: string
+        ingest_config_hash:
+          type: string
+
+    SegmentRecord:
+      type: object
+      required:
+        - segment_id
+        - document_id
+        - order
+        - type
+        - text
+      properties:
+        segment_id:
+          type: string
+        document_id:
+          type: string
+        order:
+          type: integer
+          minimum: 0
+        type:
+          type: string
+          enum: [page, paragraph, heading, list_item, table, other]
+        text:
+          type: string
+        page_start:
+          type: integer
+          minimum: 1
+          nullable: true
+        page_end:
+          type: integer
+          minimum: 1
+          nullable: true
+        paragraph_index:
+          type: integer
+          minimum: 0
+          nullable: true
+
+    ChunkRecord:
+      type: object
+      required:
+        - chunk_id
+        - document_id
+        - order
+        - text
+        - token_count
+        - source_path
+        - source_hash
+      properties:
+        chunk_id:
+          type: string
+        document_id:
+          type: string
+        order:
+          type: integer
+          minimum: 0
+        text:
+          type: string
+          description: Chunk text only; MUST NOT contain injected inline page markers.
+        token_count:
+          type: integer
+          minimum: 1
+        segment_ids:
+          type: array
+          items:
+            type: string
+        overlap_tokens:
+          type: integer
+          minimum: 0
+        source_path:
+          type: string
+        source_hash:
+          type: string
+        page_start:
+          type: integer
+          minimum: 1
+          nullable: true
+        page_end:
+          type: integer
+          minimum: 1
+          nullable: true
+        paragraph_index_start:
+          type: integer
+          minimum: 0
+          nullable: true
+        paragraph_index_end:
+          type: integer
+          minimum: 0
+          nullable: true
+
+x-auditgraph-day1-policy:
+  supported_extensions: [.pdf, .docx]
+  unsupported_extensions: [.doc]
+  ocr_default: off
+  citation_mode: metadata_only
+  chunking_unit: tokens

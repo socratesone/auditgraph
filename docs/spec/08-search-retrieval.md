@@ -24,7 +24,7 @@ The spec MUST include the following, with concrete requirements and examples:
 1) Query type definitions with inputs and outputs.
 2) Ranking formula and deterministic tie-break ordering.
 3) Explanation payload schema with evidence references.
-4) Index artifacts (keyword, semantic, graph) and storage paths.
+4) Index artifacts (keyword, semantic, graph) and storage paths. The keyword index SHALL index both entity names and aliases, tokenized using `[\s_\-./]+`.
 5) Offline-first behavior and semantic search enablement.
 6) Test plan with at least:
 	- keyword query response fields

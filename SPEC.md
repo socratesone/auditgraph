@@ -380,6 +380,7 @@ FR-3 Extraction
 10. FR-3.3 The system SHALL output extracted claims as plain-text JSON files with stable IDs.
 11. FR-3.4 The system SHALL store provenance for each claim: source file, byte ranges or line ranges, extraction rule id, pipeline version, and input hash.
 12. FR-3.5 The system SHALL support a plugin mechanism for adding extraction rules without modifying core code.
+13. FR-3.6 The system SHALL extract content sub-entities from Markdown files: `ag:section` (from headings), `ag:technology` (from known technology mentions), and `ag:reference` (from markdown links). Each sub-entity SHALL include source path, line range, and extraction rule provenance.
 
 FR-4 Linking
 13. FR-4.1 The system SHALL create deterministic links using configured link rules (exact match, normalized match, symbol reference match).
@@ -387,8 +388,8 @@ FR-4 Linking
 15. FR-4.3 The system SHALL support backlinks (either precomputed artifacts or deterministic on-demand computation) with identical results.
 
 FR-5 Indexing and Search
-16. FR-5.1 The system SHALL provide keyword search over all ingested text and extracted entities/claims.
-17. FR-5.2 The system SHALL provide hybrid search combining keyword and optional semantic scores with deterministic ranking.
+16. FR-5.1 The system SHALL provide keyword search over all ingested text and extracted entities/claims. The BM25 index SHALL tokenize entity names and aliases using the pattern `[\s_\-./]+` (whitespace, underscores, hyphens, dots, slashes). Both the full name and individual tokens SHALL be indexed.
+17. FR-5.2 The system SHALL provide hybrid search combining keyword and optional semantic scores with deterministic ranking. Query strings SHALL be tokenized using the same pattern as index building. Results SHALL be scored as `min(match_count / total_query_tokens, 1.0)`, with exact matches weighted higher than partial token matches.
 18. FR-5.3 The system SHALL provide an explanation object per result including scoring components and evidence snippets.
 19. FR-5.4 The system SHALL provide graph traversal queries: neighbors, paths (bounded length), and “why connected”.
 
@@ -639,7 +640,7 @@ Core rule: LLM outputs are treated as recorded deterministic artifacts, not as e
 Components
 - Keyword score: BM25 on:
   - note bodies
-  - entity names/aliases
+  - entity names and aliases (both full names and individual tokens split on `[\s_\-./]+`)
   - claim predicate/object text
   - code symbol tables
 - Semantic score (optional): cosine similarity between query embedding and document/entity embeddings.
@@ -734,6 +735,7 @@ Alternatives and why rejected
 
 2) Secrets and redaction
 - Configurable redaction regexes (API keys, tokens, emails).
+- JWT detection requires each dot-separated segment to be at least 8 characters, preventing false positives on version strings (e.g. `0.1.0`) and internal rule identifiers (e.g. `extract.note.v1`).
 - Redaction applied to:
   - exports
   - optional LLM transcripts

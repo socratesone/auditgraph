@@ -15,6 +15,8 @@ DEFAULT_ALLOWED_EXTENSIONS = {
     ".ts",
     ".tsx",
     ".jsx",
+    ".pdf",
+    ".docx",
 }
 PARSER_BY_SUFFIX = {
     ".md": "text/markdown",
@@ -26,8 +28,18 @@ PARSER_BY_SUFFIX = {
     ".ts": "text/code",
     ".tsx": "text/code",
     ".jsx": "text/code",
+    ".pdf": "document/pdf",
+    ".docx": "document/docx",
+    ".doc": "document/doc",
 }
 SKIP_REASON_UNSUPPORTED = "unsupported_extension"
+SKIP_REASON_UNCHANGED = "unchanged_source_hash"
+FAIL_REASON_UNSUPPORTED_DOC = "unsupported_doc_format"
+FAIL_REASON_ENCRYPTED = "encrypted_pdf"
+FAIL_REASON_CORRUPT = "corrupt_or_unreadable"
+FAIL_REASON_OVERSIZED = "oversized_file"
+FAIL_REASON_OCR_REQUIRED = "ocr_required"
+FAIL_REASON_OCR_UNAVAILABLE = "ocr_engine_unavailable"
 
 
 @dataclass(frozen=True)
@@ -42,7 +54,10 @@ def load_policy(profile: dict) -> IngestionPolicy:
 
 
 def is_allowed(path: Path, policy: IngestionPolicy) -> bool:
-    return path.suffix.lower() in policy.allowed_extensions
+    suffix = path.suffix.lower()
+    if suffix == ".doc":
+        return True
+    return suffix in policy.allowed_extensions
 
 
 def split_by_allowlist(paths: Iterable[Path], policy: IngestionPolicy) -> tuple[list[Path], list[Path]]:

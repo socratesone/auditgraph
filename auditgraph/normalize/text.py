@@ -7,4 +7,5 @@ def normalize_text(text: str, unicode_form: str = "NFC", line_endings: str = "LF
     normalized = unicodedata.normalize(unicode_form, text)
     if line_endings.upper() == "LF":
         normalized = normalized.replace("\r\n", "\n").replace("\r", "\n")
+    normalized = normalized.replace("[[page:", "[").replace("::citation]]", "]")
     return normalized

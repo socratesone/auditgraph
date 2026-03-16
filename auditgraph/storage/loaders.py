@@ -24,3 +24,23 @@ def load_entities(pkg_root: Path) -> list[dict[str, object]]:
     for path in entities_dir.rglob("*.json"):
         entities.append(read_json(path))
     return entities
+
+
+def load_documents(pkg_root: Path) -> list[dict[str, object]]:
+    documents_dir = pkg_root / "documents"
+    if not documents_dir.exists():
+        return []
+    records: list[dict[str, object]] = []
+    for path in sorted(documents_dir.rglob("*.json"), key=lambda item: item.as_posix()):
+        records.append(read_json(path))
+    return records
+
+
+def load_chunks(pkg_root: Path) -> list[dict[str, object]]:
+    chunks_dir = pkg_root / "chunks"
+    if not chunks_dir.exists():
+        return []
+    records: list[dict[str, object]] = []
+    for path in sorted(chunks_dir.rglob("*.json"), key=lambda item: item.as_posix()):
+        records.append(read_json(path))
+    return sorted(records, key=lambda item: (str(item.get("document_id", "")), int(item.get("order", 0))))

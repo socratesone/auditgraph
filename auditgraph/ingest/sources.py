@@ -13,6 +13,7 @@ def build_source_record(
     root: Path,
     parser_id: str,
     parse_status: str,
+    status_reason: str | None = None,
     skip_reason: str | None = None,
     extra_metadata: dict[str, object] | None = None,
 ) -> tuple[IngestRecord, dict[str, object]]:
@@ -26,6 +27,7 @@ def build_source_record(
         mtime=stat.st_mtime,
         parser_id=parser_id,
         parse_status=parse_status,
+        status_reason=status_reason,
         skip_reason=skip_reason,
     )
     metadata = {
@@ -35,6 +37,7 @@ def build_source_record(
         "mtime": stat.st_mtime,
         "parser_id": parser_id,
         "parse_status": parse_status,
+        "status_reason": status_reason,
         "skip_reason": skip_reason,
     }
     frontmatter = None

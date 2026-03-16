@@ -13,6 +13,7 @@ from auditgraph.ingest import (
     parse_file,
 )
 from auditgraph.ingest.policy import SKIP_REASON_UNSUPPORTED
+from auditgraph.ingest.policy import SKIP_REASON_UNCHANGED, parser_id_for
 from auditgraph.ingest.scanner import split_allowed
 from auditgraph.ingest.importer import split_imported
 import json
@@ -25,10 +26,12 @@ from auditgraph.link.adjacency import write_adjacency
 from auditgraph.index.bm25 import build_bm25_index
 from auditgraph.index.semantic import build_semantic_index
 from auditgraph.storage.artifacts import profile_pkg_root, read_json, write_json, write_text
+from auditgraph.storage.artifacts import write_document_artifacts
 from auditgraph.storage.safe_artifacts import write_json_redacted
 from auditgraph.utils.redaction import build_redactor
-from auditgraph.storage.config_snapshot import write_config_snapshot
+from auditgraph.storage.config_snapshot import ingestion_config_hash, write_config_snapshot
 from auditgraph.storage.hashing import deterministic_run_id, inputs_hash, outputs_hash, sha256_json, sha256_text
+from auditgraph.storage.hashing import deterministic_document_id, sha256_file
 from auditgraph.storage.loaders import load_entities
 from auditgraph.storage.provenance import ProvenanceRecord, write_provenance_index
 from auditgraph.storage.audit import ARTIFACT_SCHEMA_VERSION, DEFAULT_PIPELINE_VERSION
@@ -133,18 +136,52 @@ class PipelineRunner:
         allowed, skipped = split_allowed(files, policy)
         records = []
         source_payloads: list[tuple[Any, dict[str, object]]] = []
+        ingest_cfg = profile.get("ingestion", {}) if isinstance(profile, dict) else {}
+        parse_options = {
+            "ocr_mode": ingest_cfg.get("ocr_mode", "off"),
+            "chunk_tokens": int(ingest_cfg.get("chunk_tokens", 200)),
+            "chunk_overlap_tokens": int(ingest_cfg.get("chunk_overlap_tokens", 40)),
+            "max_file_size_bytes": int(ingest_cfg.get("max_file_size_bytes", 209715200)),
+            "ingest_config_hash": ingestion_config_hash(config),
+        }
         for path in allowed:
-            result = parse_file(path, policy)
+            source_hash = sha256_file(path)
+            document_id = deterministic_document_id(path.as_posix(), source_hash)
+            existing_document_path = pkg_root / "documents" / f"{document_id}.json"
+            if existing_document_path.exists():
+                existing_document = read_json(existing_document_path)
+                if str(existing_document.get("source_hash", "")) == source_hash:
+                    record, metadata = build_source_record(
+                        path,
+                        root,
+                        parser_id_for(path),
+                        "skipped",
+                        status_reason=SKIP_REASON_UNCHANGED,
+                        skip_reason=SKIP_REASON_UNCHANGED,
+                    )
+                    records.append(record)
+                    source_payloads.append((record, metadata))
+                    continue
+
+            parse_options["source_hash"] = source_hash
+            result = parse_file(path, policy, parse_options)
             record, metadata = build_source_record(
                 path,
                 root,
                 result.parser_id,
                 result.status,
+                status_reason=result.status_reason,
                 skip_reason=result.skip_reason,
                 extra_metadata=result.metadata,
             )
             records.append(record)
             source_payloads.append((record, metadata))
+
+            document_payload = metadata.get("document") if isinstance(metadata, dict) else None
+            segments_payload = metadata.get("segments") if isinstance(metadata, dict) else None
+            chunks_payload = metadata.get("chunks") if isinstance(metadata, dict) else None
+            if isinstance(document_payload, dict) and isinstance(segments_payload, list) and isinstance(chunks_payload, list):
+                write_document_artifacts(pkg_root, document_payload, segments_payload, chunks_payload)
 
         for path in skipped:
             record, metadata = build_source_record(
@@ -152,6 +189,7 @@ class PipelineRunner:
                 root,
                 "text/unknown",
                 "skipped",
+                status_reason=SKIP_REASON_UNSUPPORTED,
                 skip_reason=SKIP_REASON_UNSUPPORTED,
             )
             records.append(record)
@@ -225,6 +263,9 @@ class PipelineRunner:
             "files": len(files),
             "manifest": str(manifest_path),
             "profile": config.active_profile(),
+            "ok": sum(1 for record in records if record.parse_status == "ok"),
+            "skipped": sum(1 for record in records if record.parse_status == "skipped"),
+            "failed": sum(1 for record in records if record.parse_status == "failed"),
         }
         if budget_status.status == "warn":
             detail["budget"] = {
@@ -551,13 +592,42 @@ class PipelineRunner:
         allowed, skipped = split_imported(root, targets, exclude_globs, policy)
         pkg_root = profile_pkg_root(root, config)
         records = []
+        ingest_cfg = profile.get("ingestion", {}) if isinstance(profile, dict) else {}
+        parse_options = {
+            "ocr_mode": ingest_cfg.get("ocr_mode", "off"),
+            "chunk_tokens": int(ingest_cfg.get("chunk_tokens", 200)),
+            "chunk_overlap_tokens": int(ingest_cfg.get("chunk_overlap_tokens", 40)),
+            "max_file_size_bytes": int(ingest_cfg.get("max_file_size_bytes", 209715200)),
+            "ingest_config_hash": ingestion_config_hash(config),
+        }
         for path in allowed:
-            result = parse_file(path, policy)
+            source_hash = sha256_file(path)
+            document_id = deterministic_document_id(path.as_posix(), source_hash)
+            existing_document_path = pkg_root / "documents" / f"{document_id}.json"
+            if existing_document_path.exists():
+                existing_document = read_json(existing_document_path)
+                if str(existing_document.get("source_hash", "")) == source_hash:
+                    record, metadata = build_source_record(
+                        path,
+                        root,
+                        parser_id_for(path),
+                        "skipped",
+                        status_reason=SKIP_REASON_UNCHANGED,
+                        skip_reason=SKIP_REASON_UNCHANGED,
+                    )
+                    records.append(record)
+                    source_path = pkg_root / "sources" / f"{record.source_hash}.json"
+                    write_json(source_path, metadata)
+                    continue
+
+            parse_options["source_hash"] = source_hash
+            result = parse_file(path, policy, parse_options)
             record, metadata = build_source_record(
                 path,
                 root,
                 result.parser_id,
                 result.status,
+                status_reason=result.status_reason,
                 skip_reason=result.skip_reason,
                 extra_metadata=result.metadata,
             )
@@ -565,12 +635,19 @@ class PipelineRunner:
             source_path = pkg_root / "sources" / f"{record.source_hash}.json"
             write_json(source_path, metadata)
 
+            document_payload = metadata.get("document") if isinstance(metadata, dict) else None
+            segments_payload = metadata.get("segments") if isinstance(metadata, dict) else None
+            chunks_payload = metadata.get("chunks") if isinstance(metadata, dict) else None
+            if isinstance(document_payload, dict) and isinstance(segments_payload, list) and isinstance(chunks_payload, list):
+                write_document_artifacts(pkg_root, document_payload, segments_payload, chunks_payload)
+
         for path in skipped:
             record, metadata = build_source_record(
                 path,
                 root,
                 "text/unknown",
                 "skipped",
+                status_reason=SKIP_REASON_UNSUPPORTED,
                 skip_reason=SKIP_REASON_UNSUPPORTED,
             )
             records.append(record)
@@ -623,6 +700,9 @@ class PipelineRunner:
                 "files": len(records),
                 "manifest": str(manifest_path),
                 "profile": config.active_profile(),
+                "ok": sum(1 for record in records if record.parse_status == "ok"),
+                "skipped": sum(1 for record in records if record.parse_status == "skipped"),
+                "failed": sum(1 for record in records if record.parse_status == "failed"),
             },
         )
 
