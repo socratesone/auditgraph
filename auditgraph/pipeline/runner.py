@@ -19,7 +19,6 @@ from auditgraph.ingest.importer import split_imported
 import json
 
 from auditgraph.extract.code_symbols import extract_code_symbols
-from auditgraph.extract.content import extract_content_entities
 from auditgraph.extract.entities import build_entity, build_note_entity
 from auditgraph.extract.manifest import extract_adr_claims, extract_log_claims, write_claims, write_entities
 from auditgraph.link import build_source_cooccurrence_links, write_links
@@ -352,17 +351,6 @@ class PipelineRunner:
                     title = Path(source_path).stem
                 note_entity = build_note_entity(str(title), source_path, source_hash, redactor=redactor)
                 entities[note_entity["id"]] = note_entity
-
-                # Extract sub-entities from markdown content
-                full_path = root / source_path
-                if full_path.exists():
-                    try:
-                        content_text = full_path.read_text(encoding="utf-8", errors="replace")
-                        content_entities = extract_content_entities(source_path, source_hash, content_text)
-                        for ce in content_entities:
-                            entities[ce["id"]] = ce
-                    except OSError:
-                        pass
 
         code_symbols = extract_code_symbols(root, ok_paths)
         for symbol in code_symbols:

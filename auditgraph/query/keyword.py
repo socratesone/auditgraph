@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from collections import Counter
 from pathlib import Path
 
-from auditgraph.index.bm25 import tokenize
 from auditgraph.query.ranking import apply_ranking
 from auditgraph.storage.artifacts import read_json
 from auditgraph.storage.loaders import load_chunks
@@ -20,40 +18,15 @@ def keyword_search(
     if index_path.exists():
         index = read_json(index_path)
         entries = index.get("entries", {})
-
-        # Try exact match first
-        query_lower = query.lower().strip()
-        exact_hits = entries.get(query_lower, [])
-
-        # Tokenize the query and collect hits per entity with match counts
-        query_tokens = tokenize(query)
-        entity_matches: Counter[str] = Counter()
-        matched_terms_map: dict[str, list[str]] = {}
-
-        # Exact match gets highest weight
-        for eid in exact_hits:
-            entity_matches[eid] += len(query_tokens) + 1
-            matched_terms_map.setdefault(eid, []).append(query_lower)
-
-        # Token matches
-        for token in query_tokens:
-            token_hits = entries.get(token, [])
-            for eid in token_hits:
-                entity_matches[eid] += 1
-                matched_terms_map.setdefault(eid, []).append(token)
-
-        # Build results scored by fraction of query tokens matched
-        total_tokens = max(len(query_tokens), 1)
-        for entity_id, match_count in entity_matches.items():
-            score = min(match_count / total_tokens, 1.0)
-            terms = sorted(set(matched_terms_map.get(entity_id, [])))
+        hits = entries.get(query.lower(), [])
+        for entity_id in hits:
             results.append(
                 {
                     "id": entity_id,
-                    "score": score,
+                    "score": 1.0,
                     "explanation": {
-                        "matched_terms": terms,
-                        "bm25_score": score,
+                        "matched_terms": [query],
+                        "bm25_score": 1.0,
                         "semantic_score": 0.0,
                         "graph_boost": 0.0,
                         "tie_break": [entity_id],
