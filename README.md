@@ -8,7 +8,7 @@ Local-first, deterministic personal knowledge graph tooling for engineers.
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
 [![MCP](https://img.shields.io/badge/MCP-enabled-brightgreen)](MCP_GUIDE.md)
 
-Auditgraph ingests plain-text notes and code, deterministically extracts entities and claims, builds explainable links, and provides CLI-first navigation. Your source of truth stays in plain text; derived artifacts are reproducible, diffable, and fully audited.
+Auditgraph ingests plain-text notes, code, and day-1 `.pdf`/`.docx` documents, deterministically extracts entities and claims, builds explainable links, and provides CLI-first navigation. Your source of truth stays in plain text; derived artifacts are reproducible, diffable, and fully audited.
 
 ## Overview
 
@@ -31,6 +31,9 @@ Auditgraph solves the "where did this fact come from?" problem for technical not
 
 - Local-first, offline-capable PKG for engineers and teams.
 - Deterministic ingestion, extraction, linking, indexing, and query with stable IDs.
+- **Content extraction from markdown**: headings become `ag:section` entities, known technologies become `ag:technology` entities, and markdown links become `ag:reference` entities — all automatically during the extract stage.
+- Day-1 document ingestion for `.pdf` and `.docx` with deterministic chunking and metadata-only citations.
+- **Tokenized keyword search**: queries are split on whitespace, underscores, hyphens, dots, and slashes. Results are scored by token coverage. Entity aliases are also indexed and searchable.
 - Audit trail for runs, manifests, and provenance.
 - CLI-first workflows with optional local UI planned.
 - Neo4j export/sync support with deterministic Cypher output and direct database sync.
@@ -65,6 +68,28 @@ Run ingestion and query:
 auditgraph ingest --root . --config config/pkg.yaml
 auditgraph query --q "symbol" --root . --config config/pkg.yaml
 ```
+
+### Query behavior
+
+Queries are tokenized on whitespace, underscores, hyphens, dots, and slashes (regex: `[\s_\-./]+`). Each token is matched against the BM25 index, which indexes entity names and aliases. Results are scored by the fraction of query tokens that matched, so partial matches rank lower than exact matches. All matching is case-insensitive.
+
+For example, querying `"auth_token"` will match entities named `auth_token` (exact, score 1.0) as well as entities containing `auth` or `token` individually (partial, lower score).
+
+### Content extraction
+
+When markdown files are ingested, the extract stage automatically produces sub-entities:
+
+- **`ag:section`** — one entity per heading (`# Heading` through `###### Heading`), with the heading level and source line recorded.
+- **`ag:technology`** — one entity per recognized technology mention (languages, frameworks, databases, tools). Over 80 technologies are recognized including Python, Neo4j, FastAPI, React, Docker, etc.
+- **`ag:reference`** — one entity per markdown link (`[text](url)`), with the URL stored in aliases and metadata.
+
+These entities are linked to each other and to the parent note via source co-occurrence, enabling graph traversal across documents.
+
+Document ingestion defaults:
+
+- OCR mode defaults to `off` (supported values: `off|auto|on`).
+- `.doc` is rejected in day-1 scope with explicit machine-readable reasons.
+- Chunk citations are returned as metadata fields (`source_path`, page/paragraph location), not inline markers.
 
 ### Example: Ingest a full codebase and query it
 

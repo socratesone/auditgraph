@@ -47,7 +47,7 @@
     },
     {
       "name": "ag_extract",
-      "description": "Run extract stage.",
+      "description": "Run extract stage. For markdown files, extracts sections (headings), technology mentions, and references (links) as sub-entities.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -265,7 +265,7 @@
     },
     {
       "name": "ag_query",
-      "description": "Run a keyword query over the graph.",
+      "description": "Run a tokenized keyword query over the graph. Queries are split into tokens and matched against entity names and aliases. Results are scored by match coverage.",
       "parameters": {
         "type": "object",
         "properties": {

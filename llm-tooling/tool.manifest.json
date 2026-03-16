@@ -51,7 +51,7 @@
     {
       "name": "ag_query",
       "title": "Query Auditgraph",
-      "description": "Run a keyword query over the graph.",
+      "description": "Run a tokenized keyword query over the graph. Queries are split into tokens and matched against entity names and aliases. Results are scored by match coverage.",
       "risk": "low",
       "idempotency": "idempotent",
       "timeout_ms": 5000,
@@ -445,7 +445,7 @@
     {
       "name": "ag_extract",
       "title": "Extract",
-      "description": "Run extract stage.",
+      "description": "Run extract stage. For markdown files, extracts sections (headings), technology mentions, and references (links) as sub-entities.",
       "risk": "high",
       "idempotency": "non-idempotent",
       "timeout_ms": 30000,

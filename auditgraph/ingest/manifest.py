@@ -27,8 +27,9 @@ def build_manifest(
     status: str,
 ) -> IngestManifest:
     record_list = list(records)
+    failed = sum(1 for record in record_list if record.parse_status == "failed")
     skipped = sum(1 for record in record_list if record.parse_status == "skipped")
-    ingested = len(record_list) - skipped
+    ingested = sum(1 for record in record_list if record.parse_status == "ok")
     return IngestManifest(
         version="v1",
         schema_version=ARTIFACT_SCHEMA_VERSION,
@@ -45,4 +46,5 @@ def build_manifest(
         records=record_list,
         ingested_count=ingested,
         skipped_count=skipped,
+        failed_count=failed,
     )

@@ -7,13 +7,13 @@
 
 **Purpose**: Prepare dependencies, fixtures, and config surfaces required by all user stories.
 
-- [ ] T001 Add PDF/DOCX extractor dependencies to requirements in requirements-dev.txt
-- [ ] T057 Add runtime/package dependency declarations for `pypdf` and `python-docx` in pyproject.toml
-- [ ] T058 Add dependency consistency check between pyproject.toml and requirements-dev.txt in tests/test_spec017_foundation.py
-- [ ] T002 Add/verify ingestion config keys for OCR policy and token chunking in config/pkg.yaml
-- [ ] T003 Add concrete fixture assets `sample.pdf`, `scanned.pdf`, `sample.docx` under tests/fixtures/documents/
-- [ ] T004 Add fixture loading helpers for spec017 tests in tests/support.py
-- [ ] T048 Add deterministic fixture-generation script and fixture manifest checksums in tests/fixtures/documents/generate_fixtures.py
+- [X] T001 Add PDF/DOCX extractor dependencies to requirements in requirements-dev.txt
+- [X] T057 Add runtime/package dependency declarations for `pypdf` and `python-docx` in pyproject.toml
+- [X] T058 Add dependency consistency check between pyproject.toml and requirements-dev.txt in tests/test_spec017_foundation.py
+- [X] T002 Add/verify ingestion config keys for OCR policy and token chunking in config/pkg.yaml
+- [X] T003 Add concrete fixture assets `sample.pdf`, `scanned.pdf`, `sample.docx` under tests/fixtures/documents/
+- [X] T004 Add fixture loading helpers for spec017 tests in tests/support.py
+- [X] T048 Add deterministic fixture-generation script and fixture manifest checksums in tests/fixtures/documents/generate_fixtures.py
 
 ---
 
@@ -23,16 +23,16 @@
 
 **⚠️ CRITICAL**: No user story implementation starts before this phase completes.
 
-- [ ] T049 [P] Add failing foundational parser-routing contract tests in tests/test_spec017_foundation.py
-- [ ] T050 [P] Add failing foundational config-hash and status-shape tests in tests/test_spec017_foundation.py
-- [ ] T051 [P] Add failing foundational normalization/chunk helper contract tests in tests/test_spec017_foundation.py
-- [ ] T005 Define document extraction result and segment/chunk types in auditgraph/extract/document_types.py
-- [ ] T006 [P] Implement deterministic text normalization helpers in auditgraph/utils/document_text.py
-- [ ] T007 [P] Implement token-based chunking helper with overlap in auditgraph/utils/chunking.py
-- [ ] T008 Implement extractor backend selection and routing hooks in auditgraph/ingest/parsers.py
-- [ ] T009 Implement ingestion config hash helper for document runs in auditgraph/storage/config_snapshot.py
-- [ ] T010 Implement per-file status reason plumbing for ok/skipped/failed in auditgraph/ingest/importer.py
-- [ ] T011 Wire importer status reporting into CLI ingest output in auditgraph/cli.py
+- [X] T049 [P] Add failing foundational parser-routing contract tests in tests/test_spec017_foundation.py
+- [X] T050 [P] Add failing foundational config-hash and status-shape tests in tests/test_spec017_foundation.py
+- [X] T051 [P] Add failing foundational normalization/chunk helper contract tests in tests/test_spec017_foundation.py
+- [X] T005 Define document extraction result and segment/chunk types in auditgraph/extract/document_types.py
+- [X] T006 [P] Implement deterministic text normalization helpers in auditgraph/utils/document_text.py
+- [X] T007 [P] Implement token-based chunking helper with overlap in auditgraph/utils/chunking.py
+- [X] T008 Implement extractor backend selection and routing hooks in auditgraph/ingest/parsers.py
+- [X] T009 Implement ingestion config hash helper for document runs in auditgraph/storage/config_snapshot.py
+- [X] T010 Implement per-file status reason plumbing for ok/skipped/failed in auditgraph/ingest/importer.py
+- [X] T011 Wire importer status reporting into CLI ingest output in auditgraph/cli.py
 
 **Checkpoint**: Foundation ready for independent user story delivery.
 
@@ -46,26 +46,26 @@
 
 ### Tests for User Story 1 (write first, must fail first)
 
-- [ ] T012 [P] [US1] Add parser selection and unsupported `.doc` behavior tests in tests/test_spec017_document_ingestion.py
-- [ ] T013 [P] [US1] Add deterministic normalization and chunk boundary tests in tests/test_spec017_document_ingestion.py
-- [ ] T014 [P] [US1] Add unchanged-hash skip reason tests in tests/test_spec017_document_ingestion.py
-- [ ] T015 [P] [US1] Add OCR default-off behavior tests for image-only fixtures in tests/test_spec017_document_ingestion.py
-- [ ] T052 [P] [US1] Add OCR `auto` mode behavior tests (text-layer fallback conditions) in tests/test_spec017_document_ingestion.py
-- [ ] T053 [P] [US1] Add OCR `on` mode behavior tests (forced OCR path) in tests/test_spec017_document_ingestion.py
-- [ ] T054 [P] [US1] Add overwrite-in-place regression tests with hash-history traceability in tests/test_spec017_document_ingestion.py
+- [X] T012 [P] [US1] Add parser selection and unsupported `.doc` behavior tests in tests/test_spec017_document_ingestion.py
+- [X] T013 [P] [US1] Add deterministic normalization and chunk boundary tests in tests/test_spec017_document_ingestion.py
+- [X] T014 [P] [US1] Add unchanged-hash skip reason tests in tests/test_spec017_document_ingestion.py
+- [X] T015 [P] [US1] Add OCR default-off behavior tests for image-only fixtures in tests/test_spec017_document_ingestion.py
+- [X] T052 [P] [US1] Add OCR `auto` mode behavior tests (text-layer fallback conditions) in tests/test_spec017_document_ingestion.py
+- [X] T053 [P] [US1] Add OCR `on` mode behavior tests (forced OCR path) in tests/test_spec017_document_ingestion.py
+- [X] T054 [P] [US1] Add overwrite-in-place regression tests with hash-history traceability in tests/test_spec017_document_ingestion.py
 
 ### Implementation for User Story 1
 
-- [ ] T016 [P] [US1] Implement PDF text-layer backend extraction in auditgraph/extract/pdf_backend.py
-- [ ] T017 [P] [US1] Implement DOCX OOXML backend extraction in auditgraph/extract/docx_backend.py
-- [ ] T018 [US1] Register PDF/DOCX backends and block `.doc` in auditgraph/ingest/parsers.py
-- [ ] T019 [US1] Integrate backend extraction into import pipeline in auditgraph/ingest/importer.py
-- [ ] T020 [US1] Persist extracted document/segment/chunk artifacts in auditgraph/storage/artifacts.py
-- [ ] T021 [US1] Enforce deterministic IDs for document/segment/chunk records in auditgraph/storage/hashing.py
-- [ ] T022 [US1] Enforce OCR policy default-off and explicit opt-in handling in auditgraph/config.py
-- [ ] T023 [US1] Emit explicit per-file reasons for `.doc`, encrypted/corrupt, and oversized failures in auditgraph/ingest/manifest.py
-- [ ] T055 [US1] Implement OCR mode matrix handling (`off|auto|on`) in auditgraph/ingest/parsers.py and auditgraph/extract/pdf_backend.py
-- [ ] T056 [US1] Implement overwrite-in-place update flow and hash-history audit logging in auditgraph/ingest/importer.py and auditgraph/ingest/manifest.py
+- [X] T016 [P] [US1] Implement PDF text-layer backend extraction in auditgraph/extract/pdf_backend.py
+- [X] T017 [P] [US1] Implement DOCX OOXML backend extraction in auditgraph/extract/docx_backend.py
+- [X] T018 [US1] Register PDF/DOCX backends and block `.doc` in auditgraph/ingest/parsers.py
+- [X] T019 [US1] Integrate backend extraction into import pipeline in auditgraph/ingest/importer.py
+- [X] T020 [US1] Persist extracted document/segment/chunk artifacts in auditgraph/storage/artifacts.py
+- [X] T021 [US1] Enforce deterministic IDs for document/segment/chunk records in auditgraph/storage/hashing.py
+- [X] T022 [US1] Enforce OCR policy default-off and explicit opt-in handling in auditgraph/config.py
+- [X] T023 [US1] Emit explicit per-file reasons for `.doc`, encrypted/corrupt, and oversized failures in auditgraph/ingest/manifest.py
+- [X] T055 [US1] Implement OCR mode matrix handling (`off|auto|on`) in auditgraph/ingest/parsers.py and auditgraph/extract/pdf_backend.py
+- [X] T056 [US1] Implement overwrite-in-place update flow and hash-history audit logging in auditgraph/ingest/importer.py and auditgraph/ingest/manifest.py
 
 **Checkpoint**: US1 delivers day-1 ingestion MVP independently.
 
@@ -79,17 +79,17 @@
 
 ### Tests for User Story 2 (write first, must fail first)
 
-- [ ] T024 [P] [US2] Add chunk citation metadata presence tests in tests/test_spec017_query_citations.py
-- [ ] T025 [P] [US2] Add no-inline-citation-marker tests in tests/test_spec017_query_citations.py
-- [ ] T026 [P] [US2] Add DOCX paragraph-order provenance tests in tests/test_spec017_query_citations.py
+- [X] T024 [P] [US2] Add chunk citation metadata presence tests in tests/test_spec017_query_citations.py
+- [X] T025 [P] [US2] Add no-inline-citation-marker tests in tests/test_spec017_query_citations.py
+- [X] T026 [P] [US2] Add DOCX paragraph-order provenance tests in tests/test_spec017_query_citations.py
 
 ### Implementation for User Story 2
 
-- [ ] T027 [P] [US2] Add document chunk loading utilities in auditgraph/storage/loaders.py
-- [ ] T028 [US2] Extend keyword query pipeline to include chunk citation metadata in auditgraph/query/keyword.py
-- [ ] T029 [US2] Extend node/detail view responses to expose chunk provenance fields in auditgraph/query/node_view.py
-- [ ] T030 [US2] Ensure retrieval payloads remain metadata-only (no inline markers) in auditgraph/normalize/text.py
-- [ ] T031 [US2] Add deterministic ordering for chunk retrieval output in auditgraph/query/ranking.py
+- [X] T027 [P] [US2] Add document chunk loading utilities in auditgraph/storage/loaders.py
+- [X] T028 [US2] Extend keyword query pipeline to include chunk citation metadata in auditgraph/query/keyword.py
+- [X] T029 [US2] Extend node/detail view responses to expose chunk provenance fields in auditgraph/query/node_view.py
+- [X] T030 [US2] Ensure retrieval payloads remain metadata-only (no inline markers) in auditgraph/normalize/text.py
+- [X] T031 [US2] Add deterministic ordering for chunk retrieval output in auditgraph/query/ranking.py
 
 **Checkpoint**: US1 + US2 are independently testable and usable.
 
@@ -103,17 +103,17 @@
 
 ### Tests for User Story 3 (write first, must fail first)
 
-- [ ] T032 [P] [US3] Add JSON export provenance retention tests in tests/test_spec017_export_sync_provenance.py
-- [ ] T033 [P] [US3] Add Neo4j Cypher export provenance retention tests in tests/test_spec017_export_sync_provenance.py
-- [ ] T034 [P] [US3] Add Neo4j sync provenance retention tests in tests/test_spec017_export_sync_provenance.py
+- [X] T032 [P] [US3] Add JSON export provenance retention tests in tests/test_spec017_export_sync_provenance.py
+- [X] T033 [P] [US3] Add Neo4j Cypher export provenance retention tests in tests/test_spec017_export_sync_provenance.py
+- [X] T034 [P] [US3] Add Neo4j sync provenance retention tests in tests/test_spec017_export_sync_provenance.py
 
 ### Implementation for User Story 3
 
-- [ ] T035 [P] [US3] Map document/chunk provenance fields in Neo4j record conversion in auditgraph/neo4j/records.py
-- [ ] T036 [US3] Ensure Cypher builder preserves provenance properties for document/chunk nodes in auditgraph/neo4j/cypher_builder.py
-- [ ] T037 [US3] Ensure Neo4j export path includes provenance-bearing records in auditgraph/neo4j/export.py
-- [ ] T038 [US3] Ensure Neo4j sync path writes provenance-bearing properties in auditgraph/neo4j/sync.py
-- [ ] T039 [US3] Ensure generic export JSON includes document/chunk provenance in auditgraph/export/json.py
+- [X] T035 [P] [US3] Map document/chunk provenance fields in Neo4j record conversion in auditgraph/neo4j/records.py
+- [X] T036 [US3] Ensure Cypher builder preserves provenance properties for document/chunk nodes in auditgraph/neo4j/cypher_builder.py
+- [X] T037 [US3] Ensure Neo4j export path includes provenance-bearing records in auditgraph/neo4j/export.py
+- [X] T038 [US3] Ensure Neo4j sync path writes provenance-bearing properties in auditgraph/neo4j/sync.py
+- [X] T039 [US3] Ensure generic export JSON includes document/chunk provenance in auditgraph/export/json.py
 
 **Checkpoint**: All three user stories are independently functional.
 
@@ -123,18 +123,18 @@
 
 **Purpose**: Final consistency, docs, and full validation.
 
-- [ ] T040 [P] Update user-facing docs for PDF/DOCX support and OCR default-off in README.md
-- [ ] T041 [P] Update environment/setup docs for new extractor dependencies and config keys in docs/environment-setup.md
-- [ ] T042 [P] Update MCP guidance for document citation expectations in MCP_GUIDE.md
-- [ ] T043 Run focused test suite for spec017 coverage in tests/test_spec017_document_ingestion.py
-- [ ] T044 Run focused test suite for retrieval/export provenance in tests/test_spec017_query_citations.py
-- [ ] T045 Run focused test suite for export/sync provenance in tests/test_spec017_export_sync_provenance.py
+- [X] T040 [P] Update user-facing docs for PDF/DOCX support and OCR default-off in README.md
+- [X] T041 [P] Update environment/setup docs for new extractor dependencies and config keys in docs/environment-setup.md
+- [X] T042 [P] Update MCP guidance for document citation expectations in MCP_GUIDE.md
+- [X] T043 Run focused test suite for spec017 coverage in tests/test_spec017_document_ingestion.py
+- [X] T044 Run focused test suite for retrieval/export provenance in tests/test_spec017_query_citations.py
+- [X] T045 Run focused test suite for export/sync provenance in tests/test_spec017_export_sync_provenance.py
 - [ ] T046 Run full repository tests and resolve only regressions caused by this feature in tests/
 - [ ] T047 Validate quickstart end-to-end commands in specs/017-pdf-doc-ingestion/quickstart.md
-- [ ] T059 Validate SC-001 determinism + unchanged-skip thresholds with repeat-run assertion script in tests/test_spec017_success_criteria.py
-- [ ] T060 Validate SC-002 citation metadata completeness (100%) in tests/test_spec017_success_criteria.py
-- [ ] T061 Validate SC-003 batch failure-isolation and machine-readable reasons in tests/test_spec017_success_criteria.py
-- [ ] T062 Validate SC-004 export + Neo4j sync provenance retention checks in tests/test_spec017_success_criteria.py
+- [X] T059 Validate SC-001 determinism + unchanged-skip thresholds with repeat-run assertion script in tests/test_spec017_success_criteria.py
+- [X] T060 Validate SC-002 citation metadata completeness (100%) in tests/test_spec017_success_criteria.py
+- [X] T061 Validate SC-003 batch failure-isolation and machine-readable reasons in tests/test_spec017_success_criteria.py
+- [X] T062 Validate SC-004 export + Neo4j sync provenance retention checks in tests/test_spec017_success_criteria.py
 
 ---
 

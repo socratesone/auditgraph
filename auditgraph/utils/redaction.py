@@ -99,7 +99,9 @@ def _default_detectors() -> dict[str, RedactionDetector]:
         "jwt": RedactionDetector(
             name="jwt",
             category="jwt",
-            pattern=re.compile(r"\b[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b"),
+            # Require each segment to be at least 8 chars to avoid matching
+            # version strings (0.1.0) and rule IDs (extract.note.v1).
+            pattern=re.compile(r"\b[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b"),
         ),
         "bearer_token": RedactionDetector(
             name="bearer_token",

@@ -93,6 +93,56 @@ def load_graph_nodes(pkg_root: Path, redactor: Redactor | None = None) -> list[G
                 source_hash=source_hash,
             )
         )
+
+    for path in _iter_json_files(pkg_root / "documents"):
+        payload = read_json(path)
+        if redactor is not None:
+            payload = redactor.redact_payload(payload).value
+        if not isinstance(payload, dict):
+            continue
+        document_id = str(payload.get("document_id", ""))
+        if not document_id:
+            continue
+        source_path = str(payload.get("source_path", "")) or None
+        source_hash = str(payload.get("source_hash", "")) or None
+        records.append(
+            GraphNodeRecord(
+                id=document_id,
+                type="document",
+                neo4j_label=":AuditgraphDocument",
+                name=document_id,
+                canonical_key=document_id,
+                profile=profile,
+                run_id=None,
+                source_path=source_path,
+                source_hash=source_hash,
+            )
+        )
+
+    for path in _iter_json_files(pkg_root / "chunks"):
+        payload = read_json(path)
+        if redactor is not None:
+            payload = redactor.redact_payload(payload).value
+        if not isinstance(payload, dict):
+            continue
+        chunk_id = str(payload.get("chunk_id", ""))
+        if not chunk_id:
+            continue
+        source_path = str(payload.get("source_path", "")) or None
+        source_hash = str(payload.get("source_hash", "")) or None
+        records.append(
+            GraphNodeRecord(
+                id=chunk_id,
+                type="chunk",
+                neo4j_label=":AuditgraphChunk",
+                name=chunk_id,
+                canonical_key=str(payload.get("document_id", "")) or None,
+                profile=profile,
+                run_id=None,
+                source_path=source_path,
+                source_hash=source_hash,
+            )
+        )
     records.sort(key=lambda item: item.id)
     return records
 

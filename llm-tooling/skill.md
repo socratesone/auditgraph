@@ -103,7 +103,7 @@ Export a subgraph.
 
 ## ag_extract
 
-Run extract stage.
+Run extract stage. For markdown files, extracts sections (headings), technology mentions, and references (links) as sub-entities.
 
 - Risk: high
 - Idempotency: non-idempotent
@@ -616,7 +616,7 @@ Run normalize stage.
 
 ## ag_query
 
-Run a keyword query over the graph.
+Run a tokenized keyword query over the graph. Queries are split into tokens and matched against entity names and aliases. Results are scored by match coverage.
 
 - Risk: low
 - Idempotency: idempotent

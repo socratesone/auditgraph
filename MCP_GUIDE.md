@@ -60,7 +60,8 @@ Example `mcp.json` (workspace configuration):
         "${workspaceFolder}/llm-tooling/mcp/entrypoint.py"
       ],
       "env": {
-        "READ_ONLY": "1"
+        "READ_ONLY": "1",
+        "PATH": "${workspaceFolder}/.venv/bin:/usr/local/bin:/usr/bin:/bin"
       }
     }
   }
@@ -93,7 +94,10 @@ Keep `-u` to avoid stdio buffering issues.
         "-u",
         "/path/to/auditgraph/llm-tooling/mcp/entrypoint.py"
       ],
-      "env": { "READ_ONLY": "0" }
+      "env": {
+        "READ_ONLY": "0",
+        "PATH": "/path/to/auditgraph/.venv/bin:/usr/local/bin:/usr/bin:/bin"
+      }
     }
   }
 }
@@ -108,11 +112,36 @@ After VS Code starts the MCP server, ask Copilot to list tools, for example:
 
 If the server is connected, Copilot should surface tool calls and results.
 
+### PATH requirement for subprocess execution
+
+The MCP server calls the `auditgraph` CLI as a subprocess. For this to work, the `auditgraph` command must be on `PATH`. Since it is installed inside the virtual environment, `PATH` must include the venv `bin` directory.
+
+Always include `PATH` in the `env` block of your `mcp.json` configuration (as shown in the examples above). Without it, tool calls will fail with `[Errno 2] No such file or directory: 'auditgraph'`.
+
+For **Claude Code** (`~/.claude/settings.json`), use absolute paths:
+
+```json
+{
+  "mcpServers": {
+    "auditgraph": {
+      "type": "stdio",
+      "command": "/path/to/auditgraph/.venv/bin/python",
+      "args": ["-u", "/path/to/auditgraph/llm-tooling/mcp/entrypoint.py"],
+      "env": {
+        "READ_ONLY": "0",
+        "PATH": "/path/to/auditgraph/.venv/bin:/usr/local/bin:/usr/bin:/bin"
+      }
+    }
+  }
+}
+```
+
 ## Troubleshooting
 
 - If Copilot does not see tools, run `MCP: List Servers`, select `auditgraph`, and use `Show Output`.
 - If you are on Remote SSH and tools never appear, confirm the entry is in Remote User Configuration.
 - If you see `ModuleNotFoundError: auditgraph`, verify you installed the package with `pip install -e .`.
+- If tool calls fail with `[Errno 2] No such file or directory: 'auditgraph'`, add `PATH` to the `env` block in your `mcp.json` (see examples above).
 - If tool calls fail, check `Show Output`, and confirm `READ_ONLY=1` is set when desired.
 - If tools appear stale or missing, run `MCP: Reset Cached Tools` and restart the server.
 
@@ -121,6 +150,7 @@ If the server is connected, Copilot should surface tool calls and results.
 - The MCP server only exposes tools defined in `llm-tooling/tool.manifest.json`.
 - Write tools are blocked when `READ_ONLY=1` is set.
 - Output paths for export must be under `exports/`.
+- For document retrieval, citations are metadata-only (`source_path` + page/paragraph fields); chunk text does not contain inline citation markers.
 
 ## Neo4j Environment Variables (for Neo4j tools)
 

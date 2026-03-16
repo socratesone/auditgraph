@@ -44,6 +44,10 @@ auditgraph ingest --root . --config config/pkg.yaml
 auditgraph query --q "symbol" --root . --config config/pkg.yaml
 ```
 
+Queries are tokenized — `"auth_token"` matches entities containing `auth` or `token`.
+Markdown files produce additional entities beyond the top-level note: headings (`ag:section`),
+technology mentions (`ag:technology`), and links (`ag:reference`).
+
 Optional inspection commands:
 
 ```bash

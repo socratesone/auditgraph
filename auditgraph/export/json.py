@@ -8,6 +8,7 @@ from auditgraph.utils.redaction import build_redactor_for_pkg_root
 from auditgraph.utils.budget import enforce_budget, evaluate_pkg_budget, latest_source_bytes
 
 from auditgraph.storage.artifacts import read_json, write_json
+from auditgraph.storage.loaders import load_chunks, load_documents
 
 
 def _load_entities(pkg_root: Path) -> list[dict[str, object]]:
@@ -29,6 +30,8 @@ def export_json(root: Path, pkg_root: Path, output_path: Path, config: Config | 
     redactor = build_redactor_for_pkg_root(pkg_root, resolved)
     data = {
         "entities": _load_entities(pkg_root),
+        "documents": load_documents(pkg_root),
+        "chunks": load_chunks(pkg_root),
     }
     redaction_result = redactor.redact_payload(data)
     payload = dict(redaction_result.value)

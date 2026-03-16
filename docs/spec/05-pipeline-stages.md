@@ -21,7 +21,7 @@ atomic write behavior, and recovery rules.
 ## Required spec sections and outputs
 The spec MUST include the following, with concrete requirements and examples:
 
-1) Stage contract table with inputs, outputs, entry/exit criteria, and manifest paths.
+1) Stage contract table with inputs, outputs, entry/exit criteria, and manifest paths. The extract stage contract SHALL document that for markdown files, content sub-entities (`ag:section`, `ag:technology`, `ag:reference`) are produced in addition to the top-level note entity and code symbols.
 2) Manifest schema with required fields and versioning rules.
 3) Atomic write and recovery behavior (temp paths, manifest last).
 4) Deterministic stage ordering and run identifier propagation.

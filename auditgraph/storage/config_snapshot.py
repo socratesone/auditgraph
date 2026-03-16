@@ -30,3 +30,14 @@ def write_config_snapshot(pkg_root: Path, run_id: str, config: Config) -> tuple[
     path = pkg_root / "runs" / run_id / "config-snapshot.json"
     write_json(path, payload)
     return path, config_hash
+
+
+def ingestion_config_hash(config: Config) -> str:
+    profile = config.profile()
+    ingestion = profile.get("ingestion", {}) if isinstance(profile, dict) else {}
+    normalization = profile.get("normalization", {}) if isinstance(profile, dict) else {}
+    payload = {
+        "ingestion": ingestion,
+        "normalization": normalization,
+    }
+    return sha256_text(json.dumps(payload, sort_keys=True))
