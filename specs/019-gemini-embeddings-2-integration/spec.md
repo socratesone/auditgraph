@@ -2,7 +2,7 @@ This specification outlines the integration of **Gemini 2.0/1.5 Multimodal** cap
 
 ---
 
-# Spec-019: Multimodal Enrichment & Hybrid Retrieval (Gemini Embeddings 2 Ingetration)
+# Spec-019: Multimodal Enrichment & Hybrid Retrieval (Gemini Embeddings 2 Integration)
 
 ## 1. Objective
 Enhance [auditgraph](https://github.com/socratesone/auditgraph) to ingest non-textual data (Video/Audio/Images) and implement a "Hybrid Retrieval" system that combines Gemini’s semantic "intuition" with auditgraph’s [deterministic provenance](https://github.com/socratesone/auditgraph#overview).
