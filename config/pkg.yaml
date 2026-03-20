@@ -16,7 +16,7 @@ security:
       - "vendor_token"
 storage:
   footprint_budget:
-    multiplier: 20.0
+    multiplier: 3.0
     warn_threshold: 0.8
     block_threshold: 1.0
 profiles:
@@ -49,7 +49,7 @@ profiles:
       ocr_mode: "off"
       chunk_tokens: 200
       chunk_overlap_tokens: 40
-      max_file_size_bytes: 524288000
+      max_file_size_bytes: 209715200
       capture_channels:
         - "scan"
         - "manual"
