@@ -176,10 +176,7 @@ def extract_ner_entities(
     entity_id_map: dict[tuple[str, str], str] = {}
 
     for (ner_type, normalized), data in mentions.items():
-        canonical_key_str = f"ner:{ner_type}:{normalized}" if not ner_type.startswith("ner:") else f"{ner_type}:{normalized}"
-        # The canonical_key format is "ner:<type_suffix>:<name>" but ner_type already has "ner:" prefix
-        # So canonical_key = "ner:person:john smith" etc.
-        # But ner_type is already "ner:person", so canonical_key = "ner:person:john smith"
+        # Canonical key format: "<ner_type>:<normalized_name>", e.g. "ner:person:john smith"
         canonical_key_str = f"{ner_type}:{normalized}"
         entity_id = _ner_entity_id(canonical_key_str)
         entity_id_map[(ner_type, normalized)] = entity_id
