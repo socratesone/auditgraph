@@ -63,15 +63,24 @@ class TestNERBackend:
 
     def test_spacy_import_error_graceful(self):
         """T004: Missing spaCy returns empty results."""
-        # We test the graceful fallback by mocking
-        import auditgraph.extract.ner_backend as mod
+        # Simulate spaCy being unavailable and verify graceful fallback behavior.
+        import importlib
+
         with patch.dict("sys.modules", {"spacy": None}):
-            # The module-level import guard should handle this
-            # Just verify the function signatures exist
-            assert hasattr(mod, "load_ner_model")
-            assert hasattr(mod, "extract_entities_from_text")
+            # Reload the module under the patched environment so any import
+            # guards or lazy imports see spaCy as missing.
+            mod = importlib.import_module("auditgraph.extract.ner_backend")
+            mod = importlib.reload(mod)
 
+            nlp = mod.load_ner_model("en_core_web_sm")
+            # When spaCy is missing, load_ner_model should return None.
+            assert nlp is None
 
+            results = mod.extract_entities_from_text(
+                "John Smith met with Acme Corporation in New York.", nlp
+            )
+            # With no model available, entity extraction should return an empty list.
+            assert results == []
 # ---------------------------------------------------------------------------
 # T007: Canonical name normalization
 # ---------------------------------------------------------------------------
