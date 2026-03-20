@@ -16,7 +16,7 @@ security:
       - "vendor_token"
 storage:
   footprint_budget:
-    multiplier: 3.0
+    multiplier: 20.0
     warn_threshold: 0.8
     block_threshold: 1.0
 profiles:
@@ -49,7 +49,7 @@ profiles:
       ocr_mode: "off"
       chunk_tokens: 200
       chunk_overlap_tokens: 40
-      max_file_size_bytes: 209715200
+      max_file_size_bytes: 524288000
       capture_channels:
         - "scan"
         - "manual"
@@ -63,6 +63,21 @@ profiles:
         - "config/extractors/core.yaml"
       llm:
         enabled: false
+      ner:
+        enabled: true
+        model: "en_core_web_sm"
+        quality_threshold: 0.3
+        entity_types:
+          - "PERSON"
+          - "ORG"
+          - "GPE"
+          - "DATE"
+          - "LAW"
+          - "MONEY"
+        cooccurrence_types:
+          - "PERSON"
+          - "ORG"
+          - "GPE"
     knowledge_model:
       primary_namespace: "ag"
       allow_secondary_namespaces: true

@@ -219,4 +219,20 @@ def parse_file(path: Path, policy: IngestionPolicy, ingest_options: dict[str, ob
     metadata: dict[str, object] = {}
     if parser_id == "text/markdown":
         metadata["frontmatter"] = extract_frontmatter(text)
+
+    if parser_id in ("text/plain", "text/markdown"):
+        normalized = normalize_document_text(text)
+        if normalized:
+            metadata = _build_document_metadata(
+                path=path,
+                source_hash=source_hash,
+                parser_id=parser_id,
+                text=normalized,
+                extractor_id="text_plain_parser",
+                extractor_version="v1",
+                segments=[],
+                options=options,
+                extra=metadata,
+            )
+
     return ParseResult(parser_id=parser_id, status="ok", text=text, metadata=metadata)

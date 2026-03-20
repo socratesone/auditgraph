@@ -18,6 +18,10 @@ def build_source_cooccurrence_links(
     by_source: dict[str, list[tuple[str, str]]] = defaultdict(list)
     for entity in entities:
         entity_id = str(entity.get("id", ""))
+        # Skip NER entities — they already have chunk-level CO_OCCURS_WITH links
+        entity_type = str(entity.get("type", ""))
+        if entity_type.startswith("ner:"):
+            continue
         refs = entity.get("refs", [])
         if not entity_id or not isinstance(refs, list):
             continue
