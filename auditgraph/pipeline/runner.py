@@ -367,6 +367,19 @@ class PipelineRunner:
         if log_claims:
             claims.extend(log_claims)
 
+        # NER entity extraction from chunks
+        ner_config = config.profile().get("extraction", {}).get("ner", {})
+        if ner_config.get("enabled", False):
+            from auditgraph.extract.ner import extract_ner_entities
+            ner_entities, ner_links = extract_ner_entities(pkg_root, ner_config)
+            for ent in ner_entities:
+                entities[ent["id"]] = ent
+            # Persist NER links as an intermediate artifact (do not write to links/ in extract stage)
+            if ner_links:
+                ner_links_path = pkg_root / "ner" / "links.json"
+                ner_links_path.parent.mkdir(parents=True, exist_ok=True)
+                write_json(ner_links_path, ner_links)
+
         entity_list = list(entities.values())
         entity_paths = write_entities(pkg_root, entity_list)
         claim_paths = write_claims(pkg_root, claims)

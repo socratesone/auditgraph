@@ -23,4 +23,9 @@ Thumbs.db
 *.swp
 .vscode/
 .idea/
-combined-all-epstein-files
+source-material
+docs/source-material/
+thoughts/
+
+# Claude
+.claude/
