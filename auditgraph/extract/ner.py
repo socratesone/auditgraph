@@ -153,12 +153,16 @@ def extract_ner_entities(
                 "source_path": source_path,
                 "source_hash": source_hash,
                 "chunk_id": chunk_id,
+                "span_start": ent["start"],
+                "span_end": ent["end"],
+                "surface_form": ent["text"],
+                "score": ent["score"],
             })
             chunk_entity_keys[chunk_id].add(key)
 
         # Run case number regex
-        case_matches = CASE_NUMBER_PATTERN.findall(text)
-        for case_num in case_matches:
+        for match in CASE_NUMBER_PATTERN.finditer(text):
+            case_num = match.group()
             normalized = case_num.strip()
             key = ("ner:case_number", normalized.lower())
             mentions[key]["surface_forms"].add(case_num)
@@ -168,6 +172,10 @@ def extract_ner_entities(
                 "source_path": source_path,
                 "source_hash": source_hash,
                 "chunk_id": chunk_id,
+                "span_start": match.start(),
+                "span_end": match.end(),
+                "surface_form": case_num,
+                "score": 1.0,
             })
             chunk_entity_keys[chunk_id].add(key)
 
@@ -213,23 +221,34 @@ def extract_ner_entities(
         }
         entities.append(entity)
 
-    # Build MENTIONED_IN links
+    # Build MENTIONED_IN links — one per individual mention span for full provenance
     links: list[dict[str, Any]] = []
+    seen_link_ids: set[str] = set()
     for (ner_type, normalized), data in mentions.items():
         entity_id = entity_id_map[(ner_type, normalized)]
-        for chunk_id in sorted(data["chunk_ids"]):
-            link_key = f"ner.mention.v1:{entity_id}:{chunk_id}"
-            link = {
-                "id": _ner_link_id(link_key),
-                "from_id": entity_id,
-                "to_id": chunk_id,
-                "type": "MENTIONED_IN",
-                "rule_id": "ner.mention.v1",
-                "confidence": 1.0,
-                "evidence": [],
-                "authority": "ner",
-            }
-            links.append(link)
+        for ref in data["refs"]:
+            chunk_id = ref["chunk_id"]
+            span_start = ref["span_start"]
+            span_end = ref["span_end"]
+            surface_form = ref["surface_form"]
+            score = ref["score"]
+            link_key = f"ner.mention.v1:{entity_id}:{chunk_id}:{span_start}"
+            link_id = _ner_link_id(link_key)
+            if link_id not in seen_link_ids:
+                seen_link_ids.add(link_id)
+                links.append({
+                    "id": link_id,
+                    "from_id": entity_id,
+                    "to_id": chunk_id,
+                    "type": "MENTIONED_IN",
+                    "rule_id": "ner.mention.v1",
+                    "confidence": score,
+                    "span_start": span_start,
+                    "span_end": span_end,
+                    "surface_form": surface_form,
+                    "evidence": [],
+                    "authority": "ner",
+                })
 
     # Build CO_OCCURS_WITH links
     cooccurrence_ner_types = {_LABEL_MAP.get(t, f"ner:{t.lower()}") for t in cooccurrence_types}

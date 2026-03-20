@@ -255,6 +255,18 @@ class TestNERExtractorIntegration:
             assert "rule_id" in link
             assert "confidence" in link
 
+        # Verify MENTIONED_IN links carry span provenance
+        for link in mention_links:
+            assert "span_start" in link, "MENTIONED_IN link must have span_start"
+            assert "span_end" in link, "MENTIONED_IN link must have span_end"
+            assert "surface_form" in link, "MENTIONED_IN link must have surface_form"
+            assert isinstance(link["span_start"], int)
+            assert isinstance(link["span_end"], int)
+            assert link["span_end"] >= link["span_start"]
+            assert isinstance(link["surface_form"], str)
+            assert len(link["surface_form"]) > 0
+            assert isinstance(link["confidence"], float)
+
     def test_extractor_disabled(self, pkg_with_chunks):
         """NER disabled returns empty lists."""
         from auditgraph.extract.ner import extract_ner_entities
