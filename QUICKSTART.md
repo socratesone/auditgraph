@@ -5,6 +5,7 @@ Get from clone to first query in a few minutes.
 ## Prerequisites
 
 - Python 3.10+
+- Linux (x86_64) or macOS (Intel/Apple Silicon) for day-1 support
 - `git`
 
 ## 1) Install
@@ -38,15 +39,50 @@ auditgraph init --root .
 auditgraph ingest --root . --config config/pkg.yaml
 ```
 
+Expected result (shape):
+
+```json
+{
+  "stage": "ingest",
+  "status": "ok",
+  "detail": {
+    "files": 1,
+    "ok": 1,
+    "skipped": 0,
+    "failed": 0
+  }
+}
+```
+
 ## 4) Query your graph
 
 ```bash
 auditgraph query --q "symbol" --root . --config config/pkg.yaml
 ```
 
-Queries are tokenized — `"auth_token"` matches entities containing `auth` or `token`.
-Markdown files produce additional entities beyond the top-level note: headings (`ag:section`),
-technology mentions (`ag:technology`), and links (`ag:reference`).
+Expected result (shape):
+
+```json
+{
+  "query": "symbol",
+  "results": [
+    {
+      "id": "ent_...",
+      "score": 1.0,
+      "explanation": {
+        "matched_terms": ["symbol"]
+      }
+    }
+  ]
+}
+```
+
+Entity matching is case-insensitive exact-key lookup against indexed names and aliases.
+Chunk matching is case-insensitive substring matching.
+
+Example: `"auth_token"` matches entities indexed as `auth_token` and chunks containing `auth_token` text.
+
+Markdown sub-entity extraction (`ag:section`, `ag:technology`, `ag:reference`) is planned but not enabled in the default pipeline yet.
 
 Optional inspection commands:
 
@@ -99,6 +135,12 @@ Detailed guide: `specs/001-neo4j-export-sync/quickstart.md`.
 
   ```bash
   source .venv/bin/activate
+  ```
+
+- If config loading fails with a PyYAML error, install dependencies with:
+
+  ```bash
+  make dev
   ```
 
 ## Next docs

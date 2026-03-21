@@ -10,6 +10,10 @@ Local-first, deterministic personal knowledge graph tooling for engineers.
 
 Auditgraph ingests plain-text notes, code, and day-1 `.pdf`/`.docx` documents, deterministically extracts entities and claims, builds explainable links, and provides CLI-first navigation. Your source of truth stays in plain text; derived artifacts are reproducible, diffable, and fully audited.
 
+Status: early-stage CLI project (`v0.1.0`) focused on local developer workflows.
+
+Primary audience: developers/engineers who want deterministic, inspectable knowledge graph artifacts from local content.
+
 ## Overview
 
 Auditgraph solves the "where did this fact come from?" problem for technical notes and code. It turns local content into a deterministic knowledge graph with stable IDs, audit logs, and reproducible outputs so you can trace and verify every derived artifact.
@@ -18,11 +22,13 @@ Auditgraph solves the "where did this fact come from?" problem for technical not
 
 - [Features](#features)
 - [Installation](#installation)
-- [Usage](#usage)
+- [Quick Start](#quick-start)
+- [Behavior Notes](#behavior-notes)
+- [Troubleshooting](#troubleshooting)
+- [Neo4j Export and Sync](#neo4j-export-and-sync)
 - [Configuration](#configuration)
 - [CLI Reference](#cli-reference)
-- [MCP (LLM Tooling)](#mcp-llm-tooling)
-- [Contributing](#contributing)
+- [Developer Docs](#developer-docs)
 - [Tests](#tests)
 - [License](#license)
 - [Contact](#contact)
@@ -31,15 +37,20 @@ Auditgraph solves the "where did this fact come from?" problem for technical not
 
 - Local-first, offline-capable PKG for engineers and teams.
 - Deterministic ingestion, extraction, linking, indexing, and query with stable IDs.
-- **Content extraction from markdown**: headings become `ag:section` entities, known technologies become `ag:technology` entities, and markdown links become `ag:reference` entities — all automatically during the extract stage.
 - Day-1 document ingestion for `.pdf` and `.docx` with deterministic chunking and metadata-only citations.
-- **Tokenized keyword search**: queries are split on whitespace, underscores, hyphens, dots, and slashes. Results are scored by token coverage. Entity aliases are also indexed and searchable.
+- Keyword index for entity names and aliases, with case-insensitive exact-key lookup.
 - Audit trail for runs, manifests, and provenance.
 - CLI-first workflows with optional local UI planned.
-- Neo4j export/sync support with deterministic Cypher output and direct database sync.
-- Optional LLM-assisted extraction as a replayable, fully logged step.
+- Neo4j export/sync support with stable ordering and direct database sync (export headers include run timestamp metadata).
+- Planned: markdown sub-entity extraction (`ag:section`, `ag:technology`, `ag:reference`) and optional LLM-assisted extraction.
 
 ## Installation
+
+Prerequisites:
+
+- Python 3.10+
+- Linux (x86_64) or macOS (Intel/Apple Silicon) for day-1 support
+- `git`
 
 Auditgraph is not published to PyPI yet. Install from source:
 
@@ -54,7 +65,7 @@ auditgraph version
 
 Shortcut: `make dev` (creates `.venv` and installs requirements).
 
-## Usage
+## Quick Start
 
 Initialize a workspace:
 
@@ -69,21 +80,33 @@ auditgraph ingest --root . --config config/pkg.yaml
 auditgraph query --q "symbol" --root . --config config/pkg.yaml
 ```
 
+For first-success output examples and a fuller walkthrough, see [QUICKSTART.md](QUICKSTART.md).
+
+## Behavior Notes
+
 ### Query behavior
 
-Queries are tokenized on whitespace, underscores, hyphens, dots, and slashes (regex: `[\s_\-./]+`). Each token is matched against the BM25 index, which indexes entity names and aliases. Results are scored by the fraction of query tokens that matched, so partial matches rank lower than exact matches. All matching is case-insensitive.
+Entity matching is currently case-insensitive exact-key lookup against the BM25 index entries (names and aliases). Query text is not expanded into per-token search terms at query time.
 
-For example, querying `"auth_token"` will match entities named `auth_token` (exact, score 1.0) as well as entities containing `auth` or `token` individually (partial, lower score).
+Chunk matching is case-insensitive substring matching over chunk text.
+
+For example, querying `"auth_token"` matches entities indexed as `auth_token` and chunks containing `auth_token` text. It does not currently fan out to independent `auth` and `token` lookups.
 
 ### Content extraction
 
-When markdown files are ingested, the extract stage automatically produces sub-entities:
+Current extract stage behavior:
+
+- Creates note entities from markdown files.
+- Extracts code symbols from supported source files.
+- Extracts NER entities from chunks when `profiles.<name>.extraction.ner.enabled: true`.
+
+Planned markdown sub-entities (implemented in extractor code but not wired into the default extract pipeline yet):
 
 - **`ag:section`** — one entity per heading (`# Heading` through `###### Heading`), with the heading level and source line recorded.
 - **`ag:technology`** — one entity per recognized technology mention (languages, frameworks, databases, tools). Over 80 technologies are recognized including Python, Neo4j, FastAPI, React, Docker, etc.
 - **`ag:reference`** — one entity per markdown link (`[text](url)`), with the URL stored in aliases and metadata.
 
-These entities are linked to each other and to the parent note via source co-occurrence, enabling graph traversal across documents.
+Note: these planned markdown sub-entities are not produced by default in the current pipeline.
 
 Document ingestion defaults:
 
@@ -91,72 +114,27 @@ Document ingestion defaults:
 - `.doc` is rejected in day-1 scope with explicit machine-readable reasons.
 - Chunk citations are returned as metadata fields (`source_path`, page/paragraph location), not inline markers.
 
-### Example: Ingest a full codebase and query it
+## Troubleshooting
 
-1) Create a workspace and copy or clone the target repo into it.
+- If you see `Missing schema_version in manifest`, run:
 
-```bash
-mkdir -p ~/auditgraph-workspaces/my-codebase
-cd ~/auditgraph-workspaces/my-codebase
-git clone <repo-url> source
-```
+	```bash
+	auditgraph rebuild --root . --config config/pkg.yaml
+	```
 
-2) Initialize auditgraph in the workspace root.
+- If `auditgraph` command is not found, re-activate your venv:
 
-```bash
-auditgraph init --root .
-```
+	```bash
+	source .venv/bin/activate
+	```
 
-3) Point the config at the codebase by updating `config/pkg.yaml`.
+- If config loading fails due to missing YAML support, install dev dependencies:
 
-```yaml
-profiles:
-	default:
-		include_paths:
-			- "source"
-		exclude_globs:
-			- "**/node_modules/**"
-			- "**/.git/**"
-```
+	```bash
+	make dev
+	```
 
-4) Run a full rebuild once (required when schema changes or when starting fresh).
-
-```bash
-auditgraph rebuild --root . --config config/pkg.yaml
-```
-
-5) Ingest and query.
-
-```bash
-auditgraph ingest --root . --config config/pkg.yaml
-auditgraph query --q "auth" --root . --config config/pkg.yaml
-auditgraph neighbors <entity_id> --depth 2 --root . --config config/pkg.yaml
-```
-
-If you see an error like “Missing schema_version in manifest,” run `auditgraph rebuild` once to regenerate artifacts.
-
-Inspect nodes and neighbors:
-
-```bash
-auditgraph node <entity_id> --root . --config config/pkg.yaml
-auditgraph neighbors <entity_id> --depth 2 --root . --config config/pkg.yaml
-```
-
-Diff runs and export:
-
-```bash
-auditgraph diff --run-a <run_id> --run-b <run_id> --root . --config config/pkg.yaml
-auditgraph export --format json --root . --config config/pkg.yaml
-```
-
-Jobs:
-
-```bash
-auditgraph jobs list --root .
-auditgraph jobs run changed_since --root . --config config/pkg.yaml
-```
-
-### Neo4j export and sync
+## Neo4j Export and Sync
 
 Auditgraph supports exporting graph artifacts to Neo4j-compatible Cypher and syncing directly to a running Neo4j instance.
 
@@ -187,7 +165,7 @@ Live sync:
 auditgraph sync-neo4j --root . --config config/pkg.yaml
 ```
 
-For full feature guidance, see `specs/001-neo4j-export-sync/quickstart.md`.
+For full setup and validation workflow, see [specs/001-neo4j-export-sync/quickstart.md](specs/001-neo4j-export-sync/quickstart.md).
 
 ## Configuration
 
@@ -200,51 +178,49 @@ See [docs/environment-setup.md](docs/environment-setup.md) for environment detai
 ## CLI Reference
 
 ```bash
+auditgraph --help
 auditgraph version
 auditgraph init --root .
 auditgraph ingest --root . --config config/pkg.yaml
-auditgraph import docs/notes.md logs/ --root . --config config/pkg.yaml
-auditgraph normalize --root . --config config/pkg.yaml
-auditgraph extract --root . --config config/pkg.yaml
-auditgraph link --root . --config config/pkg.yaml
-auditgraph index --root . --config config/pkg.yaml
+auditgraph rebuild --root . --config config/pkg.yaml
 auditgraph query --q "symbol" --root . --config config/pkg.yaml
 auditgraph node <entity_id> --root . --config config/pkg.yaml
 auditgraph neighbors <entity_id> --depth 2 --root . --config config/pkg.yaml
-auditgraph diff --run-a <run_id> --run-b <run_id> --root . --config config/pkg.yaml
 auditgraph export --format json --root . --config config/pkg.yaml
 auditgraph export-neo4j --root . --config config/pkg.yaml --output exports/neo4j/graph.cypher
 auditgraph sync-neo4j --root . --config config/pkg.yaml --dry-run
-auditgraph sync-neo4j --root . --config config/pkg.yaml
 auditgraph jobs list --root .
-auditgraph jobs run <job_name> --root . --config config/pkg.yaml
 ```
 
-## MCP (LLM Tooling)
+For the full command surface, run `auditgraph --help`.
 
-The MCP/LLM integration artifacts live under `llm-tooling/`:
+## Developer Docs
+
+Documentation map:
+
+- First-success walkthrough with expected output: [QUICKSTART.md](QUICKSTART.md)
+- Environment and platform details: [docs/environment-setup.md](docs/environment-setup.md)
+- Neo4j export/sync workflow: [specs/001-neo4j-export-sync/quickstart.md](specs/001-neo4j-export-sync/quickstart.md)
+- MCP setup and troubleshooting: [MCP_GUIDE.md](MCP_GUIDE.md)
+- Project assumptions and decisions: [docs/clarifying-answers.md](docs/clarifying-answers.md), [SPEC.md](SPEC.md)
+
+MCP/LLM integration artifacts are under `llm-tooling/`:
 
 - `llm-tooling/tool.manifest.json` is the source of truth.
 - `llm-tooling/skill.md` and `llm-tooling/adapters/openai.functions.json` are generated outputs.
 
-Regenerate artifacts after manifest updates:
+Regenerate MCP artifacts after manifest updates:
 
 ```bash
 python llm-tooling/generate_skill_doc.py
 python llm-tooling/generate_adapters.py
 ```
 
-MCP server utilities live in `llm-tooling/mcp/server.py`. Set `READ_ONLY=1` to block write or high-risk tools.
-
-For VS Code MCP setup, see [MCP_GUIDE.md](MCP_GUIDE.md).
-
-## Contributing
+Contribution quick-start:
 
 1. Fork the repo and create a feature branch.
 2. Create a virtual environment and install dev dependencies.
 3. Run tests before opening a PR.
-
-Dev setup:
 
 ```bash
 python -m venv .venv
@@ -252,15 +228,13 @@ source .venv/bin/activate
 pip install -e .
 ```
 
-Project assumptions and decisions live in [docs/clarifying-answers.md](docs/clarifying-answers.md) and [SPEC.md](SPEC.md).
-
 ## Tests
 
 ```bash
 make test
 ```
 
-Or:
+Direct `pytest` usage requires dev dependencies (installed by `make dev`):
 
 ```bash
 pytest
