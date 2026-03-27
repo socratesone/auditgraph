@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import fnmatch
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
@@ -60,15 +61,12 @@ def is_allowed(path: Path, policy: IngestionPolicy) -> bool:
     return suffix in policy.allowed_extensions
 
 
-def split_by_allowlist(paths: Iterable[Path], policy: IngestionPolicy) -> tuple[list[Path], list[Path]]:
-    allowed: list[Path] = []
-    skipped: list[Path] = []
-    for path in paths:
-        if is_allowed(path, policy):
-            allowed.append(path)
-        else:
-            skipped.append(path)
-    return allowed, skipped
+def matches_exclude(path: Path, root: Path, exclude_globs: Iterable[str]) -> bool:
+    try:
+        rel = path.resolve().relative_to(root.resolve()).as_posix()
+    except Exception:
+        rel = path.as_posix()
+    return any(fnmatch.fnmatch(rel, pattern) for pattern in exclude_globs)
 
 
 def parser_id_for(path: Path) -> str:

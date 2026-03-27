@@ -2,14 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from auditgraph.storage.hashing import sha256_text
+from auditgraph.storage.hashing import entity_id as _entity_id, sha256_text
 from auditgraph.utils.redaction import Redactor
 from auditgraph.storage.ontology import canonical_key, resolve_type
 from auditgraph.storage.audit import DEFAULT_PIPELINE_VERSION
-
-
-def _entity_id(canonical_key: str) -> str:
-    return f"ent_{sha256_text(canonical_key)}"
 
 
 def build_entity(symbol: dict[str, Any], source_hash: str, redactor: Redactor | None = None) -> dict[str, Any]:

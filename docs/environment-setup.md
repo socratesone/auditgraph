@@ -46,21 +46,40 @@ Notes:
 
 Automation jobs are configured in `config/jobs.yaml` and read by `auditgraph jobs list` and `auditgraph jobs run`.
 
-## Optional Dependencies
+## Runtime Dependencies
 
-Install optional tools as needed:
+All runtime dependencies are installed automatically by `pip install -e .`. You do not need to install them manually. The following packages are declared as core dependencies in `pyproject.toml` and will be present in any standard installation:
+
+- `pyyaml` — YAML config file loading
+- `pypdf` — PDF text-layer extraction
+- `python-docx` — DOCX paragraph extraction
+- `spacy>=3.7,<4` — NER entity extraction (enable via `profiles.<name>.extraction.ner.enabled: true` in config)
+- `neo4j>=5,<6` — Neo4j export/sync support
+
+## Dev-Only Dependencies
+
+Tools used for development (linting, type checking, testing) are not installed by `pip install -e .`. Install them with:
 
 ```bash
-pip install pyyaml pytest pypdf python-docx
+make dev
+# or
+pip install -e ".[dev]"
 ```
 
-Notes:
-- `pyyaml` is required if you want to load YAML config files.
-- `pytest` is required to run the test suite.
-- `pypdf` is required for PDF text-layer extraction.
-- `python-docx` is required for DOCX paragraph extraction.
+Dev-only tools include: `pytest`, `black`, `ruff`, `mypy`.
 
 ## Neo4j Environment (Optional)
+
+For Neo4j export/sync workflows, set the following environment variables before running `export-neo4j` or `sync-neo4j`:
+
+```bash
+export NEO4J_URI="bolt://localhost:7687"
+export NEO4J_USER="neo4j"      # or NEO4J_USERNAME
+export NEO4J_PASSWORD="<your_password>"
+export NEO4J_DATABASE="neo4j"
+```
+
+See the [Neo4j Export and Sync](#neo4j-export-and-sync) section in `README.md` and `specs/001-neo4j-export-sync/quickstart.md` for the full workflow.
 
 ## Document Ingestion Config Keys
 
@@ -71,23 +90,6 @@ Notes:
 - `chunk_tokens`: token window size for chunking
 - `chunk_overlap_tokens`: overlap size between consecutive chunks
 - `max_file_size_bytes`: file-size guardrail for parser execution
-
-For Neo4j export/sync workflows, set:
-
-```bash
-export NEO4J_URI="bolt://localhost:7687"
-export NEO4J_USER="neo4j"
-export NEO4J_PASSWORD="<your_password>"
-export NEO4J_DATABASE="neo4j"
-```
-
-Common commands:
-
-```bash
-auditgraph export-neo4j --root . --config config/pkg.yaml --output exports/neo4j/graph.cypher
-auditgraph sync-neo4j --root . --config config/pkg.yaml --dry-run
-auditgraph sync-neo4j --root . --config config/pkg.yaml
-```
 
 Import exported Cypher with `cypher-shell`:
 

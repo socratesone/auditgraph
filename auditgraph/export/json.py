@@ -7,18 +7,8 @@ from auditgraph.utils.export_metadata import build_export_metadata
 from auditgraph.utils.redaction import build_redactor_for_pkg_root
 from auditgraph.utils.budget import enforce_budget, evaluate_pkg_budget, latest_source_bytes
 
-from auditgraph.storage.artifacts import read_json, write_json
-from auditgraph.storage.loaders import load_chunks, load_documents
-
-
-def _load_entities(pkg_root: Path) -> list[dict[str, object]]:
-    entities_dir = pkg_root / "entities"
-    entities: list[dict[str, object]] = []
-    if not entities_dir.exists():
-        return entities
-    for path in entities_dir.rglob("*.json"):
-        entities.append(read_json(path))
-    return sorted(entities, key=lambda item: str(item.get("id", "")))
+from auditgraph.storage.artifacts import write_json
+from auditgraph.storage.loaders import load_chunks, load_documents, load_entities
 
 
 def export_json(root: Path, pkg_root: Path, output_path: Path, config: Config | None = None) -> Path:
@@ -29,7 +19,7 @@ def export_json(root: Path, pkg_root: Path, output_path: Path, config: Config | 
     enforce_budget(budget_status)
     redactor = build_redactor_for_pkg_root(pkg_root, resolved)
     data = {
-        "entities": _load_entities(pkg_root),
+        "entities": load_entities(pkg_root, sorted_by_id=True),
         "documents": load_documents(pkg_root),
         "chunks": load_chunks(pkg_root),
     }
