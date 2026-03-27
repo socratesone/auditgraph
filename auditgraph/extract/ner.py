@@ -8,7 +8,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from auditgraph.storage.hashing import sha256_text
+from auditgraph.storage.hashing import entity_id as _ner_entity_id, sha256_text
 from auditgraph.storage.audit import DEFAULT_PIPELINE_VERSION
 
 logger = logging.getLogger(__name__)
@@ -57,11 +57,6 @@ def _text_quality(text: str) -> float:
         return 0.0
     alnum_count = len([c for c in text if c.isalnum()])
     return alnum_count / max(len(text), 1)
-
-
-def _ner_entity_id(canonical_key: str) -> str:
-    """Deterministic entity ID for NER entities."""
-    return f"ent_{sha256_text(canonical_key)}"
 
 
 def _ner_link_id(key: str) -> str:

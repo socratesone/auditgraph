@@ -47,6 +47,11 @@ def outputs_hash(records: Iterable[IngestRecord]) -> str:
     return sha256_text(json.dumps(payload, sort_keys=True))
 
 
+def entity_id(canonical_key: str) -> str:
+    """Deterministic entity ID from a canonical key."""
+    return f"ent_{sha256_text(canonical_key)}"
+
+
 def deterministic_run_id(input_hash: str, config_hash: str) -> str:
     return f"run_{sha256_text(input_hash + config_hash)}"
 

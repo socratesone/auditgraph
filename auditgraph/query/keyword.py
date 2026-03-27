@@ -67,4 +67,4 @@ def keyword_search(
     ranked_chunks = apply_ranking(chunk_results, score_rounding)
     if enable_semantic:
         return ranked + ranked_chunks
-    return ranked + ranked_chunks
+    return ranked

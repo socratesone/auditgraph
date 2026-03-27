@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 
 from auditgraph.index.bm25 import build_bm25_index
-from auditgraph.index.semantic import build_semantic_index
 from auditgraph.query.keyword import keyword_search
 from auditgraph.query.neighbors import neighbors
 from auditgraph.query.node_view import node_view
@@ -50,7 +49,7 @@ def test_us4_neighbors_returns_edges(tmp_path: Path) -> None:
 
 def test_us12_semantic_ranking_is_deterministic(tmp_path: Path) -> None:
     pkg = pkg_root(tmp_path)
-    build_semantic_index(pkg, [{"id": "vec_a", "vector": [0.1, 0.2]}])
+    write_json(pkg / "indexes" / "vectors" / "index.json", {"vectors": [{"id": "vec_a", "vector": [0.1, 0.2]}]})
 
     ranked = apply_ranking(
         [

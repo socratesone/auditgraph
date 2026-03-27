@@ -65,7 +65,7 @@ Auditgraph solves the "where did this fact come from?" problem for technical not
 | Schema versioning | Implemented | `v1` with compatibility checks |
 | Markdown sub-entities | Planned | Code exists but not wired into pipeline |
 | Semantic/vector search | Planned | Index stub only; no embeddings yet |
-| LLM-assisted extraction | Planned | Config key exists; no implementation |
+| LLM-assisted extraction | In Progress | Interface + NullProvider implemented; no concrete provider yet |
 | Local UI | Planned | CLI-only for now |
 
 ## Installation
@@ -97,6 +97,8 @@ Initialize a workspace and run the full pipeline:
 auditgraph init --root .
 auditgraph run examples/sample_docs/
 ```
+
+Note: the default config (`config/pkg.yaml`) looks for `notes/` and `repos/` subdirectories via `include_paths`. Running against `examples/sample_docs/` directly requires either passing a config that sets `include_paths: ["."]`, or using `auditgraph ingest --root . --config config/pkg.yaml` from a workspace root that contains those directories.
 
 Or run individual stages:
 
@@ -214,10 +216,16 @@ auditgraph version
 auditgraph init --root .
 auditgraph run examples/sample_docs/               # Full pipeline
 auditgraph ingest --root . --config config/pkg.yaml
+auditgraph import <path> [<path> ...] --root . --config config/pkg.yaml  # Manually import specific files or directories
+auditgraph normalize --root . --config config/pkg.yaml --run-id <run_id>
+auditgraph extract --root . --config config/pkg.yaml --run-id <run_id>
+auditgraph link --root . --config config/pkg.yaml --run-id <run_id>
+auditgraph index --root . --config config/pkg.yaml --run-id <run_id>
 auditgraph rebuild --root . --config config/pkg.yaml
 auditgraph query --q "symbol" --root . --config config/pkg.yaml
 auditgraph node <entity_id> --root . --config config/pkg.yaml
 auditgraph neighbors <entity_id> --depth 2 --root . --config config/pkg.yaml
+auditgraph why-connected --from <entity_id> --to <entity_id> --root . --config config/pkg.yaml
 auditgraph diff --run-a <run_id_1> --run-b <run_id_2> --root .
 auditgraph export --format json --root . --config config/pkg.yaml
 auditgraph export-neo4j --root . --config config/pkg.yaml --output exports/neo4j/graph.cypher
