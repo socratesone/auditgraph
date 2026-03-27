@@ -61,3 +61,17 @@ def deterministic_segment_id(document_id: str, segment_type: str, order: int, te
 
 def deterministic_chunk_id(document_id: str, order: int, text: str) -> str:
     return f"chk_{sha256_text(f'{document_id}:{order}:{text}')[:24]}"
+
+
+def deterministic_timestamp(seed: str) -> str:
+    """Derive a stable ISO-8601 timestamp from a seed string.
+
+    Uses first 8 hex chars of SHA-256 as seconds since epoch,
+    modulo 10^9 (~31 years) to keep the result in a reasonable range.
+    """
+    from datetime import datetime, timezone
+
+    digest = hashlib.sha256(seed.encode("utf-8")).hexdigest()
+    seconds = int(digest[:8], 16) % (10**9)
+    dt = datetime.fromtimestamp(seconds, tz=timezone.utc)
+    return dt.isoformat().replace("+00:00", "Z")

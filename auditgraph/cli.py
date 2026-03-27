@@ -78,13 +78,13 @@ def _build_parser() -> argparse.ArgumentParser:
     neighbors_parser.add_argument("--root", default=".", help="Workspace root")
     neighbors_parser.add_argument("--config", default=None, help="Config path")
 
-    diff_parser = subparsers.add_parser("diff", help="Diff two runs (placeholder)")
+    diff_parser = subparsers.add_parser("diff", help="Diff two runs")
     diff_parser.add_argument("--run-a", required=False, help="First run id")
     diff_parser.add_argument("--run-b", required=False, help="Second run id")
     diff_parser.add_argument("--root", default=".", help="Workspace root")
     diff_parser.add_argument("--config", default=None, help="Config path")
 
-    export_parser = subparsers.add_parser("export", help="Export subgraph (placeholder)")
+    export_parser = subparsers.add_parser("export", help="Export subgraph")
     export_parser.add_argument("--format", default="json", help="Export format")
     export_parser.add_argument("--root", default=".", help="Workspace root")
     export_parser.add_argument("--config", default=None, help="Config path")
@@ -106,6 +106,15 @@ def _build_parser() -> argparse.ArgumentParser:
     why_parser.add_argument("--root", default=".", help="Workspace root")
     why_parser.add_argument("--config", default=None, help="Config path")
 
+    run_parser = subparsers.add_parser("run", help="Run full pipeline (ingest through index)")
+    run_parser.add_argument("root", nargs="?", default=".", help="Workspace root or source directory")
+    run_parser.add_argument("--config", default=None, help="Config path")
+
+    replay_parser = subparsers.add_parser("replay", help="Replay a previous run")
+    replay_parser.add_argument("run_id", help="Run ID to replay")
+    replay_parser.add_argument("--root", default=".", help="Workspace root")
+    replay_parser.add_argument("--config", default=None, help="Config path")
+
     export_neo4j_parser = subparsers.add_parser("export-neo4j", help="Export graph to Neo4j Cypher")
     export_neo4j_parser.add_argument("--root", default=".", help="Workspace root")
     export_neo4j_parser.add_argument("--config", default=None, help="Config path")
@@ -122,15 +131,6 @@ def _build_parser() -> argparse.ArgumentParser:
 def _emit(payload: dict[str, object]) -> None:
     print(json.dumps(payload, indent=2))
 
-
-def _print_placeholder(stage: str, args: argparse.Namespace) -> None:
-    payload = {
-        "stage": stage,
-        "status": "not_implemented",
-        "message": "This command is a scaffold placeholder. Implement the pipeline stage next.",
-        "args": {k: v for k, v in vars(args).items() if k not in {"log_level", "command"}},
-    }
-    print(json.dumps(payload, indent=2))
 
 
 def main() -> None:
@@ -268,6 +268,30 @@ def main() -> None:
             _emit(payload)
             return
 
+        if args.command == "run":
+            runner = PipelineRunner()
+            root = Path(args.root).resolve()
+            config = load_config(Path(args.config) if args.config else None)
+            result = runner.run_stage("rebuild", root=root, config=config)
+            _emit({"stage": "run", "status": result.status, "detail": result.detail})
+            return
+
+        if args.command == "replay":
+            runner = PipelineRunner()
+            root = Path(args.root).resolve()
+            config = load_config(Path(args.config) if args.config else None)
+            pkg_root = profile_pkg_root(root, config)
+            snapshot_path = pkg_root / "runs" / args.run_id / "config-snapshot.json"
+            if not snapshot_path.exists():
+                _emit({"status": "error", "message": f"No config snapshot for run {args.run_id}"})
+                raise SystemExit(1)
+            from auditgraph.config import Config
+            snapshot_data = json.loads(snapshot_path.read_text(encoding="utf-8"))
+            replay_config = Config(raw=snapshot_data, source_path=snapshot_path)
+            result = runner.run_stage("rebuild", root=root, config=replay_config)
+            _emit({"stage": "replay", "status": result.status, "detail": result.detail})
+            return
+
         if args.command == "export-neo4j":
             root = Path(args.root).resolve()
             config = load_config(Path(args.config) if args.config else None)
@@ -297,7 +321,6 @@ def main() -> None:
                 _emit(payload)
                 return
 
-        _print_placeholder(args.command, args)
     except Exception as exc:
         _emit({"status": "error", "message": str(exc)})
         raise SystemExit(1)

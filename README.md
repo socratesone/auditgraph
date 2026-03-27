@@ -42,7 +42,31 @@ Auditgraph solves the "where did this fact come from?" problem for technical not
 - Audit trail for runs, manifests, and provenance.
 - CLI-first workflows with optional local UI planned.
 - Neo4j export/sync support with stable ordering and direct database sync (export headers include run timestamp metadata).
-- Planned: markdown sub-entity extraction (`ag:section`, `ag:technology`, `ag:reference`) and optional LLM-assisted extraction.
+- Full pipeline replay from stored config snapshots.
+- Run diff for comparing ingest manifests across runs.
+- Subgraph export in JSON, DOT, and GraphML formats.
+
+### Feature Status
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| File ingestion (text, markdown, code) | Implemented | Deterministic with stable IDs |
+| PDF/DOCX ingestion | Implemented | OCR mode: off/auto/on |
+| Entity extraction | Implemented | Notes, code symbols |
+| NER entity extraction | Implemented | Requires `spacy`; enable via config |
+| Linking (co-occurrence) | Implemented | Explainable links with provenance |
+| BM25 keyword index | Implemented | Case-insensitive exact-key lookup |
+| Query and search | Implemented | Entity + chunk matching |
+| Run diff | Implemented | Structural diff of ingest manifests |
+| Subgraph export (JSON/DOT/GraphML) | Implemented | With budget checks and path safety |
+| Neo4j export/sync | Implemented | Cypher export + live database sync |
+| Jobs automation | Implemented | YAML-configured job runner |
+| Pipeline replay | Implemented | Re-run from stored config snapshots |
+| Schema versioning | Implemented | `v1` with compatibility checks |
+| Markdown sub-entities | Planned | Code exists but not wired into pipeline |
+| Semantic/vector search | Planned | Index stub only; no embeddings yet |
+| LLM-assisted extraction | Planned | Config key exists; no implementation |
+| Local UI | Planned | CLI-only for now |
 
 ## Installation
 
@@ -67,17 +91,24 @@ Shortcut: `make dev` (creates `.venv` and installs requirements).
 
 ## Quick Start
 
-Initialize a workspace:
+Initialize a workspace and run the full pipeline:
 
 ```bash
 auditgraph init --root .
+auditgraph run examples/sample_docs/
 ```
 
-Run ingestion and query:
+Or run individual stages:
 
 ```bash
 auditgraph ingest --root . --config config/pkg.yaml
 auditgraph query --q "symbol" --root . --config config/pkg.yaml
+```
+
+One-command setup for development:
+
+```bash
+make setup
 ```
 
 For first-success output examples and a fuller walkthrough, see [QUICKSTART.md](QUICKSTART.md).
@@ -181,14 +212,17 @@ See [docs/environment-setup.md](docs/environment-setup.md) for environment detai
 auditgraph --help
 auditgraph version
 auditgraph init --root .
+auditgraph run examples/sample_docs/               # Full pipeline
 auditgraph ingest --root . --config config/pkg.yaml
 auditgraph rebuild --root . --config config/pkg.yaml
 auditgraph query --q "symbol" --root . --config config/pkg.yaml
 auditgraph node <entity_id> --root . --config config/pkg.yaml
 auditgraph neighbors <entity_id> --depth 2 --root . --config config/pkg.yaml
+auditgraph diff --run-a <run_id_1> --run-b <run_id_2> --root .
 auditgraph export --format json --root . --config config/pkg.yaml
 auditgraph export-neo4j --root . --config config/pkg.yaml --output exports/neo4j/graph.cypher
 auditgraph sync-neo4j --root . --config config/pkg.yaml --dry-run
+auditgraph replay <run_id> --root .                 # Replay a previous run
 auditgraph jobs list --root .
 ```
 

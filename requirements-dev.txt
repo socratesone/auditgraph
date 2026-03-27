@@ -1,6 +1,10 @@
 -e .
 pyyaml
 pytest
+pytest-cov
 neo4j>=5,<6
 pypdf
 python-docx
+black
+ruff
+mypy
