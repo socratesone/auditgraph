@@ -1,19 +1,10 @@
 from __future__ import annotations
 
-import fnmatch
 from pathlib import Path
 from typing import Iterable
 
-from auditgraph.ingest.policy import IngestionPolicy, is_allowed
+from auditgraph.ingest.policy import IngestionPolicy, is_allowed, matches_exclude
 from auditgraph.utils.paths import ensure_within_base
-
-
-def _matches_exclude(path: Path, root: Path, exclude_globs: Iterable[str]) -> bool:
-    try:
-        rel = path.resolve().relative_to(root.resolve()).as_posix()
-    except Exception:
-        rel = path.as_posix()
-    return any(fnmatch.fnmatch(rel, pattern) for pattern in exclude_globs)
 
 
 def discover_files(root: Path, include_paths: Iterable[str], exclude_globs: Iterable[str]) -> list[Path]:
@@ -31,7 +22,7 @@ def discover_files(root: Path, include_paths: Iterable[str], exclude_globs: Iter
             if path.is_file():
                 files.append(path)
 
-    filtered = [path for path in files if not _matches_exclude(path, root, exclude_globs)]
+    filtered = [path for path in files if not matches_exclude(path, root, exclude_globs)]
     return sorted(filtered, key=lambda item: item.as_posix())
 
 

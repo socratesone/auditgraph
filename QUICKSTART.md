@@ -47,6 +47,8 @@ Expected result (shape):
   "status": "ok",
   "detail": {
     "files": 1,
+    "manifest": ".pkg/profiles/default/runs/<run_id>/ingest-manifest.json",
+    "profile": "default",
     "ok": 1,
     "skipped": 0,
     "failed": 0
@@ -70,7 +72,11 @@ Expected result (shape):
       "id": "ent_...",
       "score": 1.0,
       "explanation": {
-        "matched_terms": ["symbol"]
+        "matched_terms": ["symbol"],
+        "bm25_score": 1.0,
+        "semantic_score": 0.0,
+        "graph_boost": 0.0,
+        "tie_break": ["ent_..."]
       }
     }
   ]

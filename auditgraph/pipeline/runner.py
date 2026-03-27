@@ -25,8 +25,7 @@ from auditgraph.extract.manifest import extract_adr_claims, extract_log_claims, 
 from auditgraph.link import build_source_cooccurrence_links, write_links
 from auditgraph.link.adjacency import write_adjacency
 from auditgraph.index.bm25 import build_bm25_index
-from auditgraph.index.semantic import build_semantic_index
-from auditgraph.storage.artifacts import profile_pkg_root, read_json, write_json, write_text
+from auditgraph.storage.artifacts import append_text, profile_pkg_root, read_json, write_json
 from auditgraph.storage.artifacts import write_document_artifacts
 from auditgraph.storage.safe_artifacts import write_json_redacted
 from auditgraph.utils.redaction import build_redactor
@@ -249,7 +248,7 @@ class PipelineRunner:
             "pipeline_version": pipeline_version,
             "duration_ms": int((time.monotonic() - _start) * 1000),
         }
-        write_text(replay_path, f"{json.dumps(replay_line, sort_keys=True)}\n")
+        append_text(replay_path, f"{json.dumps(replay_line, sort_keys=True)}\n")
 
         provenance_records = [
             ProvenanceRecord(
@@ -313,7 +312,7 @@ class PipelineRunner:
             "config_hash": config_hash,
             "duration_ms": int((time.monotonic() - _start) * 1000),
         }
-        write_text(replay_path, f"{json.dumps(replay_line, sort_keys=True)}\n")
+        append_text(replay_path, f"{json.dumps(replay_line, sort_keys=True)}\n")
         return StageResult(
             stage="normalize",
             status="ok",
@@ -448,7 +447,7 @@ class PipelineRunner:
             "config_hash": config_hash,
             "duration_ms": int((time.monotonic() - _start) * 1000),
         }
-        write_text(replay_path, f"{json.dumps(replay_line, sort_keys=True)}\n")
+        append_text(replay_path, f"{json.dumps(replay_line, sort_keys=True)}\n")
 
         return StageResult(
             stage="extract",
@@ -523,7 +522,7 @@ class PipelineRunner:
             "config_hash": config_hash,
             "duration_ms": int((time.monotonic() - _start) * 1000),
         }
-        write_text(replay_path, f"{json.dumps(replay_line, sort_keys=True)}\n")
+        append_text(replay_path, f"{json.dumps(replay_line, sort_keys=True)}\n")
 
         return StageResult(
             stage="link",
@@ -545,19 +544,10 @@ class PipelineRunner:
         entities = load_entities(pkg_root)
         bm25_path = build_bm25_index(pkg_root, entities)
 
-        search_cfg = config.profile().get("search", {})
-        semantic_cfg = search_cfg.get("semantic", {}) if isinstance(search_cfg, dict) else {}
-        semantic_enabled = bool(semantic_cfg.get("enabled", False))
-        semantic_path = None
-        if semantic_enabled:
-            semantic_path = build_semantic_index(pkg_root, [])
-
-        outputs_hash = sha256_json({"bm25": str(bm25_path), "semantic": str(semantic_path)})
+        outputs_hash = sha256_json({"bm25": str(bm25_path), "semantic": None})
         inputs_hash = str(link_manifest.get("outputs_hash", ""))
         config_hash = str(link_manifest.get("config_hash", ""))
         artifacts = [str(bm25_path)]
-        if semantic_path:
-            artifacts.append(str(semantic_path))
         manifest_path = self._write_stage_manifest(
             pkg_root,
             stage="index",
@@ -577,7 +567,7 @@ class PipelineRunner:
             "config_hash": config_hash,
             "duration_ms": int((time.monotonic() - _start) * 1000),
         }
-        write_text(replay_path, f"{json.dumps(replay_line, sort_keys=True)}\n")
+        append_text(replay_path, f"{json.dumps(replay_line, sort_keys=True)}\n")
 
         return StageResult(
             stage="index",

@@ -27,6 +27,12 @@ def write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def append_text(path: Path, text: str) -> None:
+    ensure_dir(path.parent)
+    with open(path, "a", encoding="utf-8") as fh:
+        fh.write(text)
+
+
 def profile_pkg_root(root: Path, config: Config) -> Path:
     profile = validate_profile_name(config.active_profile())
     base = root / ".pkg" / "profiles"

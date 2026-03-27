@@ -11,7 +11,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from auditgraph.storage.hashing import sha256_text
+from auditgraph.storage.hashing import entity_id as _entity_id, sha256_text
 from auditgraph.storage.audit import DEFAULT_PIPELINE_VERSION
 
 # Common technologies, frameworks, and tools to look for.
@@ -63,10 +63,6 @@ _TECH_PATTERNS: list[tuple[re.Pattern[str], str]] = [
 ]
 
 
-def _entity_id(canonical_key: str) -> str:
-    return f"ent_{sha256_text(canonical_key)}"
-
-
 def extract_content_entities(
     source_path: str,
     source_hash: str,
@@ -105,7 +101,6 @@ def extract_content_entities(
         })
 
     # Extract technology mentions
-    content_lower = content.lower()
     for pattern, canonical_name in _TECH_PATTERNS:
         match = pattern.search(content)
         if not match:

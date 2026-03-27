@@ -16,13 +16,15 @@ def load_entity(pkg_root: Path, entity_id: str) -> dict[str, object]:
     return read_json(path)
 
 
-def load_entities(pkg_root: Path) -> list[dict[str, object]]:
+def load_entities(pkg_root: Path, *, sorted_by_id: bool = False) -> list[dict[str, object]]:
     entities_dir = pkg_root / "entities"
     if not entities_dir.exists():
         return []
     entities: list[dict[str, object]] = []
     for path in entities_dir.rglob("*.json"):
         entities.append(read_json(path))
+    if sorted_by_id:
+        entities.sort(key=lambda item: str(item.get("id", "")))
     return entities
 
 

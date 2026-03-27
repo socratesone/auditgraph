@@ -26,7 +26,7 @@ def test_spec017_chunk_citation_metadata_presence(tmp_path):
     runner.run_import(root=tmp_path, config=config, targets=[str(docs_dir)])
 
     pkg_root = profile_pkg_root(tmp_path, config)
-    results = keyword_search(pkg_root, "sample")
+    results = keyword_search(pkg_root, "sample", enable_semantic=True)
     chunk_results = [result for result in results if str(result.get("id", "")).startswith("chk_")]
     assert chunk_results
     citation = chunk_results[0].get("citation", {})

@@ -1,19 +1,10 @@
 from __future__ import annotations
 
-import fnmatch
 from pathlib import Path
 from typing import Iterable
 
-from auditgraph.ingest.policy import IngestionPolicy, is_allowed
+from auditgraph.ingest.policy import IngestionPolicy, is_allowed, matches_exclude
 from auditgraph.utils.paths import ensure_within_base
-
-
-def _matches_exclude(path: Path, root: Path, exclude_globs: Iterable[str]) -> bool:
-    try:
-        rel = path.resolve().relative_to(root.resolve()).as_posix()
-    except Exception:
-        rel = path.as_posix()
-    return any(fnmatch.fnmatch(rel, pattern) for pattern in exclude_globs)
 
 
 def collect_import_paths(root: Path, targets: Iterable[str]) -> list[Path]:
@@ -43,7 +34,7 @@ def split_imported(
     allowed: list[Path] = []
     skipped: list[Path] = []
     for path in files:
-        if _matches_exclude(path, root, exclude_globs):
+        if matches_exclude(path, root, exclude_globs):
             continue
         if is_allowed(path, policy):
             allowed.append(path)

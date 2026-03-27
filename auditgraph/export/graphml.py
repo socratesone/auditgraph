@@ -5,17 +5,8 @@ from pathlib import Path
 from auditgraph.config import Config, load_config
 from auditgraph.utils.redaction import build_redactor_for_pkg_root
 
-from auditgraph.storage.artifacts import read_json, write_text
-
-
-def _load_entities(pkg_root: Path) -> list[dict[str, object]]:
-    entities_dir = pkg_root / "entities"
-    entities: list[dict[str, object]] = []
-    if not entities_dir.exists():
-        return entities
-    for path in entities_dir.rglob("*.json"):
-        entities.append(read_json(path))
-    return sorted(entities, key=lambda item: str(item.get("id", "")))
+from auditgraph.storage.artifacts import write_text
+from auditgraph.storage.loaders import load_entities
 
 
 def export_graphml(pkg_root: Path, output_path: Path, config: Config | None = None) -> Path:
@@ -26,7 +17,7 @@ def export_graphml(pkg_root: Path, output_path: Path, config: Config | None = No
         "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\">",
         "  <graph id=\"auditgraph\" edgedefault=\"directed\">",
     ]
-    for entity in _load_entities(pkg_root):
+    for entity in load_entities(pkg_root, sorted_by_id=True):
         node_id = str(entity.get("id"))
         label = str(entity.get("name", node_id))
         label = str(redactor.redact_text(label).value)
