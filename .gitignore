@@ -26,6 +26,11 @@ Thumbs.db
 source-material
 docs/source-material/
 thoughts/
+.github/
+
+# Large data files
+source_graph.cypher
 
 # Claude
 .claude/
+last_session.md

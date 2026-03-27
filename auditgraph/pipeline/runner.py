@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -30,7 +31,7 @@ from auditgraph.storage.artifacts import write_document_artifacts
 from auditgraph.storage.safe_artifacts import write_json_redacted
 from auditgraph.utils.redaction import build_redactor
 from auditgraph.storage.config_snapshot import ingestion_config_hash, write_config_snapshot
-from auditgraph.storage.hashing import deterministic_run_id, inputs_hash, outputs_hash, sha256_json, sha256_text
+from auditgraph.storage.hashing import deterministic_run_id, deterministic_timestamp, inputs_hash, outputs_hash, sha256_json, sha256_text
 from auditgraph.storage.hashing import deterministic_document_id, sha256_file
 from auditgraph.storage.loaders import load_entities
 from auditgraph.storage.provenance import ProvenanceRecord, write_provenance_index
@@ -48,7 +49,9 @@ class StageResult:
 
 
 class PipelineRunner:
-    _deterministic_time = "1970-01-01T00:00:00Z"
+    @staticmethod
+    def _deterministic_time_for(seed: str) -> str:
+        return deterministic_timestamp(seed)
 
     def run_stage(self, stage: str, **kwargs: Any) -> StageResult:
         if stage == "ingest":
@@ -112,8 +115,8 @@ class PipelineRunner:
             outputs_hash=outputs_hash,
             config_hash=config_hash,
             status=status,
-            started_at=self._deterministic_time,
-            finished_at=self._deterministic_time,
+            started_at=self._deterministic_time_for(run_id),
+            finished_at=self._deterministic_time_for(run_id),
             artifacts=artifacts,
         )
         manifest_path = pkg_root / "runs" / run_id / f"{stage}-manifest.json"
@@ -121,6 +124,7 @@ class PipelineRunner:
         return manifest_path
 
     def run_ingest(self, root: Path, config: Config, *, enforce_compatibility: bool = True) -> StageResult:
+        _start = time.monotonic()
         profile = config.profile()
         policy = load_policy(profile)
         include_paths = profile.get("include_paths", [])
@@ -222,8 +226,8 @@ class PipelineRunner:
         ]
         manifest = build_manifest(
             run_id=run_id,
-            started_at=self._deterministic_time,
-            finished_at=self._deterministic_time,
+            started_at=self._deterministic_time_for(run_id),
+            finished_at=self._deterministic_time_for(run_id),
             records=records,
             pipeline_version=pipeline_version,
             config_hash=config_hash,
@@ -243,6 +247,7 @@ class PipelineRunner:
             "outputs_hash": output_hash,
             "config_hash": config_hash,
             "pipeline_version": pipeline_version,
+            "duration_ms": int((time.monotonic() - _start) * 1000),
         }
         write_text(replay_path, f"{json.dumps(replay_line, sort_keys=True)}\n")
 
@@ -277,6 +282,7 @@ class PipelineRunner:
         return StageResult(stage="ingest", status="ok", detail=detail)
 
     def run_normalize(self, root: Path, config: Config, run_id: str | None = None) -> StageResult:
+        _start = time.monotonic()
         pkg_root = profile_pkg_root(root, config)
         resolved = self._resolve_run_id(pkg_root, run_id)
         if not resolved:
@@ -305,6 +311,7 @@ class PipelineRunner:
             "inputs_hash": inputs_hash,
             "outputs_hash": outputs_hash,
             "config_hash": config_hash,
+            "duration_ms": int((time.monotonic() - _start) * 1000),
         }
         write_text(replay_path, f"{json.dumps(replay_line, sort_keys=True)}\n")
         return StageResult(
@@ -314,6 +321,7 @@ class PipelineRunner:
         )
 
     def run_extract(self, root: Path, config: Config, run_id: str | None = None) -> StageResult:
+        _start = time.monotonic()
         pkg_root = profile_pkg_root(root, config)
         redactor = build_redactor(root, config)
         resolved = self._resolve_run_id(pkg_root, run_id)
@@ -438,6 +446,7 @@ class PipelineRunner:
             "inputs_hash": inputs_hash,
             "outputs_hash": outputs_hash,
             "config_hash": config_hash,
+            "duration_ms": int((time.monotonic() - _start) * 1000),
         }
         write_text(replay_path, f"{json.dumps(replay_line, sort_keys=True)}\n")
 
@@ -448,6 +457,7 @@ class PipelineRunner:
         )
 
     def run_link(self, root: Path, config: Config, run_id: str | None = None) -> StageResult:
+        _start = time.monotonic()
         pkg_root = profile_pkg_root(root, config)
         resolved = self._resolve_run_id(pkg_root, run_id)
         if not resolved:
@@ -511,6 +521,7 @@ class PipelineRunner:
             "inputs_hash": inputs_hash,
             "outputs_hash": outputs_hash,
             "config_hash": config_hash,
+            "duration_ms": int((time.monotonic() - _start) * 1000),
         }
         write_text(replay_path, f"{json.dumps(replay_line, sort_keys=True)}\n")
 
@@ -521,6 +532,7 @@ class PipelineRunner:
         )
 
     def run_index(self, root: Path, config: Config, run_id: str | None = None) -> StageResult:
+        _start = time.monotonic()
         pkg_root = profile_pkg_root(root, config)
         resolved = self._resolve_run_id(pkg_root, run_id)
         if not resolved:
@@ -563,6 +575,7 @@ class PipelineRunner:
             "inputs_hash": inputs_hash,
             "outputs_hash": outputs_hash,
             "config_hash": config_hash,
+            "duration_ms": int((time.monotonic() - _start) * 1000),
         }
         write_text(replay_path, f"{json.dumps(replay_line, sort_keys=True)}\n")
 
@@ -680,8 +693,8 @@ class PipelineRunner:
         ]
         manifest = build_manifest(
             run_id=run_id,
-            started_at=self._deterministic_time,
-            finished_at=self._deterministic_time,
+            started_at=self._deterministic_time_for(run_id),
+            finished_at=self._deterministic_time_for(run_id),
             records=records,
             pipeline_version=pipeline_version,
             config_hash=config_hash,
