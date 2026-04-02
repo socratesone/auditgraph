@@ -1,31 +1,12 @@
 """Tests for duration_ms tracking in pipeline replay log entries."""
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from auditgraph.config import load_config
 from auditgraph.pipeline.runner import PipelineRunner
 from auditgraph.storage.artifacts import read_json
-
-
-def _setup_workspace(tmp_path: Path) -> Path:
-    """Create a minimal workspace with one markdown note."""
-    notes_dir = tmp_path / "notes"
-    notes_dir.mkdir()
-    note_path = notes_dir / "note.md"
-    note_path.write_text("---\ntitle: Duration Test\n---\nHello world", encoding="utf-8")
-    return tmp_path
-
-
-def _read_replay_lines(pkg_root: Path, run_id: str) -> list[dict]:
-    """Read all replay log lines for a given run."""
-    replay_path = pkg_root / "runs" / run_id / "replay-log.jsonl"
-    assert replay_path.exists(), f"replay log not found at {replay_path}"
-    lines = []
-    for line in replay_path.read_text(encoding="utf-8").strip().splitlines():
-        lines.append(json.loads(line))
-    return lines
+from tests.support import read_replay_lines as _read_replay_lines, setup_pipeline_workspace as _setup_workspace
 
 
 def _get_replay_for_stage(replay_lines: list[dict], stage: str) -> dict:
@@ -180,9 +161,9 @@ class TestFullPipelineDurationTracking:
     def test_rebuild_last_stage_has_duration_ms(self, tmp_path: Path) -> None:
         """The last stage written in a full rebuild should have duration_ms.
 
-        Note: write_text overwrites the replay log file, so only the last
-        stage's replay line survives after a full rebuild.  We verify that
-        the final replay line (index) contains the expected fields.
+        The replay log uses append_text, so all five stage entries survive
+        after a full rebuild.  We verify the final entry (index) contains
+        the expected duration and hash fields.
         """
         root = _setup_workspace(tmp_path)
         runner = PipelineRunner()
@@ -193,8 +174,9 @@ class TestFullPipelineDurationTracking:
         run_id = result.detail["run_id"]
         pkg_root = tmp_path / ".pkg" / "profiles" / "default"
         replay_lines = _read_replay_lines(pkg_root, run_id)
+        assert len(replay_lines) == 5, f"expected 5 stage entries, got {len(replay_lines)}"
 
-        # Only the last stage (index) remains because write_text overwrites
+        # All five stages are appended; verify the final entry (index)
         last_line = replay_lines[-1]
         assert "duration_ms" in last_line, "last stage missing duration_ms"
         assert isinstance(last_line["duration_ms"], int)

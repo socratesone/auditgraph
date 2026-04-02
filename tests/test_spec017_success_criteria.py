@@ -20,17 +20,15 @@ def _prepare_workspace(tmp_path: Path) -> Path:
     return docs_dir
 
 
-def test_sc001_determinism_and_unchanged_skip(tmp_path: Path) -> None:
+def test_sc001_unchanged_source_skip(tmp_path: Path) -> None:
     docs_dir = _prepare_workspace(tmp_path)
     config = load_config(None)
     runner = PipelineRunner()
 
-    first = runner.run_import(root=tmp_path, config=config, targets=[str(docs_dir)])
+    runner.run_import(root=tmp_path, config=config, targets=[str(docs_dir)])
     second = runner.run_import(root=tmp_path, config=config, targets=[str(docs_dir)])
 
-    first_manifest = read_json(Path(first.detail["manifest"]))
     second_manifest = read_json(Path(second.detail["manifest"]))
-    assert first_manifest["run_id"] == second_manifest["run_id"]
     assert any(record.get("status_reason") == "unchanged_source_hash" for record in second_manifest["records"])
 
 

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from auditgraph.config import load_config
 from auditgraph.pipeline.runner import PipelineRunner
-
+from tests.support import read_replay_lines as _read_replay_lines, setup_pipeline_workspace as _setup_workspace
 
 def _setup_workspace(tmp_path: Path) -> Path:
     notes_dir = tmp_path / "notes"
@@ -24,6 +24,7 @@ def _read_replay_lines(pkg_root: Path, run_id: str) -> list[dict]:
     for line in replay_path.read_text(encoding="utf-8").strip().splitlines():
         lines.append(json.loads(line))
     return lines
+
 
 
 ALL_STAGES = {"ingest", "normalize", "extract", "link", "index"}
