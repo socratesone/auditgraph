@@ -5,6 +5,51 @@ from pathlib import Path
 from auditgraph.storage.artifacts import write_json
 
 
+class FakeTx:
+    def __init__(self, store: dict[str, set[str]]) -> None:
+        self._store = store
+
+    def run(self, query: str, **params: object) -> None:
+        if "MERGE (n:" in query:
+            self._store["nodes"].add(str(params.get("id", "")))
+        if "RELATES_TO" in query:
+            self._store["relationships"].add(str(params.get("id", "")))
+
+
+class FakeSession:
+    def __init__(self, store: dict[str, set[str]]) -> None:
+        self._store = store
+        self.constraint_calls = 0
+
+    def __enter__(self) -> "FakeSession":
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        return None
+
+    def run(self, query: str, **params: object) -> None:
+        if query.startswith("CREATE CONSTRAINT"):
+            self.constraint_calls += 1
+
+    def execute_write(self, fn, batch, dry_run):
+        tx = FakeTx(self._store)
+        return fn(tx, batch, dry_run)
+
+
+class FakeDriver:
+    def __init__(self, store: dict[str, set[str]]) -> None:
+        self._store = store
+
+    def __enter__(self) -> "FakeDriver":
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        return None
+
+    def session(self, database: str):
+        return FakeSession(self._store)
+
+
 def _entity_path(pkg_root: Path, entity_id: str) -> Path:
     token = entity_id.split("_", 1)[-1]
     shard = token[:2] if token else entity_id[:2]

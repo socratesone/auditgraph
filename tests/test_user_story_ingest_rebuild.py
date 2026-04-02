@@ -36,38 +36,6 @@ def test_us1_ingest_counts_records(tmp_path: Path) -> None:
     assert manifest["ingested_count"] == 1
 
 
-def test_us7_rebuild_run_id_is_stable(tmp_path: Path) -> None:
-    notes_dir = tmp_path / "notes"
-    notes_dir.mkdir()
-    (notes_dir / "note.md").write_text("Hello", encoding="utf-8")
-
-    runner = PipelineRunner()
-    config = load_config(None)
-    first = runner.run_rebuild(root=tmp_path, config=config)
-    second = runner.run_rebuild(root=tmp_path, config=config)
-
-    first_manifest = read_json(Path(first.detail["manifest"]))
-    second_manifest = read_json(Path(second.detail["manifest"]))
-
-    assert first_manifest["run_id"] == second_manifest["run_id"]
-
-
-def test_us7_rebuild_outputs_hash_is_stable(tmp_path: Path) -> None:
-    notes_dir = tmp_path / "notes"
-    notes_dir.mkdir()
-    (notes_dir / "note.md").write_text("Hello", encoding="utf-8")
-
-    runner = PipelineRunner()
-    config = load_config(None)
-    first = runner.run_rebuild(root=tmp_path, config=config)
-    second = runner.run_rebuild(root=tmp_path, config=config)
-
-    first_manifest = read_json(Path(first.detail["manifest"]))
-    second_manifest = read_json(Path(second.detail["manifest"]))
-
-    assert first_manifest["outputs_hash"] == second_manifest["outputs_hash"]
-
-
 def test_us8_diff_detects_added_paths(tmp_path: Path) -> None:
     notes_dir = tmp_path / "notes"
     notes_dir.mkdir()

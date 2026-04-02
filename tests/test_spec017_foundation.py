@@ -98,4 +98,5 @@ def test_spec017_parse_metadata_contains_document_segments_chunks() -> None:
     assert isinstance(metadata.get("document"), dict)
     assert isinstance(metadata.get("segments"), list)
     assert isinstance(metadata.get("chunks"), list)
-    assert json.dumps(metadata, sort_keys=True)
+    assert len(metadata.get("segments", [])) > 0, "metadata should contain segments"
+    assert len(metadata.get("chunks", [])) > 0, "metadata should contain chunks"
