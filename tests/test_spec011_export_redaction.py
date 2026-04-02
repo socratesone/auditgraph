@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from auditgraph.config import load_config
@@ -27,5 +28,5 @@ def test_export_redacts_entity_fields(tmp_path: Path) -> None:
     export_json(tmp_path, pkg_root, output_path, config=load_config(None))
 
     payload = read_json(output_path)
-    serialized = str(payload)
+    serialized = json.dumps(payload)
     assert SENTINEL not in serialized

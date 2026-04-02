@@ -1,34 +1,19 @@
 from __future__ import annotations
 
 import json
-import subprocess
-import sys
 from pathlib import Path
 
 from auditgraph.config import load_config
 from auditgraph.storage.artifacts import profile_pkg_root, read_json, write_json
 from auditgraph.storage.hashing import sha256_text
-
-
-def _run_cli(
-    args: list[str],
-    cwd: Path | None = None,
-    check: bool = True,
-) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        [sys.executable, "-m", "auditgraph.cli", *args],
-        cwd=cwd,
-        capture_output=True,
-        text=True,
-        check=check,
-    )
+from tests.support import run_cli as _run_cli
 
 
 def test_cli_version_returns_value() -> None:
     result = _run_cli(["version"])
     payload = json.loads(result.stdout)
 
-    assert payload["version"]
+    assert isinstance(payload["version"], str) and "." in payload["version"]
 
 
 def test_cli_init_creates_workspace(tmp_path: Path) -> None:

@@ -1,25 +1,9 @@
 from __future__ import annotations
 
 import json
-import subprocess
-import sys
 from pathlib import Path
 
-
-def _run_cli(args: list[str], cwd: Path | None = None, check: bool = True) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        [sys.executable, "-m", "auditgraph.cli", *args],
-        cwd=cwd,
-        capture_output=True,
-        text=True,
-        check=check,
-    )
-
-
-def _write_jobs_config(root: Path, content: str) -> None:
-    config_dir = root / "config"
-    config_dir.mkdir(parents=True, exist_ok=True)
-    (config_dir / "jobs.yaml").write_text(content, encoding="utf-8")
+from tests.support import run_cli as _run_cli, write_jobs_config as _write_jobs_config
 
 
 def test_job_output_default_path(tmp_path: Path) -> None:

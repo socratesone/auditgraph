@@ -86,6 +86,7 @@ def test_adjacency_index_is_created(tmp_path: Path) -> None:
     assert adjacency_path.exists(), "Pipeline should produce adjacency index"
     adjacency = read_json(adjacency_path)
     assert isinstance(adjacency, dict)
+    assert all(isinstance(v, list) for v in adjacency.values()), "adjacency values should be lists"
 
 
 def test_provenance_tracks_artifacts(tmp_path: Path) -> None:
