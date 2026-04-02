@@ -1,11 +1,30 @@
 """Tests for replay log append behavior across a full rebuild."""
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from auditgraph.config import load_config
 from auditgraph.pipeline.runner import PipelineRunner
 from tests.support import read_replay_lines as _read_replay_lines, setup_pipeline_workspace as _setup_workspace
+
+def _setup_workspace(tmp_path: Path) -> Path:
+    notes_dir = tmp_path / "notes"
+    notes_dir.mkdir()
+    (notes_dir / "note.md").write_text(
+        "---\ntitle: Replay Test\n---\nHello world", encoding="utf-8"
+    )
+    return tmp_path
+
+
+def _read_replay_lines(pkg_root: Path, run_id: str) -> list[dict]:
+    replay_path = pkg_root / "runs" / run_id / "replay-log.jsonl"
+    assert replay_path.exists(), f"replay log not found at {replay_path}"
+    lines = []
+    for line in replay_path.read_text(encoding="utf-8").strip().splitlines():
+        lines.append(json.loads(line))
+    return lines
+
 
 
 ALL_STAGES = {"ingest", "normalize", "extract", "link", "index"}

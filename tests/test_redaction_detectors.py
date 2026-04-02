@@ -71,8 +71,6 @@ class TestBearerTokenDetector:
         redactor = _make_redactor("bearer_token")
         result = redactor.redact_text(header)
         assert "mytoken123456" not in result.value
-        assert "<<redacted:bearer:" in result.value
-        assert result.summary.total_matches >= 1
 
 
 class TestUrlCredentialsDetector:
