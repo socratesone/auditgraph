@@ -114,7 +114,7 @@ Always include a `PATH` entry in the MCP `env` configuration:
 
 Without this, MCP tool calls will fail with `[Errno 2] No such file or directory: 'auditgraph'`.
 
-See [MCP_GUIDE.md](../MCP_GUIDE.md) for full configuration examples.
+See [docs/integration/mcp_guide.md](integration/mcp_guide.md) for full configuration examples.
 
 ## Requirements Files (Optional)
 

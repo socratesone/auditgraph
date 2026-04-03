@@ -6,7 +6,7 @@ Local-first, deterministic personal knowledge graph tooling for engineers.
 
 [![License](https://img.shields.io/badge/license-SEE%20LICENSE-blue)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
-[![MCP](https://img.shields.io/badge/MCP-enabled-brightgreen)](MCP_GUIDE.md)
+[![MCP](https://img.shields.io/badge/MCP-enabled-brightgreen)](docs/integration/mcp_guide.md)
 
 Auditgraph ingests plain-text notes, code, and `.pdf`/`.docx` documents, deterministically extracts entities and claims, builds explainable links, and provides CLI-first navigation. Your source of truth stays in plain text; derived artifacts are reproducible, diffable, and fully audited.
 
@@ -32,7 +32,6 @@ Auditgraph solves the "where did this fact come from?" problem for technical not
 - [Developer Docs](#developer-docs)
 - [Tests](#tests)
 - [License](#license)
-- [Contact](#contact)
 
 ## Features
 
@@ -105,8 +104,8 @@ Note: the default config (`config/pkg.yaml`) looks for `notes/` and `repos/` sub
 Or run individual stages:
 
 ```bash
-auditgraph ingest --root . --config config/pkg.yaml
-auditgraph query --q "symbol" --root . --config config/pkg.yaml
+auditgraph ingest
+auditgraph query --q "symbol"
 ```
 
 One-command setup for development:
@@ -154,7 +153,7 @@ Document ingestion defaults:
 - If you see `Missing schema_version in manifest`, run:
 
 	```bash
-	auditgraph rebuild --root . --config config/pkg.yaml
+	auditgraph rebuild
 	```
 
 - If `auditgraph` command is not found, re-activate your venv:
@@ -185,19 +184,19 @@ export NEO4J_DATABASE="neo4j"
 Export to a `.cypher` artifact:
 
 ```bash
-auditgraph export-neo4j --root . --config config/pkg.yaml --output exports/neo4j/graph.cypher
+auditgraph export-neo4j --output exports/neo4j/graph.cypher
 ```
 
 Dry-run sync (no DB mutation):
 
 ```bash
-auditgraph sync-neo4j --root . --config config/pkg.yaml --dry-run
+auditgraph sync-neo4j --dry-run
 ```
 
 Live sync:
 
 ```bash
-auditgraph sync-neo4j --root . --config config/pkg.yaml
+auditgraph sync-neo4j
 ```
 
 For full setup and validation workflow, see [docs/integration/neo4j.md](docs/integration/neo4j.md).
@@ -217,17 +216,17 @@ profiles:
 Run as part of a full rebuild or standalone:
 
 ```bash
-auditgraph rebuild --root . --config config/pkg.yaml
-auditgraph git-provenance --root . --config config/pkg.yaml
+auditgraph rebuild
+auditgraph git-provenance
 ```
 
 Query commands:
 
 ```bash
-auditgraph git-who src/auth.py --root .           # Authors who changed a file
-auditgraph git-log src/auth.py --root .            # Commits that touched a file
-auditgraph git-introduced src/auth.py --root .     # Earliest commit for a file
-auditgraph git-history src/auth.py --root .        # Combined provenance summary
+auditgraph git-who src/auth.py            # Authors who changed a file
+auditgraph git-log src/auth.py            # Commits that touched a file
+auditgraph git-introduced src/auth.py     # Earliest commit for a file
+auditgraph git-history src/auth.py        # Combined provenance summary
 ```
 
 For configuration details (hot/cold paths, commit selection tiers), see [specs/020-git-provenance-ingestion/quickstart.md](specs/020-git-provenance-ingestion/quickstart.md).
@@ -247,28 +246,28 @@ auditgraph --help
 auditgraph version
 auditgraph init --root .
 auditgraph run examples/sample_docs/               # Full pipeline
-auditgraph ingest --root . --config config/pkg.yaml
-auditgraph import <path> [<path> ...] --root . --config config/pkg.yaml  # Manually import specific files or directories
-auditgraph normalize --root . --config config/pkg.yaml --run-id <run_id>
-auditgraph extract --root . --config config/pkg.yaml --run-id <run_id>
-auditgraph link --root . --config config/pkg.yaml --run-id <run_id>
-auditgraph index --root . --config config/pkg.yaml --run-id <run_id>
-auditgraph rebuild --root . --config config/pkg.yaml
-auditgraph query --q "symbol" --root . --config config/pkg.yaml
-auditgraph node <entity_id> --root . --config config/pkg.yaml
-auditgraph neighbors <entity_id> --depth 2 --root . --config config/pkg.yaml
-auditgraph why-connected --from <entity_id> --to <entity_id> --root . --config config/pkg.yaml
-auditgraph diff --run-a <run_id_1> --run-b <run_id_2> --root .
-auditgraph export --format json --root . --config config/pkg.yaml
-auditgraph export-neo4j --root . --config config/pkg.yaml --output exports/neo4j/graph.cypher
-auditgraph sync-neo4j --root . --config config/pkg.yaml --dry-run
-auditgraph replay <run_id> --root .                 # Replay a previous run
-auditgraph git-provenance --root . --config config/pkg.yaml  # Ingest git history
-auditgraph git-who <file> --root . --config config/pkg.yaml
-auditgraph git-log <file> --root . --config config/pkg.yaml
-auditgraph git-introduced <file> --root . --config config/pkg.yaml
-auditgraph git-history <file> --root . --config config/pkg.yaml
-auditgraph jobs list --root .
+auditgraph ingest
+auditgraph import <path> [<path> ...]              # Manually import specific files or directories
+auditgraph normalize --run-id <run_id>
+auditgraph extract --run-id <run_id>
+auditgraph link --run-id <run_id>
+auditgraph index --run-id <run_id>
+auditgraph rebuild
+auditgraph query --q "symbol"
+auditgraph node <entity_id>
+auditgraph neighbors <entity_id> --depth 2
+auditgraph why-connected --from <entity_id> --to <entity_id>
+auditgraph diff --run-a <run_id_1> --run-b <run_id_2>
+auditgraph export --format json
+auditgraph export-neo4j --output exports/neo4j/graph.cypher
+auditgraph sync-neo4j --dry-run
+auditgraph replay <run_id>                         # Replay a previous run
+auditgraph git-provenance                          # Ingest git history
+auditgraph git-who <file>
+auditgraph git-log <file>
+auditgraph git-introduced <file>
+auditgraph git-history <file>
+auditgraph jobs list
 ```
 
 For the full command surface, run `auditgraph --help`.
@@ -280,8 +279,7 @@ Documentation map:
 - First-success walkthrough with expected output: [QUICKSTART.md](QUICKSTART.md)
 - Environment and platform details: [docs/environment-setup.md](docs/environment-setup.md)
 - Neo4j export/sync workflow: [docs/integration/neo4j.md](docs/integration/neo4j.md)
-- MCP setup and troubleshooting: [MCP_GUIDE.md](MCP_GUIDE.md)
-- Project assumptions and decisions: [docs/clarifying-answers.md](docs/clarifying-answers.md), [SPEC.md](SPEC.md)
+- MCP setup and troubleshooting: [docs/integration/mcp_guide.md](docs/integration/mcp_guide.md)
 
 MCP/LLM integration artifacts are under `llm-tooling/`:
 
@@ -321,8 +319,4 @@ pytest
 
 ## License
 
-See [LICENSE](LICENSE).
-
-## Contact
-
-Open an issue in the repository for questions, bug reports, or feature requests.
+This project is licensed under the **MIT License**. See [LICENSE](LICENSE) for the full text.

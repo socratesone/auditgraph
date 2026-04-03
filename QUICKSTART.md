@@ -36,7 +36,7 @@ auditgraph init --root .
 ## 3) Run first pipeline
 
 ```bash
-auditgraph ingest --root . --config config/pkg.yaml
+auditgraph ingest
 ```
 
 Expected result (shape):
@@ -59,7 +59,7 @@ Expected result (shape):
 ## 4) Query your graph
 
 ```bash
-auditgraph query --q "symbol" --root . --config config/pkg.yaml
+auditgraph query --q "symbol"
 ```
 
 Expected result (shape):
@@ -93,14 +93,14 @@ Markdown sub-entity extraction (`ag:section`, `ag:technology`, `ag:reference`) i
 Optional inspection commands:
 
 ```bash
-auditgraph node <entity_id> --root . --config config/pkg.yaml
-auditgraph neighbors <entity_id> --depth 2 --root . --config config/pkg.yaml
+auditgraph node <entity_id>
+auditgraph neighbors <entity_id> --depth 2
 ```
 
 ## 5) Export results
 
 ```bash
-auditgraph export --format json --root . --config config/pkg.yaml
+auditgraph export --format json
 ```
 
 ## 6) Export/sync with Neo4j (optional)
@@ -117,14 +117,14 @@ export NEO4J_DATABASE="neo4j"
 Export Neo4j Cypher:
 
 ```bash
-auditgraph export-neo4j --root . --config config/pkg.yaml --output exports/neo4j/graph.cypher
+auditgraph export-neo4j --output exports/neo4j/graph.cypher
 ```
 
 Dry-run and live sync:
 
 ```bash
-auditgraph sync-neo4j --root . --config config/pkg.yaml --dry-run
-auditgraph sync-neo4j --root . --config config/pkg.yaml
+auditgraph sync-neo4j --dry-run
+auditgraph sync-neo4j
 ```
 
 Detailed guide: [docs/integration/neo4j.md](docs/integration/neo4j.md).
@@ -143,22 +143,22 @@ profiles:
 Run ingestion (requires a prior `ingest` run):
 
 ```bash
-auditgraph rebuild --root . --config config/pkg.yaml
+auditgraph rebuild
 ```
 
 Or run the git provenance stage alone:
 
 ```bash
-auditgraph git-provenance --root . --config config/pkg.yaml
+auditgraph git-provenance
 ```
 
 Query file provenance:
 
 ```bash
-auditgraph git-who README.md --root .
-auditgraph git-log README.md --root .
-auditgraph git-introduced README.md --root .
-auditgraph git-history README.md --root .
+auditgraph git-who README.md
+auditgraph git-log README.md
+auditgraph git-introduced README.md
+auditgraph git-history README.md
 ```
 
 Optional tuning in `config/pkg.yaml`:
@@ -178,7 +178,7 @@ Detailed guide: `specs/020-git-provenance-ingestion/quickstart.md`.
 - If you see `Missing schema_version in manifest`, run:
 
   ```bash
-  auditgraph rebuild --root . --config config/pkg.yaml
+  auditgraph rebuild
   ```
 
 - If `auditgraph` command is not found, re-activate venv:
@@ -196,5 +196,5 @@ Detailed guide: `specs/020-git-provenance-ingestion/quickstart.md`.
 ## Next docs
 
 - Full usage and CLI reference: `README.md`
-- VS Code MCP setup: `MCP_GUIDE.md`
+- VS Code MCP setup: `docs/integration/mcp_guide.md`
 - Environment details: `docs/environment-setup.md`
