@@ -5,7 +5,7 @@ This document defines what the actual specification must include. It is not the 
 The spec produced from this blueprint must be implementable in code and validated by tests.
 
 ## Goal
-Produce a concrete, testable spec for ingestion that covers day-1 sources, allowed extensions,
+Produce a concrete, testable spec for ingestion that covers core sources, allowed extensions,
 capture channels, normalization rules, and deterministic skip behavior.
 
 ## Source material
@@ -13,9 +13,9 @@ capture channels, normalization rules, and deterministic skip behavior.
 - [SPEC.md](SPEC.md) Solution Space: Ingestion
 
 ## Required decisions the spec must make
-- Day-1 source types and exact allowed file extensions.
+- Core source types and exact allowed file extensions.
 - Code file inclusion and symbol extraction depth.
-- PDF/OCR support policy (day-1 explicit include or exclude).
+- PDF/OCR support policy (explicit include or exclude for current scope).
 - Structured source inclusion (OpenAPI, Terraform, CI configs, JSON/YAML manifests).
 - Capture channels (scan, manual import, watchers, plugins).
 - Frontmatter normalization rules and fallback behavior.
@@ -24,7 +24,7 @@ capture channels, normalization rules, and deterministic skip behavior.
 ## Required spec sections and outputs
 The spec MUST include the following, with concrete requirements and examples:
 
-1) Scope and non-goals for day-1 ingestion.
+1) Scope and non-goals for core document ingestion.
 2) Exact allowlist of file extensions and parser IDs.
 3) Capture channels and CLI behavior (scan vs import).
 4) Normalization rules for Markdown frontmatter with required keys.

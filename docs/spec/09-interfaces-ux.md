@@ -1,9 +1,9 @@
 # Interfaces and UX
 
 ## Purpose
-Define the CLI command surface, output schemas, and error handling for day-1 usage.
+Define the CLI command surface, output schemas, and error handling for initial release usage.
 
-## Command Surface (Day 1)
+## Command Surface (Initial Release)
 
 All commands output JSON to stdout. Commands accept `--root` and `--config` where applicable.
 

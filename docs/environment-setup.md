@@ -8,7 +8,7 @@ for a custom environment.
 
 - Python 3.10+ (see `pyproject.toml`)
 - `pip` (bundled with most Python installs)
-- Supported OS targets: Linux (x86_64) and macOS (Intel/Apple Silicon); Windows is not supported for day 1.
+- Supported OS targets: Linux (x86_64) and macOS (Intel/Apple Silicon); Windows is not currently supported.
 
 ## Create and Activate `.venv`
 
@@ -79,11 +79,11 @@ export NEO4J_PASSWORD="<your_password>"
 export NEO4J_DATABASE="neo4j"
 ```
 
-See the [Neo4j Export and Sync](#neo4j-export-and-sync) section in `README.md` and `specs/001-neo4j-export-sync/quickstart.md` for the full workflow.
+See the [Neo4j Export and Sync](#neo4j-export-and-sync) section in `README.md` and [docs/integration/neo4j.md](integration/neo4j.md) for the full workflow.
 
 ## Document Ingestion Config Keys
 
-`config/pkg.yaml` supports day-1 document ingestion keys under `profiles.<name>.ingestion`:
+`config/pkg.yaml` supports document ingestion keys under `profiles.<name>.ingestion`:
 
 - `allowed_extensions`: include `.pdf` and `.docx`
 - `ocr_mode`: `off` (default), `auto`, or `on`

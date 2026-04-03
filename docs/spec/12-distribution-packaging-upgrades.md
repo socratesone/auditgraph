@@ -13,7 +13,7 @@ and upgrade/migration behavior.
 - [SPEC.md](SPEC.md) Non-Functional Requirements
 
 ## Required decisions the spec must make
-- Supported OS targets for day 1.
+- Supported OS targets for the initial release.
 - Packaging model and installation approach.
 - Upgrade/migration behavior for derived artifacts.
 - Disk footprint budgets for indexes and artifacts.

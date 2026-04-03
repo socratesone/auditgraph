@@ -40,7 +40,7 @@ This document captures the assumed answers to the clarifying questions and ties 
 
 ## B) Data Sources and Formats
 
-1) **Day-1 sources (must-have)**
+1) **Core sources (must-have)**
    - **Answer:** Markdown, plain text, Git repos.
 
 2) **PDF reality**
@@ -165,7 +165,7 @@ This document captures the assumed answers to the clarifying questions and ties 
 ## I) Distribution and Maintainability
 
 1) **Target OS**
-   - **Answer:** Linux + macOS day 1.
+   - **Answer:** Linux + macOS for the initial release.
 
 2) **Packaging**
    - **Answer:** Python package with a console script.

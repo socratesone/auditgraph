@@ -5,7 +5,7 @@ Get from clone to first query in a few minutes.
 ## Prerequisites
 
 - Python 3.10+
-- Linux (x86_64) or macOS (Intel/Apple Silicon) for day-1 support
+- Linux (x86_64) or macOS (Intel/Apple Silicon)
 - `git`
 
 ## 1) Install
@@ -127,7 +127,7 @@ auditgraph sync-neo4j --root . --config config/pkg.yaml --dry-run
 auditgraph sync-neo4j --root . --config config/pkg.yaml
 ```
 
-Detailed guide: `specs/001-neo4j-export-sync/quickstart.md`.
+Detailed guide: [docs/integration/neo4j.md](docs/integration/neo4j.md).
 
 ## 7) Git provenance (optional)
 

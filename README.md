@@ -8,7 +8,7 @@ Local-first, deterministic personal knowledge graph tooling for engineers.
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
 [![MCP](https://img.shields.io/badge/MCP-enabled-brightgreen)](MCP_GUIDE.md)
 
-Auditgraph ingests plain-text notes, code, and day-1 `.pdf`/`.docx` documents, deterministically extracts entities and claims, builds explainable links, and provides CLI-first navigation. Your source of truth stays in plain text; derived artifacts are reproducible, diffable, and fully audited.
+Auditgraph ingests plain-text notes, code, and `.pdf`/`.docx` documents, deterministically extracts entities and claims, builds explainable links, and provides CLI-first navigation. Your source of truth stays in plain text; derived artifacts are reproducible, diffable, and fully audited.
 
 Status: early-stage CLI project (`v0.1.0`) focused on local developer workflows.
 
@@ -38,7 +38,7 @@ Auditgraph solves the "where did this fact come from?" problem for technical not
 
 - Local-first, offline-capable PKG for engineers and teams.
 - Deterministic ingestion, extraction, linking, indexing, and query with stable IDs.
-- Day-1 document ingestion for `.pdf` and `.docx` with deterministic chunking and metadata-only citations.
+- Core document ingestion for `.pdf` and `.docx` with deterministic chunking and metadata-only citations.
 - Keyword index for entity names and aliases, with case-insensitive exact-key lookup.
 - Audit trail for runs, manifests, and provenance.
 - CLI-first workflows with optional local UI planned.
@@ -75,7 +75,7 @@ Auditgraph solves the "where did this fact come from?" problem for technical not
 Prerequisites:
 
 - Python 3.10+
-- Linux (x86_64) or macOS (Intel/Apple Silicon) for day-1 support
+- Linux (x86_64) or macOS (Intel/Apple Silicon)
 - `git`
 
 Auditgraph is not published to PyPI yet. Install from source:
@@ -146,7 +146,7 @@ Note: these planned markdown sub-entities are not produced by default in the cur
 Document ingestion defaults:
 
 - OCR mode defaults to `off` (supported values: `off|auto|on`).
-- `.doc` is rejected in day-1 scope with explicit machine-readable reasons.
+- `.doc` is rejected in the current scope with explicit machine-readable reasons.
 - Chunk citations are returned as metadata fields (`source_path`, page/paragraph location), not inline markers.
 
 ## Troubleshooting
@@ -200,7 +200,7 @@ Live sync:
 auditgraph sync-neo4j --root . --config config/pkg.yaml
 ```
 
-For full setup and validation workflow, see [specs/001-neo4j-export-sync/quickstart.md](specs/001-neo4j-export-sync/quickstart.md).
+For full setup and validation workflow, see [docs/integration/neo4j.md](docs/integration/neo4j.md).
 
 ## Git Provenance
 
@@ -279,7 +279,7 @@ Documentation map:
 
 - First-success walkthrough with expected output: [QUICKSTART.md](QUICKSTART.md)
 - Environment and platform details: [docs/environment-setup.md](docs/environment-setup.md)
-- Neo4j export/sync workflow: [specs/001-neo4j-export-sync/quickstart.md](specs/001-neo4j-export-sync/quickstart.md)
+- Neo4j export/sync workflow: [docs/integration/neo4j.md](docs/integration/neo4j.md)
 - MCP setup and troubleshooting: [MCP_GUIDE.md](MCP_GUIDE.md)
 - Project assumptions and decisions: [docs/clarifying-answers.md](docs/clarifying-answers.md), [SPEC.md](SPEC.md)
 
