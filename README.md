@@ -26,6 +26,7 @@ Auditgraph solves the "where did this fact come from?" problem for technical not
 - [Behavior Notes](#behavior-notes)
 - [Troubleshooting](#troubleshooting)
 - [Neo4j Export and Sync](#neo4j-export-and-sync)
+- [Git Provenance](#git-provenance)
 - [Configuration](#configuration)
 - [CLI Reference](#cli-reference)
 - [Developer Docs](#developer-docs)
@@ -65,6 +66,7 @@ Auditgraph solves the "where did this fact come from?" problem for technical not
 | Schema versioning | Implemented | `v1` with compatibility checks |
 | Markdown sub-entities | Planned | Code exists but not wired into pipeline |
 | Semantic/vector search | Planned | Index stub only; no embeddings yet |
+| Git provenance ingestion | Implemented | Commit history, authors, file lineage, MCP tools |
 | LLM-assisted extraction | In Progress | Interface + NullProvider implemented; no concrete provider yet |
 | Local UI | Planned | CLI-only for now |
 
@@ -200,6 +202,36 @@ auditgraph sync-neo4j --root . --config config/pkg.yaml
 
 For full setup and validation workflow, see [specs/001-neo4j-export-sync/quickstart.md](specs/001-neo4j-export-sync/quickstart.md).
 
+## Git Provenance
+
+Auditgraph can ingest local Git history to build provenance links between files and their commit, author, and branch context. Enable it in your profile config:
+
+```yaml
+profiles:
+  default:
+    git_provenance:
+      enabled: true
+      max_tier2_commits: 1000
+```
+
+Run as part of a full rebuild or standalone:
+
+```bash
+auditgraph rebuild --root . --config config/pkg.yaml
+auditgraph git-provenance --root . --config config/pkg.yaml
+```
+
+Query commands:
+
+```bash
+auditgraph git-who src/auth.py --root .           # Authors who changed a file
+auditgraph git-log src/auth.py --root .            # Commits that touched a file
+auditgraph git-introduced src/auth.py --root .     # Earliest commit for a file
+auditgraph git-history src/auth.py --root .        # Combined provenance summary
+```
+
+For configuration details (hot/cold paths, commit selection tiers), see [specs/020-git-provenance-ingestion/quickstart.md](specs/020-git-provenance-ingestion/quickstart.md).
+
 ## Configuration
 
 - Jobs configuration: `config/jobs.yaml`
@@ -231,6 +263,11 @@ auditgraph export --format json --root . --config config/pkg.yaml
 auditgraph export-neo4j --root . --config config/pkg.yaml --output exports/neo4j/graph.cypher
 auditgraph sync-neo4j --root . --config config/pkg.yaml --dry-run
 auditgraph replay <run_id> --root .                 # Replay a previous run
+auditgraph git-provenance --root . --config config/pkg.yaml  # Ingest git history
+auditgraph git-who <file> --root . --config config/pkg.yaml
+auditgraph git-log <file> --root . --config config/pkg.yaml
+auditgraph git-introduced <file> --root . --config config/pkg.yaml
+auditgraph git-history <file> --root . --config config/pkg.yaml
 auditgraph jobs list --root .
 ```
 

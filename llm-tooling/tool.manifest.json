@@ -677,6 +677,194 @@
       "constraints": {
         "read_only_safe": false
       }
+    },
+    {
+      "name": "git_who_changed",
+      "title": "Who Changed File",
+      "description": "Return author identities who modified a given file, with commit counts and date ranges.",
+      "risk": "low",
+      "idempotency": "idempotent",
+      "timeout_ms": 5000,
+      "command": "git-who",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "file": { "type": "string" },
+          "root": { "type": "string" },
+          "config": { "type": "string" }
+        },
+        "required": ["file"],
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string" },
+          "file": { "type": "string" },
+          "authors": { "type": "array" }
+        },
+        "required": ["status", "file", "authors"]
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "file": "src/main.py" },
+          "output": { "status": "ok", "file": "src/main.py", "authors": [] }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": true
+      }
+    },
+    {
+      "name": "git_commits_for_file",
+      "title": "Commits for File",
+      "description": "Return commits that modified a given file, ordered by authored timestamp descending.",
+      "risk": "low",
+      "idempotency": "idempotent",
+      "timeout_ms": 5000,
+      "command": "git-log",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "file": { "type": "string" },
+          "root": { "type": "string" },
+          "config": { "type": "string" }
+        },
+        "required": ["file"],
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string" },
+          "file": { "type": "string" },
+          "commits": { "type": "array" }
+        },
+        "required": ["status", "file", "commits"]
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "file": "src/main.py" },
+          "output": { "status": "ok", "file": "src/main.py", "commits": [] }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": true
+      }
+    },
+    {
+      "name": "git_file_introduced",
+      "title": "File Introduced",
+      "description": "Return the earliest commit that introduced a given file, with rename lineage if detected.",
+      "risk": "low",
+      "idempotency": "idempotent",
+      "timeout_ms": 5000,
+      "command": "git-introduced",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "file": { "type": "string" },
+          "root": { "type": "string" },
+          "config": { "type": "string" }
+        },
+        "required": ["file"],
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string" },
+          "file": { "type": "string" },
+          "commit": { "type": "object" },
+          "lineage": { "type": "array" }
+        },
+        "required": ["status", "file", "commit", "lineage"]
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "file": "src/main.py" },
+          "output": { "status": "ok", "file": "src/main.py", "commit": {}, "lineage": [] }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": true
+      }
+    },
+    {
+      "name": "git_file_history",
+      "title": "File History",
+      "description": "Return full provenance history for a file: authors, commits, introduction info, and lineage.",
+      "risk": "low",
+      "idempotency": "idempotent",
+      "timeout_ms": 5000,
+      "command": "git-history",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "file": { "type": "string" },
+          "root": { "type": "string" },
+          "config": { "type": "string" }
+        },
+        "required": ["file"],
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string" },
+          "file": { "type": "string" },
+          "authors": { "type": "array" },
+          "commits": { "type": "array" },
+          "introduced": { "type": "object" },
+          "lineage": { "type": "array" }
+        },
+        "required": ["status", "file", "authors", "commits", "introduced", "lineage"]
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "file": "src/main.py" },
+          "output": { "status": "ok", "file": "src/main.py", "authors": [], "commits": [], "introduced": {}, "lineage": [] }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": true
+      }
     }
   ]
 }

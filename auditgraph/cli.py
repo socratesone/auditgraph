@@ -58,6 +58,31 @@ def _build_parser() -> argparse.ArgumentParser:
         stage_parser.add_argument("--config", default=None, help="Config path")
         stage_parser.add_argument("--run-id", default=None, help=f"Run id to {name}")
 
+    git_prov_parser = subparsers.add_parser("git-provenance", help="Run git-provenance stage")
+    git_prov_parser.add_argument("--root", default=".", help="Workspace root")
+    git_prov_parser.add_argument("--config", default=None, help="Config path")
+    git_prov_parser.add_argument("--run-id", default=None, help="Run id to use")
+
+    git_who_parser = subparsers.add_parser("git-who", help="Who changed this file")
+    git_who_parser.add_argument("file", help="Relative file path")
+    git_who_parser.add_argument("--root", default=".", help="Workspace root")
+    git_who_parser.add_argument("--config", default=None, help="Config path")
+
+    git_log_parser = subparsers.add_parser("git-log", help="Commits that touched this file")
+    git_log_parser.add_argument("file", help="Relative file path")
+    git_log_parser.add_argument("--root", default=".", help="Workspace root")
+    git_log_parser.add_argument("--config", default=None, help="Config path")
+
+    git_intro_parser = subparsers.add_parser("git-introduced", help="When was this file introduced")
+    git_intro_parser.add_argument("file", help="Relative file path")
+    git_intro_parser.add_argument("--root", default=".", help="Workspace root")
+    git_intro_parser.add_argument("--config", default=None, help="Config path")
+
+    git_hist_parser = subparsers.add_parser("git-history", help="Full provenance summary for a file")
+    git_hist_parser.add_argument("file", help="Relative file path")
+    git_hist_parser.add_argument("--root", default=".", help="Workspace root")
+    git_hist_parser.add_argument("--config", default=None, help="Config path")
+
     rebuild_parser = subparsers.add_parser("rebuild", help="Rebuild all stages")
     rebuild_parser.add_argument("--root", default=".", help="Workspace root")
     rebuild_parser.add_argument("--config", default=None, help="Config path")
@@ -169,6 +194,50 @@ def main() -> None:
             config = load_config(Path(args.config) if args.config else None)
             result = runner.run_import(root=root, config=config, targets=list(args.paths))
             _emit({"stage": result.stage, "status": result.status, "detail": result.detail})
+            return
+
+        if args.command == "git-provenance":
+            runner = PipelineRunner()
+            root = Path(args.root).resolve()
+            config = load_config(Path(args.config) if args.config else None)
+            result = runner.run_stage("git-provenance", root=root, config=config, run_id=args.run_id)
+            _emit({"stage": result.stage, "status": result.status, "detail": result.detail})
+            return
+
+        if args.command == "git-who":
+            from auditgraph.query.git_who import git_who
+
+            root = Path(args.root).resolve()
+            config = load_config(Path(args.config) if args.config else None)
+            pkg_root = profile_pkg_root(root, config)
+            _emit(git_who(pkg_root, args.file))
+            return
+
+        if args.command == "git-log":
+            from auditgraph.query.git_log import git_log
+
+            root = Path(args.root).resolve()
+            config = load_config(Path(args.config) if args.config else None)
+            pkg_root = profile_pkg_root(root, config)
+            _emit(git_log(pkg_root, args.file))
+            return
+
+        if args.command == "git-introduced":
+            from auditgraph.query.git_introduced import git_introduced
+
+            root = Path(args.root).resolve()
+            config = load_config(Path(args.config) if args.config else None)
+            pkg_root = profile_pkg_root(root, config)
+            _emit(git_introduced(pkg_root, args.file))
+            return
+
+        if args.command == "git-history":
+            from auditgraph.query.git_history import git_history
+
+            root = Path(args.root).resolve()
+            config = load_config(Path(args.config) if args.config else None)
+            pkg_root = profile_pkg_root(root, config)
+            _emit(git_history(pkg_root, args.file))
             return
 
         if args.command in {"normalize", "extract", "link", "index"}:

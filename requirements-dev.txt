@@ -8,3 +8,4 @@ python-docx
 black
 ruff
 mypy
+dulwich>=0.22
