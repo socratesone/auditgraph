@@ -63,6 +63,12 @@ DEFAULT_CONFIG: dict[str, Any] = {
             "normalization": {"unicode": "NFC", "line_endings": "LF", "path_style": "posix"},
             "extraction": {"rule_packs": ["config/extractors/core.yaml"], "llm": {"enabled": False}},
             "linking": {"rule_packs": ["config/link_rules/core.yaml"]},
+            "git_provenance": {
+                "enabled": False,
+                "max_tier2_commits": 1000,
+                "hot_paths": [],
+                "cold_paths": ["*.lock", "*-lock.json", "*.generated.*"],
+            },
             "search": {
                 "keyword": {"enabled": True},
                 "semantic": {"enabled": False},

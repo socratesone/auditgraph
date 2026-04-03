@@ -1,0 +1,220 @@
+openapi: "3.0.3"
+info:
+  title: AuditGraph Git Provenance Query API
+  version: "1.0.0"
+  description: CLI and MCP query contracts for Git provenance data
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [status, message]
+      properties:
+        status:
+          type: string
+          enum: [error]
+        message:
+          type: string
+
+    FileInput:
+      type: object
+      required: [file]
+      properties:
+        file:
+          type: string
+          description: Relative file path from workspace root
+
+    AuthorSummary:
+      type: object
+      required: [email, names, commit_count, earliest, latest]
+      properties:
+        email:
+          type: string
+        names:
+          type: array
+          items:
+            type: string
+        commit_count:
+          type: integer
+        earliest:
+          type: string
+          format: date-time
+        latest:
+          type: string
+          format: date-time
+
+    CommitSummary:
+      type: object
+      required: [sha, subject, author_email, authored_at, is_merge]
+      properties:
+        sha:
+          type: string
+        subject:
+          type: string
+        author_email:
+          type: string
+        author_name:
+          type: string
+        authored_at:
+          type: string
+          format: date-time
+        is_merge:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+
+    LineageEntry:
+      type: object
+      required: [old_path, confidence, detection_method]
+      properties:
+        old_path:
+          type: string
+        confidence:
+          type: number
+        detection_method:
+          type: string
+          enum: [rename, similarity, basename_match]
+
+paths:
+  /git-who:
+    post:
+      operationId: git_who_changed
+      summary: Who changed this file
+      description: Returns author identities that modified the given file, with commit counts and date ranges.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FileInput"
+      responses:
+        "200":
+          description: Author provenance for the file
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    required: [status, file, authors]
+                    properties:
+                      status:
+                        type: string
+                        enum: [ok]
+                      file:
+                        type: string
+                      authors:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/AuthorSummary"
+                  - $ref: "#/components/schemas/ErrorResponse"
+
+  /git-log:
+    post:
+      operationId: git_commits_for_file
+      summary: What commits touched this file
+      description: Returns commits that modified the given file, ordered by authored timestamp descending.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FileInput"
+      responses:
+        "200":
+          description: Commit provenance for the file
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    required: [status, file, commits]
+                    properties:
+                      status:
+                        type: string
+                        enum: [ok]
+                      file:
+                        type: string
+                      commits:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/CommitSummary"
+                  - $ref: "#/components/schemas/ErrorResponse"
+
+  /git-introduced:
+    post:
+      operationId: git_file_introduced
+      summary: When was this file introduced
+      description: Returns the earliest commit that added the given file.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FileInput"
+      responses:
+        "200":
+          description: Introduction provenance for the file
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    required: [status, file, commit, lineage]
+                    properties:
+                      status:
+                        type: string
+                        enum: [ok]
+                      file:
+                        type: string
+                      commit:
+                        $ref: "#/components/schemas/CommitSummary"
+                      lineage:
+                        type: array
+                        description: Prior file paths if rename/move detected (empty array if none)
+                        items:
+                          $ref: "#/components/schemas/LineageEntry"
+                  - $ref: "#/components/schemas/ErrorResponse"
+
+  /git-history:
+    post:
+      operationId: git_file_history
+      summary: Full provenance summary for a file
+      description: Combined query returning authors, commits, introduction info, and lineage.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FileInput"
+      responses:
+        "200":
+          description: Full provenance summary
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    required: [status, file, authors, commits, introduced, lineage]
+                    properties:
+                      status:
+                        type: string
+                        enum: [ok]
+                      file:
+                        type: string
+                      authors:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/AuthorSummary"
+                      commits:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/CommitSummary"
+                      introduced:
+                        $ref: "#/components/schemas/CommitSummary"
+                      lineage:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/LineageEntry"
+                  - $ref: "#/components/schemas/ErrorResponse"

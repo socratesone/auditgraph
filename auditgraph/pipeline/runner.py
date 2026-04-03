@@ -55,6 +55,8 @@ class PipelineRunner:
     def run_stage(self, stage: str, **kwargs: Any) -> StageResult:
         if stage == "ingest":
             return self.run_ingest(**kwargs)
+        if stage == "git-provenance":
+            return self.run_git_provenance(**kwargs)
         if stage == "normalize":
             return self.run_normalize(**kwargs)
         if stage == "extract":
@@ -279,6 +281,190 @@ class PipelineRunner:
                 "projected_bytes": budget_status.projected_bytes,
             }
         return StageResult(stage="ingest", status="ok", detail=detail)
+
+    def run_git_provenance(self, root: Path, config: Config, run_id: str | None = None) -> StageResult:
+        _start = time.monotonic()
+        pkg_root = profile_pkg_root(root, config)
+        resolved = self._resolve_run_id(pkg_root, run_id)
+        if not resolved:
+            return StageResult(stage="git-provenance", status="missing_manifest", detail={"run_id": run_id})
+
+        # Check enabled flag before loading ingest manifest
+        profile = config.profile()
+        gp_cfg = profile.get("git_provenance", {})
+        if not gp_cfg.get("enabled", False):
+            return StageResult(stage="git-provenance", status="skipped", detail={"reason": "disabled"})
+
+        ingest_manifest = self._load_ingest_manifest(pkg_root, resolved)
+        if not ingest_manifest:
+            return StageResult(stage="git-provenance", status="missing_manifest", detail={"run_id": resolved})
+
+        from auditgraph.git.reader import GitReader
+        from auditgraph.git.selector import select_commits
+        from auditgraph.git.materializer import (
+            build_commit_nodes,
+            build_author_nodes,
+            build_tag_nodes,
+            build_repo_node,
+            build_ref_nodes,
+            build_links,
+            build_reverse_index,
+        )
+        from auditgraph.git.config import load_git_provenance_config
+        from auditgraph.storage.sharding import shard_dir
+
+        # Read git history
+        try:
+            reader = GitReader(root)
+        except (FileNotFoundError, NotADirectoryError, Exception) as exc:
+            return StageResult(
+                stage="git-provenance",
+                status="error",
+                detail={"error": str(exc), "root": str(root)},
+            )
+        try:
+            commits = reader.walk_commits()
+            tags = reader.list_tags()
+            branches = reader.list_branches()
+
+            # Load git provenance config
+            git_config = load_git_provenance_config(profile)
+
+            # Build diff_stat and file_paths callables
+            diff_stat_cache: dict[str, tuple[int, int]] = {}
+            file_paths_cache: dict[str, list[str]] = {}
+
+            def _diff_stats(sha: str) -> tuple[int, int]:
+                if sha not in diff_stat_cache:
+                    diff_stat_cache[sha] = reader.diff_stat(sha)
+                return diff_stat_cache[sha]
+
+            def _file_paths(sha: str) -> list[str]:
+                if sha not in file_paths_cache:
+                    file_paths_cache[sha] = reader.diff_files(sha)
+                return file_paths_cache[sha]
+
+            # Select commits
+            selected = select_commits(
+                commits=commits,
+                tags=tags,
+                branches=branches,
+                diff_stats=_diff_stats,
+                file_paths=_file_paths,
+                config=git_config,
+            )
+
+            # Materialize nodes
+            repo_path = str(root.resolve())
+            commit_nodes = build_commit_nodes(selected.commits, repo_path)
+            author_nodes = build_author_nodes(selected.commits, repo_path)
+            tag_nodes = build_tag_nodes(tags, repo_path)
+            repo_node = build_repo_node(repo_path)
+            ref_nodes = build_ref_nodes(branches, repo_path)
+
+            # Build links
+            links = build_links(
+                commit_nodes=commit_nodes,
+                author_nodes=author_nodes,
+                tag_nodes=tag_nodes,
+                repo_node=repo_node,
+                selected_commits=selected.commits,
+                repo_path=repo_path,
+                ref_nodes=ref_nodes,
+                branches=branches,
+            )
+
+            # Build reverse index from modifies links only
+            modifies_links = [lnk for lnk in links if lnk.get("type") == "modifies"]
+            reverse_index = build_reverse_index(modifies_links)
+
+            # Write entities to sharded storage
+            all_entities = commit_nodes + author_nodes + tag_nodes + ref_nodes + [repo_node]
+            entity_artifacts: list[str] = []
+            for entity in all_entities:
+                eid = entity["id"]
+                entity_dir = shard_dir(pkg_root / "entities", eid)
+                entity_path = entity_dir / f"{eid}.json"
+                write_json(entity_path, entity)
+                entity_artifacts.append(str(entity_path))
+
+            # Write links to sharded storage
+            link_artifacts: list[str] = []
+            for link in links:
+                lid = link["id"]
+                link_dir = shard_dir(pkg_root / "links", lid)
+                link_path = link_dir / f"{lid}.json"
+                write_json(link_path, link)
+                link_artifacts.append(str(link_path))
+
+            # Write reverse index
+            idx_dir = pkg_root / "indexes" / "git-provenance"
+            idx_path = idx_dir / "file-commits.json"
+            write_json(idx_path, reverse_index)
+
+            # Compute hashes
+            # inputs_hash: HEAD commit + sorted branch name=head pairs + config_hash
+            head_sha = commits[0].sha if commits else ""
+            sorted_branch_heads = ":".join(
+                sorted(b.name + "=" + b.head_sha for b in branches)
+            )
+            git_config_hash = sha256_json({
+                "enabled": git_config.enabled,
+                "max_tier2_commits": git_config.max_tier2_commits,
+                "hot_paths": sorted(git_config.hot_paths),
+                "cold_paths": sorted(git_config.cold_paths),
+            })
+            stage_inputs_hash = sha256_text(
+                head_sha + ":" + sorted_branch_heads + ":" + git_config_hash
+            )
+
+            # outputs_hash: sorted entity IDs + sorted link IDs
+            stage_outputs_hash = sha256_json({
+                "entities": sorted(e["id"] for e in all_entities),
+                "links": sorted(lnk["id"] for lnk in links),
+            })
+
+            # Write manifest
+            all_artifacts = entity_artifacts + link_artifacts + [str(idx_path)]
+            manifest_path = self._write_stage_manifest(
+                pkg_root,
+                stage="git-provenance",
+                run_id=resolved,
+                inputs_hash=stage_inputs_hash,
+                outputs_hash=stage_outputs_hash,
+                config_hash=git_config_hash,
+                artifacts=all_artifacts,
+            )
+
+            # Append replay log
+            replay_path = pkg_root / "runs" / resolved / "replay-log.jsonl"
+            replay_line = {
+                "stage": "git-provenance",
+                "run_id": resolved,
+                "inputs_hash": stage_inputs_hash,
+                "outputs_hash": stage_outputs_hash,
+                "config_hash": git_config_hash,
+                "duration_ms": int((time.monotonic() - _start) * 1000),
+            }
+            append_text(replay_path, f"{json.dumps(replay_line, sort_keys=True)}\n")
+
+            return StageResult(
+                stage="git-provenance",
+                status="ok",
+                detail={
+                    "manifest": str(manifest_path),
+                    "profile": config.active_profile(),
+                    "run_id": resolved,
+                    "commit_count": len(commit_nodes),
+                    "author_count": len(author_nodes),
+                    "tag_count": len(tag_nodes),
+                    "ref_count": len(ref_nodes),
+                    "repo_count": 1,
+                    "link_count": len(links),
+                },
+            )
+        finally:
+            reader.close()
 
     def run_normalize(self, root: Path, config: Config, run_id: str | None = None) -> StageResult:
         _start = time.monotonic()
@@ -583,6 +769,9 @@ class PipelineRunner:
             return ingest
         manifest_path = Path(str(ingest.detail.get("manifest", "")))
         run_id = manifest_path.parent.name if manifest_path.exists() else None
+        git_prov = self.run_git_provenance(root=root, config=config, run_id=run_id)
+        if git_prov.status not in ("ok", "skipped"):
+            return git_prov
         normalize = self.run_normalize(root=root, config=config, run_id=run_id)
         if normalize.status != "ok":
             return normalize

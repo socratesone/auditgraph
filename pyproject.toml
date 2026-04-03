@@ -24,6 +24,7 @@ dependencies = [
 	"pypdf",
 	"python-docx",
 	"spacy>=3.7,<4",
+	"dulwich>=0.22",
 ]
 
 [project.scripts]

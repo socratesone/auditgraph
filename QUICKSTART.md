@@ -129,6 +129,50 @@ auditgraph sync-neo4j --root . --config config/pkg.yaml
 
 Detailed guide: `specs/001-neo4j-export-sync/quickstart.md`.
 
+## 7) Git provenance (optional)
+
+Enable git history ingestion by adding to `config/pkg.yaml`:
+
+```yaml
+profiles:
+  default:
+    git_provenance:
+      enabled: true
+```
+
+Run ingestion (requires a prior `ingest` run):
+
+```bash
+auditgraph rebuild --root . --config config/pkg.yaml
+```
+
+Or run the git provenance stage alone:
+
+```bash
+auditgraph git-provenance --root . --config config/pkg.yaml
+```
+
+Query file provenance:
+
+```bash
+auditgraph git-who README.md --root .
+auditgraph git-log README.md --root .
+auditgraph git-introduced README.md --root .
+auditgraph git-history README.md --root .
+```
+
+Optional tuning in `config/pkg.yaml`:
+
+```yaml
+    git_provenance:
+      enabled: true
+      max_tier2_commits: 1000
+      hot_paths: ["pyproject.toml", "package.json"]
+      cold_paths: ["*.lock", "*.generated.*"]
+```
+
+Detailed guide: `specs/020-git-provenance-ingestion/quickstart.md`.
+
 ## Common fixes
 
 - If you see `Missing schema_version in manifest`, run:

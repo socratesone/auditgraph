@@ -68,6 +68,31 @@ def deterministic_chunk_id(document_id: str, order: int, text: str) -> str:
     return f"chk_{sha256_text(f'{document_id}:{order}:{text}')[:24]}"
 
 
+def deterministic_commit_id(repo_path: str, commit_hex: str) -> str:
+    """Deterministic commit node ID from repo path and commit hash."""
+    return f"commit_{sha256_text(repo_path + ':' + commit_hex)}"
+
+
+def deterministic_author_id(repo_path: str, email: str) -> str:
+    """Deterministic author identity node ID from repo path and email."""
+    return f"author_{sha256_text(repo_path + ':' + email)}"
+
+
+def deterministic_tag_id(repo_path: str, tag_name: str) -> str:
+    """Deterministic tag node ID from repo path and tag name."""
+    return f"tag_{sha256_text(repo_path + ':' + tag_name)}"
+
+
+def deterministic_repo_id(repo_path: str) -> str:
+    """Deterministic repository node ID from repo path."""
+    return f"repo_{sha256_text(repo_path)}"
+
+
+def deterministic_ref_id(repo_path: str, ref_name: str) -> str:
+    """Deterministic ref/branch node ID from repo path and ref name."""
+    return f"ref_{sha256_text(repo_path + ':' + ref_name)}"
+
+
 def deterministic_timestamp(seed: str) -> str:
     """Derive a stable ISO-8601 timestamp from a seed string.
 

@@ -8,6 +8,10 @@ READ_TOOLS = (
     "diff",
     "jobs list",
     "why-connected",
+    "git-who",
+    "git-log",
+    "git-introduced",
+    "git-history",
 )
 
 WRITE_TOOLS = (
