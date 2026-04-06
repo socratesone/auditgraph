@@ -57,6 +57,7 @@ Auditgraph solves the "where did this fact come from?" problem for technical not
 | Linking (co-occurrence) | Implemented | Explainable links with provenance |
 | BM25 keyword index | Implemented | Case-insensitive exact-key lookup |
 | Query and search | Implemented | Entity + chunk matching |
+| Local query filters & aggregation | Implemented | `list` command, `--type`/`--where`/`--sort`/`--limit`/`--count`/`--group-by` on `query` and `list`; edge-type and confidence filters on `neighbors` |
 | Run diff | Implemented | Structural diff of ingest manifests |
 | Subgraph export (JSON/DOT/GraphML) | Implemented | With budget checks and path safety |
 | Neo4j export/sync | Implemented | Cypher export + live database sync |
@@ -125,6 +126,20 @@ Entity matching is currently case-insensitive exact-key lookup against the BM25 
 Chunk matching is case-insensitive substring matching over chunk text.
 
 For example, querying `"auth_token"` matches entities indexed as `auth_token` and chunks containing `auth_token` text. It does not currently fan out to independent `auth` and `token` lookups.
+
+### Filtering, sorting, and aggregation
+
+Both `auditgraph query` and `auditgraph list` support filtering, sorting, pagination, and aggregation against the local `.pkg` storage — no external database required. The `list` command browses entities without needing a search keyword:
+
+```bash
+auditgraph list --type commit                                       # all commits
+auditgraph list --type commit --where "author_email=alice@example.com"
+auditgraph list --type commit --sort authored_at --desc --limit 10  # 10 most recent
+auditgraph list --group-by type --count                             # entities per type
+auditgraph neighbors <id> --edge-type authored_by --min-confidence 0.8
+```
+
+Filter operators: `=`, `!=`, `>`, `>=`, `<`, `<=`, `~` (substring contains). Numeric values are auto-detected. On array fields (`aliases`, `parent_shas`), `=` checks membership and `~` checks substring across elements. Sort order is deterministic with a stable tiebreaker on `entity.id`.
 
 ### Content extraction
 
@@ -253,9 +268,10 @@ auditgraph extract --run-id <run_id>
 auditgraph link --run-id <run_id>
 auditgraph index --run-id <run_id>
 auditgraph rebuild
-auditgraph query --q "symbol"
+auditgraph query --q "symbol" [--type T] [--where "f=v"] [--sort F] [--limit N]
+auditgraph list [--type T] [--where "f=v"] [--sort F] [--limit N] [--count] [--group-by F]
 auditgraph node <entity_id>
-auditgraph neighbors <entity_id> --depth 2
+auditgraph neighbors <entity_id> --depth 2 [--edge-type T] [--min-confidence X]
 auditgraph why-connected --from <entity_id> --to <entity_id>
 auditgraph diff --run-a <run_id_1> --run-b <run_id_2>
 auditgraph export --format json

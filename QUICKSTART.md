@@ -97,6 +97,28 @@ auditgraph node <entity_id>
 auditgraph neighbors <entity_id> --depth 2
 ```
 
+## 4b) Browse, filter, and aggregate (no keyword required)
+
+The `list` command browses entities directly without a search term, with filter, sort, pagination, and aggregation flags:
+
+```bash
+auditgraph list --type commit                                        # all commits
+auditgraph list --type commit --where "author_email=alice@example.com"
+auditgraph list --type commit --sort authored_at --desc --limit 10
+auditgraph list --group-by type --count                              # entities per type
+auditgraph list --count                                              # total count
+```
+
+The same filter flags work on `query` (narrows BM25 search results) and `neighbors` (filter graph traversal by edge type and confidence):
+
+```bash
+auditgraph query --q "config" --type file --limit 5
+auditgraph neighbors <commit_id> --edge-type authored_by
+auditgraph neighbors <entity_id> --min-confidence 0.8
+```
+
+Operators: `=`, `!=`, `>`, `>=`, `<`, `<=`, `~` (contains). Numeric values like `mention_count>=5` are compared numerically; other values are compared as strings (ISO dates sort lexicographically). Multiple `--type` flags are OR'd; multiple `--where` clauses are AND'd.
+
 ## 5) Export results
 
 ```bash
