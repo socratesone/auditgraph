@@ -1,0 +1,10 @@
+{
+  "id": "lnk_ddee44556677",
+  "from_id": "ent_bb22cc33dd44",
+  "to_id": "ent_1122334455aa",
+  "type": "authored_by",
+  "rule_id": "rule:git-authored-by",
+  "confidence": 1.0,
+  "authority": "git",
+  "evidence": {"author_email": "bob@example.com"}
+}

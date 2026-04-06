@@ -1,0 +1,14 @@
+{
+  "id": "ent_bb22cc33dd44",
+  "type": "commit",
+  "name": "fix: resolve login race condition",
+  "canonical_key": "commit:bb22cc33dd44",
+  "aliases": ["bb22cc3"],
+  "refs": [{"source": "git", "uri": "git://repo#bb22cc33dd44"}],
+  "provenance": {"source": "git", "extracted_at": "2025-06-01T10:01:00Z"},
+  "sha": "bb22cc33dd44ee55ff66001122334455aabbccdd",
+  "author_email": "bob@example.com",
+  "authored_at": "2025-05-16T14:20:00Z",
+  "is_merge": false,
+  "parent_shas": ["aa11bb22cc33dd44ee55ff6600112233aabbccdd"]
+}

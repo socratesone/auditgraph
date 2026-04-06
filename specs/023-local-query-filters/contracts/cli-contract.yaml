@@ -1,0 +1,143 @@
+# CLI Contract: Local Query Filters & Aggregation
+# Defines the new and modified CLI commands for Spec 023
+
+commands:
+  list:
+    description: "List entities with filtering, sorting, pagination, and aggregation"
+    new: true
+    arguments:
+      --root:
+        type: string
+        default: "."
+        description: "Workspace root directory"
+      --config:
+        type: string
+        default: null
+        description: "Config file path"
+      --type:
+        type: string
+        multiple: true
+        action: append
+        description: "Filter by entity type (multiple = OR)"
+      --where:
+        type: string
+        multiple: true
+        action: append
+        description: "Field predicate: 'field<op>value'"
+      --sort:
+        type: string
+        default: null
+        description: "Sort by field name"
+      --desc:
+        type: boolean
+        default: false
+        description: "Sort descending (requires --sort)"
+      --limit:
+        type: integer
+        default: null
+        description: "Maximum results to return"
+      --offset:
+        type: integer
+        default: 0
+        description: "Skip first N results"
+      --count:
+        type: boolean
+        default: false
+        description: "Return count only"
+      --group-by:
+        type: string
+        default: null
+        description: "Group results by field"
+    output:
+      default: |
+        {"results": [...], "total_count": N, "limit": N, "offset": N, "truncated": bool}
+      count: |
+        {"count": N}
+      group_by: |
+        {"groups": {"value1": count, "value2": count, "null": count}}
+    examples:
+      - command: "auditgraph list --type commit"
+        description: "List all commit entities"
+      - command: "auditgraph list --type commit --where 'author_email=alice@example.com' --sort authored_at --desc --limit 10"
+        description: "Most recent 10 commits by Alice"
+      - command: "auditgraph list --group-by type --count"
+        description: "Count entities per type"
+
+  query:
+    description: "Extended with filter/sort/limit params"
+    new: false
+    new_arguments:
+      --type:
+        type: string
+        multiple: true
+        action: append
+      --where:
+        type: string
+        multiple: true
+        action: append
+      --sort:
+        type: string
+        default: null
+      --desc:
+        type: boolean
+        default: false
+      --limit:
+        type: integer
+        default: null
+      --offset:
+        type: integer
+        default: 0
+      --count:
+        type: boolean
+        default: false
+      --group-by:
+        type: string
+        default: null
+    backwards_compatible: true
+    note: "--q remains required; filters apply to BM25 search results"
+
+  neighbors:
+    description: "Extended with edge-type and confidence filters"
+    new: false
+    new_arguments:
+      --edge-type:
+        type: string
+        multiple: true
+        action: append
+        description: "Filter by edge type (multiple = OR)"
+      --min-confidence:
+        type: float
+        default: null
+        description: "Minimum confidence threshold"
+    backwards_compatible: true
+
+mcp_tools:
+  ag_list:
+    new: true
+    command: "list"
+    default_limit: 100
+    parameters:
+      type: { type: string }
+      where: { type: string }
+      sort: { type: string }
+      limit: { type: integer, default: 100 }
+      offset: { type: integer, default: 0 }
+      count: { type: boolean }
+      group_by: { type: string }
+      root: { type: string }
+      config: { type: string }
+
+  ag_query:
+    new: false
+    new_parameters:
+      type: { type: string }
+      where: { type: string }
+      sort: { type: string }
+      limit: { type: integer }
+      offset: { type: integer }
+
+  ag_neighbors:
+    new: false
+    new_parameters:
+      edge_type: { type: string }
+      min_confidence: { type: number }

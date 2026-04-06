@@ -60,6 +60,11 @@
         "type": "object",
         "properties": {
           "q": { "type": "string" },
+          "type": { "type": "string", "description": "Filter by entity type" },
+          "where": { "type": "string", "description": "Field predicate: field<op>value" },
+          "sort": { "type": "string", "description": "Sort by field name" },
+          "limit": { "type": "integer", "description": "Max results" },
+          "offset": { "type": "integer", "description": "Skip first N results" },
           "root": { "type": "string" },
           "config": { "type": "string" }
         },
@@ -140,6 +145,8 @@
         "properties": {
           "id": { "type": "string" },
           "depth": { "type": "integer" },
+          "edge_type": { "type": "string", "description": "Filter by edge type" },
+          "min_confidence": { "type": "number", "description": "Minimum confidence threshold" },
           "root": { "type": "string" },
           "config": { "type": "string" }
         },
@@ -676,6 +683,55 @@
       ],
       "constraints": {
         "read_only_safe": false
+      }
+    },
+    {
+      "name": "ag_list",
+      "title": "List Entities",
+      "description": "List entities with filtering, sorting, pagination, and aggregation. Returns a response envelope with results, total_count, limit, offset, and truncated fields.",
+      "risk": "low",
+      "idempotency": "idempotent",
+      "timeout_ms": 5000,
+      "command": "list",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "description": "Filter by entity type" },
+          "where": { "type": "string", "description": "Field predicate: field<op>value" },
+          "sort": { "type": "string", "description": "Sort by field name" },
+          "limit": { "type": "integer", "default": 100, "description": "Max results (default 100)" },
+          "offset": { "type": "integer", "default": 0, "description": "Skip first N results" },
+          "count": { "type": "boolean", "description": "Return count only" },
+          "group_by": { "type": "string", "description": "Group results by field" },
+          "root": { "type": "string" },
+          "config": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "output_schema": { "type": "object" },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": { "type": "commit", "limit": 10 },
+          "output": {
+            "results": [],
+            "total_count": 0,
+            "limit": 10,
+            "offset": 0,
+            "truncated": false
+          }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": true
       }
     },
     {

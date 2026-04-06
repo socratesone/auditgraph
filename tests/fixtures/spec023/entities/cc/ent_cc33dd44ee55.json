@@ -1,0 +1,17 @@
+{
+  "id": "ent_cc33dd44ee55",
+  "type": "commit",
+  "name": "refactor: extract auth module",
+  "canonical_key": "commit:cc33dd44ee55",
+  "aliases": ["cc33dd4"],
+  "refs": [{"source": "git", "uri": "git://repo#cc33dd44ee55"}],
+  "provenance": {"source": "git", "extracted_at": "2025-06-01T10:02:00Z"},
+  "sha": "cc33dd44ee55ff660011223344556677aabbccdd",
+  "author_email": "bob@example.com",
+  "authored_at": "2025-05-17T11:45:00Z",
+  "is_merge": true,
+  "parent_shas": [
+    "bb22cc33dd44ee55ff66001122334455aabbccdd",
+    "aa11bb22cc33dd44ee55ff6600112233aabbccdd"
+  ]
+}

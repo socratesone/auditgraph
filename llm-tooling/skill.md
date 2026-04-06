@@ -467,6 +467,83 @@ Run link stage.
 }
 ```
 
+## ag_list
+
+List entities with filtering, sorting, pagination, and aggregation. Returns a response envelope with results, total_count, limit, offset, and truncated fields.
+
+- Risk: low
+- Idempotency: idempotent
+
+### Inputs
+```
+{
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "description": "Filter by entity type"
+    },
+    "where": {
+      "type": "string",
+      "description": "Field predicate: field<op>value"
+    },
+    "sort": {
+      "type": "string",
+      "description": "Sort by field name"
+    },
+    "limit": {
+      "type": "integer",
+      "default": 100,
+      "description": "Max results (default 100)"
+    },
+    "offset": {
+      "type": "integer",
+      "default": 0,
+      "description": "Skip first N results"
+    },
+    "count": {
+      "type": "boolean",
+      "description": "Return count only"
+    },
+    "group_by": {
+      "type": "string",
+      "description": "Group results by field"
+    },
+    "root": {
+      "type": "string"
+    },
+    "config": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}
+```
+
+### Outputs
+```
+{
+  "type": "object"
+}
+```
+
+### Example
+```
+{
+  "input": {
+    "type": "commit",
+    "limit": 10
+  },
+  "output": {
+    "results": [],
+    "total_count": 0,
+    "limit": 10,
+    "offset": 0,
+    "truncated": false
+  }
+}
+```
+
 ## ag_neighbors
 
 Fetch neighbors for a node.
@@ -484,6 +561,14 @@ Fetch neighbors for a node.
     },
     "depth": {
       "type": "integer"
+    },
+    "edge_type": {
+      "type": "string",
+      "description": "Filter by edge type"
+    },
+    "min_confidence": {
+      "type": "number",
+      "description": "Minimum confidence threshold"
     },
     "root": {
       "type": "string"
@@ -628,6 +713,26 @@ Run a tokenized keyword query over the graph. Queries are split into tokens and 
   "properties": {
     "q": {
       "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "description": "Filter by entity type"
+    },
+    "where": {
+      "type": "string",
+      "description": "Field predicate: field<op>value"
+    },
+    "sort": {
+      "type": "string",
+      "description": "Sort by field name"
+    },
+    "limit": {
+      "type": "integer",
+      "description": "Max results"
+    },
+    "offset": {
+      "type": "integer",
+      "description": "Skip first N results"
     },
     "root": {
       "type": "string"
@@ -793,6 +898,290 @@ Explain why two nodes are connected.
   },
   "output": {
     "path": []
+  }
+}
+```
+
+## git_commits_for_file
+
+Return commits that modified a given file, ordered by authored timestamp descending.
+
+- Risk: low
+- Idempotency: idempotent
+
+### Inputs
+```
+{
+  "type": "object",
+  "properties": {
+    "file": {
+      "type": "string"
+    },
+    "root": {
+      "type": "string"
+    },
+    "config": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "file"
+  ],
+  "additionalProperties": false
+}
+```
+
+### Outputs
+```
+{
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string"
+    },
+    "file": {
+      "type": "string"
+    },
+    "commits": {
+      "type": "array"
+    }
+  },
+  "required": [
+    "status",
+    "file",
+    "commits"
+  ]
+}
+```
+
+### Example
+```
+{
+  "input": {
+    "file": "src/main.py"
+  },
+  "output": {
+    "status": "ok",
+    "file": "src/main.py",
+    "commits": []
+  }
+}
+```
+
+## git_file_history
+
+Return full provenance history for a file: authors, commits, introduction info, and lineage.
+
+- Risk: low
+- Idempotency: idempotent
+
+### Inputs
+```
+{
+  "type": "object",
+  "properties": {
+    "file": {
+      "type": "string"
+    },
+    "root": {
+      "type": "string"
+    },
+    "config": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "file"
+  ],
+  "additionalProperties": false
+}
+```
+
+### Outputs
+```
+{
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string"
+    },
+    "file": {
+      "type": "string"
+    },
+    "authors": {
+      "type": "array"
+    },
+    "commits": {
+      "type": "array"
+    },
+    "introduced": {
+      "type": "object"
+    },
+    "lineage": {
+      "type": "array"
+    }
+  },
+  "required": [
+    "status",
+    "file",
+    "authors",
+    "commits",
+    "introduced",
+    "lineage"
+  ]
+}
+```
+
+### Example
+```
+{
+  "input": {
+    "file": "src/main.py"
+  },
+  "output": {
+    "status": "ok",
+    "file": "src/main.py",
+    "authors": [],
+    "commits": [],
+    "introduced": {},
+    "lineage": []
+  }
+}
+```
+
+## git_file_introduced
+
+Return the earliest commit that introduced a given file, with rename lineage if detected.
+
+- Risk: low
+- Idempotency: idempotent
+
+### Inputs
+```
+{
+  "type": "object",
+  "properties": {
+    "file": {
+      "type": "string"
+    },
+    "root": {
+      "type": "string"
+    },
+    "config": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "file"
+  ],
+  "additionalProperties": false
+}
+```
+
+### Outputs
+```
+{
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string"
+    },
+    "file": {
+      "type": "string"
+    },
+    "commit": {
+      "type": "object"
+    },
+    "lineage": {
+      "type": "array"
+    }
+  },
+  "required": [
+    "status",
+    "file",
+    "commit",
+    "lineage"
+  ]
+}
+```
+
+### Example
+```
+{
+  "input": {
+    "file": "src/main.py"
+  },
+  "output": {
+    "status": "ok",
+    "file": "src/main.py",
+    "commit": {},
+    "lineage": []
+  }
+}
+```
+
+## git_who_changed
+
+Return author identities who modified a given file, with commit counts and date ranges.
+
+- Risk: low
+- Idempotency: idempotent
+
+### Inputs
+```
+{
+  "type": "object",
+  "properties": {
+    "file": {
+      "type": "string"
+    },
+    "root": {
+      "type": "string"
+    },
+    "config": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "file"
+  ],
+  "additionalProperties": false
+}
+```
+
+### Outputs
+```
+{
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string"
+    },
+    "file": {
+      "type": "string"
+    },
+    "authors": {
+      "type": "array"
+    }
+  },
+  "required": [
+    "status",
+    "file",
+    "authors"
+  ]
+}
+```
+
+### Example
+```
+{
+  "input": {
+    "file": "src/main.py"
+  },
+  "output": {
+    "status": "ok",
+    "file": "src/main.py",
+    "authors": []
   }
 }
 ```

@@ -6,6 +6,7 @@ READ_TOOLS = (
     "node",
     "neighbors",
     "diff",
+    "list",
     "jobs list",
     "why-connected",
     "git-who",

@@ -116,6 +116,12 @@ def _build_parser() -> argparse.ArgumentParser:
 
     query_parser = subparsers.add_parser("query", help="Run query stage")
     query_parser.add_argument("--q", default="", help="Query string")
+    query_parser.add_argument("--type", dest="types", action="append", default=None, help="Entity type filter (repeatable)")
+    query_parser.add_argument("--where", action="append", default=None, help="Field predicate (repeatable)")
+    query_parser.add_argument("--sort", default=None, help="Sort field")
+    query_parser.add_argument("--desc", action="store_true", help="Sort descending")
+    query_parser.add_argument("--limit", type=int, default=None, help="Max results")
+    query_parser.add_argument("--offset", type=int, default=0, help="Skip N results")
     query_parser.add_argument("--root", default=".", help="Workspace root (default: CWD; override with AUDITGRAPH_ROOT)")
     query_parser.add_argument("--config", default=None, help="Config path (default: <root>/config/pkg.yaml; override with AUDITGRAPH_CONFIG)")
 
@@ -127,6 +133,8 @@ def _build_parser() -> argparse.ArgumentParser:
     neighbors_parser = subparsers.add_parser("neighbors", help="Show node neighbors")
     neighbors_parser.add_argument("id", help="Entity id")
     neighbors_parser.add_argument("--depth", type=int, default=1, help="Traversal depth")
+    neighbors_parser.add_argument("--edge-type", dest="edge_types", action="append", default=None, help="Edge type filter (repeatable)")
+    neighbors_parser.add_argument("--min-confidence", type=float, default=None, help="Minimum edge confidence")
     neighbors_parser.add_argument("--root", default=".", help="Workspace root (default: CWD; override with AUDITGRAPH_ROOT)")
     neighbors_parser.add_argument("--config", default=None, help="Config path (default: <root>/config/pkg.yaml; override with AUDITGRAPH_CONFIG)")
 
@@ -171,6 +179,18 @@ def _build_parser() -> argparse.ArgumentParser:
     export_neo4j_parser.add_argument("--root", default=".", help="Workspace root (default: CWD; override with AUDITGRAPH_ROOT)")
     export_neo4j_parser.add_argument("--config", default=None, help="Config path (default: <root>/config/pkg.yaml; override with AUDITGRAPH_CONFIG)")
     export_neo4j_parser.add_argument("--output", default=None, help="Output .cypher path")
+
+    list_parser = subparsers.add_parser("list", help="List entities with filters")
+    list_parser.add_argument("--type", dest="types", action="append", default=None, help="Entity type filter (repeatable)")
+    list_parser.add_argument("--where", action="append", default=None, help="Field predicate (repeatable), e.g. author_email=alice@example.com")
+    list_parser.add_argument("--sort", default=None, help="Sort field")
+    list_parser.add_argument("--desc", action="store_true", help="Sort descending")
+    list_parser.add_argument("--limit", type=int, default=None, help="Max results")
+    list_parser.add_argument("--offset", type=int, default=0, help="Skip N results")
+    list_parser.add_argument("--count-only", action="store_true", help="Return count only")
+    list_parser.add_argument("--group-by", default=None, help="Group results by field")
+    list_parser.add_argument("--root", default=".", help="Workspace root (default: CWD; override with AUDITGRAPH_ROOT)")
+    list_parser.add_argument("--config", default=None, help="Config path (default: <root>/config/pkg.yaml; override with AUDITGRAPH_CONFIG)")
 
     sync_neo4j_parser = subparsers.add_parser("sync-neo4j", help="Sync graph to Neo4j database")
     sync_neo4j_parser.add_argument("--root", default=".", help="Workspace root (default: CWD; override with AUDITGRAPH_ROOT)")
@@ -296,6 +316,12 @@ def main() -> None:
                 args.q,
                 enable_semantic=enable_semantic,
                 score_rounding=score_rounding,
+                types=args.types,
+                where=args.where,
+                sort=args.sort,
+                descending=args.desc,
+                limit=args.limit,
+                offset=args.offset,
             )
             _emit({"query": args.q, "results": results})
             return
@@ -312,7 +338,13 @@ def main() -> None:
             root = _resolve_root(getattr(args, "root", "."))
             config = load_config(_resolve_config(getattr(args, "config", None), root))
             pkg_root = profile_pkg_root(root, config)
-            payload = neighbors(pkg_root, args.id, depth=args.depth)
+            payload = neighbors(
+                pkg_root,
+                args.id,
+                depth=args.depth,
+                edge_types=args.edge_types,
+                min_confidence=args.min_confidence,
+            )
             _emit(payload)
             return
 
@@ -353,6 +385,26 @@ def main() -> None:
                     "limit_bytes": budget_status.limit_bytes,
                     "projected_bytes": budget_status.projected_bytes,
                 }
+            _emit(payload)
+            return
+
+        if args.command == "list":
+            from auditgraph.query.list_entities import list_entities
+
+            root = _resolve_root(getattr(args, "root", "."))
+            config = load_config(_resolve_config(getattr(args, "config", None), root))
+            pkg_root = profile_pkg_root(root, config)
+            payload = list_entities(
+                pkg_root,
+                types=args.types,
+                where=args.where,
+                sort=args.sort,
+                descending=args.desc,
+                limit=args.limit,
+                offset=args.offset,
+                count_only=args.count_only,
+                group_by=args.group_by,
+            )
             _emit(payload)
             return
 
