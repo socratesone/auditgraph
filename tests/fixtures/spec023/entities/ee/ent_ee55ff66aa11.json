@@ -1,0 +1,9 @@
+{
+  "id": "ent_ee55ff66aa11",
+  "type": "file",
+  "name": "src/auth/session.py",
+  "canonical_key": "file:src/auth/session.py",
+  "aliases": ["session.py"],
+  "refs": [{"source": "git", "uri": "git://repo/src/auth/session.py"}],
+  "provenance": {"source": "git", "extracted_at": "2025-06-01T10:01:00Z"}
+}

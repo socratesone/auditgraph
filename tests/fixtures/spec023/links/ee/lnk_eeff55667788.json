@@ -1,0 +1,10 @@
+{
+  "id": "lnk_eeff55667788",
+  "from_id": "ent_ff66aa11bb22",
+  "to_id": "ent_1122334455aa",
+  "type": "CO_OCCURS_WITH",
+  "rule_id": "rule:ner-cooccurrence",
+  "confidence": 0.6,
+  "authority": "ner",
+  "evidence": {"document_id": "doc-001", "sentence_distance": 2}
+}

@@ -1,0 +1,9 @@
+{
+  "id": "ent_dd44ee55ff66",
+  "type": "file",
+  "name": "src/auth/login.py",
+  "canonical_key": "file:src/auth/login.py",
+  "aliases": ["login.py"],
+  "refs": [{"source": "git", "uri": "git://repo/src/auth/login.py"}],
+  "provenance": {"source": "git", "extracted_at": "2025-06-01T10:00:00Z"}
+}

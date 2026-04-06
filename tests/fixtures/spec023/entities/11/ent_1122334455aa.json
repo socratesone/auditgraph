@@ -1,0 +1,10 @@
+{
+  "id": "ent_1122334455aa",
+  "type": "ner:person",
+  "name": "Bob Smith",
+  "canonical_key": "person:bob-smith",
+  "aliases": ["B. Smith", "bob"],
+  "refs": [{"source": "ner", "uri": "ner://document-1#bob-smith"}],
+  "provenance": {"source": "ner", "extracted_at": "2025-06-01T10:05:00Z"},
+  "mention_count": 5
+}

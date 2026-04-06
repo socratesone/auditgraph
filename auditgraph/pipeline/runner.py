@@ -24,7 +24,9 @@ from auditgraph.extract.entities import build_entity, build_note_entity
 from auditgraph.extract.manifest import extract_adr_claims, extract_log_claims, write_claims, write_entities
 from auditgraph.link import build_source_cooccurrence_links, write_links
 from auditgraph.link.adjacency import write_adjacency
+from auditgraph.index.adjacency_builder import build_adjacency_index
 from auditgraph.index.bm25 import build_bm25_index
+from auditgraph.index.type_index import build_link_type_indexes, build_type_indexes
 from auditgraph.storage.artifacts import append_text, profile_pkg_root, read_json, write_json
 from auditgraph.storage.artifacts import write_document_artifacts
 from auditgraph.storage.safe_artifacts import write_json_redacted
@@ -729,8 +731,17 @@ class PipelineRunner:
 
         entities = load_entities(pkg_root)
         bm25_path = build_bm25_index(pkg_root, entities)
+        type_index_paths = build_type_indexes(pkg_root, entities)
+        link_type_index_paths = build_link_type_indexes(pkg_root)
+        adjacency_path = build_adjacency_index(pkg_root)
 
-        outputs_hash = sha256_json({"bm25": str(bm25_path), "semantic": None})
+        outputs_hash = sha256_json({
+            "bm25": str(bm25_path),
+            "semantic": None,
+            "type_indexes": sorted(str(p) for p in type_index_paths.values()),
+            "link_type_indexes": sorted(str(p) for p in link_type_index_paths.values()),
+            "adjacency": str(adjacency_path),
+        })
         inputs_hash = str(link_manifest.get("outputs_hash", ""))
         config_hash = str(link_manifest.get("config_hash", ""))
         artifacts = [str(bm25_path)]

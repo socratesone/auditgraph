@@ -1,0 +1,10 @@
+{
+  "id": "ent_ff66aa11bb22",
+  "type": "ner:person",
+  "name": "Alice Johnson",
+  "canonical_key": "person:alice-johnson",
+  "aliases": ["A. Johnson", "alice"],
+  "refs": [{"source": "ner", "uri": "ner://document-1#alice-johnson"}],
+  "provenance": {"source": "ner", "extracted_at": "2025-06-01T10:05:00Z"},
+  "mention_count": 1
+}

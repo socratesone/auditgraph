@@ -1,0 +1,14 @@
+{
+  "id": "ent_aa11bb22cc33",
+  "type": "commit",
+  "name": "feat: add user authentication",
+  "canonical_key": "commit:aa11bb22cc33",
+  "aliases": ["aa11bb2"],
+  "refs": [{"source": "git", "uri": "git://repo#aa11bb22cc33"}],
+  "provenance": {"source": "git", "extracted_at": "2025-06-01T10:00:00Z"},
+  "sha": "aa11bb22cc33dd44ee55ff6600112233aabbccdd",
+  "author_email": "alice@example.com",
+  "authored_at": "2025-05-15T09:30:00Z",
+  "is_merge": false,
+  "parent_shas": ["0000000000000000000000000000000000000000"]
+}

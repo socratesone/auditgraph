@@ -1,0 +1,10 @@
+{
+  "id": "lnk_bbcc22334455",
+  "from_id": "ent_bb22cc33dd44",
+  "to_id": "ent_ee55ff66aa11",
+  "type": "modifies",
+  "rule_id": "rule:git-modifies",
+  "confidence": 1.0,
+  "authority": "git",
+  "evidence": {"diff_stat": "+15 -3", "path": "src/auth/session.py"}
+}

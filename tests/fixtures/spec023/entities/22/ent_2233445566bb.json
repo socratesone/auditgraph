@@ -1,0 +1,10 @@
+{
+  "id": "ent_2233445566bb",
+  "type": "ner:person",
+  "name": "Carol Davis",
+  "canonical_key": "person:carol-davis",
+  "aliases": ["C. Davis"],
+  "refs": [{"source": "ner", "uri": "ner://document-2#carol-davis"}],
+  "provenance": {"source": "ner", "extracted_at": "2025-06-01T10:06:00Z"},
+  "mention_count": 10
+}
