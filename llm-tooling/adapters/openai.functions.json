@@ -198,6 +198,52 @@
       }
     },
     {
+      "name": "ag_list",
+      "description": "List entities with filtering, sorting, pagination, and aggregation. Returns a response envelope with results, total_count, limit, offset, and truncated fields.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Filter by entity type"
+          },
+          "where": {
+            "type": "string",
+            "description": "Field predicate: field<op>value"
+          },
+          "sort": {
+            "type": "string",
+            "description": "Sort by field name"
+          },
+          "limit": {
+            "type": "integer",
+            "default": 100,
+            "description": "Max results (default 100)"
+          },
+          "offset": {
+            "type": "integer",
+            "default": 0,
+            "description": "Skip first N results"
+          },
+          "count": {
+            "type": "boolean",
+            "description": "Return count only"
+          },
+          "group_by": {
+            "type": "string",
+            "description": "Group results by field"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
       "name": "ag_neighbors",
       "description": "Fetch neighbors for a node.",
       "parameters": {
@@ -208,6 +254,14 @@
           },
           "depth": {
             "type": "integer"
+          },
+          "edge_type": {
+            "type": "string",
+            "description": "Filter by edge type"
+          },
+          "min_confidence": {
+            "type": "number",
+            "description": "Minimum confidence threshold"
           },
           "root": {
             "type": "string"
@@ -272,6 +326,26 @@
           "q": {
             "type": "string"
           },
+          "type": {
+            "type": "string",
+            "description": "Filter by entity type"
+          },
+          "where": {
+            "type": "string",
+            "description": "Field predicate: field<op>value"
+          },
+          "sort": {
+            "type": "string",
+            "description": "Sort by field name"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Max results"
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Skip first N results"
+          },
           "root": {
             "type": "string"
           },
@@ -328,6 +402,94 @@
         "required": [
           "from_id",
           "to_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "git_commits_for_file",
+      "description": "Return commits that modified a given file, ordered by authored timestamp descending.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "git_file_history",
+      "description": "Return full provenance history for a file: authors, commits, introduction info, and lineage.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "git_file_introduced",
+      "description": "Return the earliest commit that introduced a given file, with rename lineage if detected.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "git_who_changed",
+      "description": "Return author identities who modified a given file, with commit counts and date ranges.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
         ],
         "additionalProperties": false
       }

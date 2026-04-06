@@ -691,7 +691,7 @@
       "description": "List entities with filtering, sorting, pagination, and aggregation. Returns a response envelope with results, total_count, limit, offset, and truncated fields.",
       "risk": "low",
       "idempotency": "idempotent",
-      "timeout_ms": 10000,
+      "timeout_ms": 5000,
       "command": "list",
       "input_schema": {
         "type": "object",
@@ -718,7 +718,18 @@
         "required": ["code", "message"],
         "additionalProperties": false
       },
-      "examples": [],
+      "examples": [
+        {
+          "input": { "type": "commit", "limit": 10 },
+          "output": {
+            "results": [],
+            "total_count": 0,
+            "limit": 10,
+            "offset": 0,
+            "truncated": false
+          }
+        }
+      ],
       "constraints": {
         "read_only_safe": true
       }
