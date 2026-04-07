@@ -187,7 +187,23 @@ class PipelineRunner:
             segments_payload = metadata.get("segments") if isinstance(metadata, dict) else None
             chunks_payload = metadata.get("chunks") if isinstance(metadata, dict) else None
             if isinstance(document_payload, dict) and isinstance(segments_payload, list) and isinstance(chunks_payload, list):
-                write_document_artifacts(pkg_root, document_payload, segments_payload, chunks_payload)
+                # SECURITY: redact document/segment/chunk payloads before
+                # they are written to disk. Previously only `sources/<hash>.json`
+                # went through the redactor (see `write_json_redacted` below),
+                # leaving cleartext credentials in `chunks/`, `segments/`, and
+                # `documents/` shards. Any backup tool, cloud sync client, or
+                # accidental `git add .pkg` would exfiltrate secrets the user
+                # thought the redactor had scrubbed. See
+                # specs/026-security-hardening/NOTES.md finding C1.
+                redacted_document = redactor.redact_payload(document_payload).value
+                redacted_segments = redactor.redact_payload(segments_payload).value
+                redacted_chunks = redactor.redact_payload(chunks_payload).value
+                write_document_artifacts(
+                    pkg_root,
+                    redacted_document,
+                    redacted_segments,
+                    redacted_chunks,
+                )
 
         for path in skipped:
             record, metadata = build_source_record(
@@ -820,6 +836,14 @@ class PipelineRunner:
         allowed, skipped = split_imported(root, targets, exclude_globs, policy)
         pkg_root = profile_pkg_root(root, config)
         records = []
+        # SECURITY: `run_import` previously wrote sources/, documents/,
+        # segments/, and chunks/ with plain `write_json`, bypassing the
+        # redactor entirely. That meant `auditgraph import <path>` was
+        # even worse than `run_ingest` for credential leakage — not a
+        # single artifact was scrubbed. Build the same redactor
+        # `run_ingest` uses and route every write through it. See
+        # specs/026-security-hardening/NOTES.md finding C1.
+        redactor = build_redactor(root, config)
         ingest_cfg = profile.get("ingestion", {}) if isinstance(profile, dict) else {}
         parse_options = {
             "ocr_mode": ingest_cfg.get("ocr_mode", "off"),
@@ -845,7 +869,7 @@ class PipelineRunner:
                     )
                     records.append(record)
                     source_path = pkg_root / "sources" / f"{record.source_hash}.json"
-                    write_json(source_path, metadata)
+                    write_json_redacted(source_path, metadata, redactor)
                     continue
 
             parse_options["source_hash"] = source_hash
@@ -861,13 +885,21 @@ class PipelineRunner:
             )
             records.append(record)
             source_path = pkg_root / "sources" / f"{record.source_hash}.json"
-            write_json(source_path, metadata)
+            write_json_redacted(source_path, metadata, redactor)
 
             document_payload = metadata.get("document") if isinstance(metadata, dict) else None
             segments_payload = metadata.get("segments") if isinstance(metadata, dict) else None
             chunks_payload = metadata.get("chunks") if isinstance(metadata, dict) else None
             if isinstance(document_payload, dict) and isinstance(segments_payload, list) and isinstance(chunks_payload, list):
-                write_document_artifacts(pkg_root, document_payload, segments_payload, chunks_payload)
+                redacted_document = redactor.redact_payload(document_payload).value
+                redacted_segments = redactor.redact_payload(segments_payload).value
+                redacted_chunks = redactor.redact_payload(chunks_payload).value
+                write_document_artifacts(
+                    pkg_root,
+                    redacted_document,
+                    redacted_segments,
+                    redacted_chunks,
+                )
 
         for path in skipped:
             record, metadata = build_source_record(
@@ -880,7 +912,7 @@ class PipelineRunner:
             )
             records.append(record)
             source_path = pkg_root / "sources" / f"{record.source_hash}.json"
-            write_json(source_path, metadata)
+            write_json_redacted(source_path, metadata, redactor)
 
         pipeline_version = str(config.raw.get("run_metadata", {}).get("pipeline_version", DEFAULT_PIPELINE_VERSION))
         input_hash = inputs_hash(records)
