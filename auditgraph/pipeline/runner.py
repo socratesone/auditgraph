@@ -144,12 +144,20 @@ class PipelineRunner:
         records = []
         source_payloads: list[tuple[Any, dict[str, object]]] = []
         ingest_cfg = profile.get("ingestion", {}) if isinstance(profile, dict) else {}
+        chunk_code_cfg = ingest_cfg.get("chunk_code", {}) if isinstance(ingest_cfg, dict) else {}
         parse_options = {
             "ocr_mode": ingest_cfg.get("ocr_mode", "off"),
             "chunk_tokens": int(ingest_cfg.get("chunk_tokens", 200)),
             "chunk_overlap_tokens": int(ingest_cfg.get("chunk_overlap_tokens", 40)),
             "max_file_size_bytes": int(ingest_cfg.get("max_file_size_bytes", 209715200)),
             "ingest_config_hash": ingestion_config_hash(config),
+            # Issue 2 Phase 2: opt-in code chunking. When enabled, code files
+            # (text/code parser_id) are routed through the same sliding-window
+            # chunker as text/markdown and text/plain so their body content
+            # becomes BM25-searchable. Off by default.
+            "chunk_code_enabled": bool(
+                chunk_code_cfg.get("enabled", False) if isinstance(chunk_code_cfg, dict) else False
+            ),
         }
         for path in allowed:
             source_hash = sha256_file(path)
@@ -822,12 +830,16 @@ class PipelineRunner:
         pkg_root = profile_pkg_root(root, config)
         records = []
         ingest_cfg = profile.get("ingestion", {}) if isinstance(profile, dict) else {}
+        chunk_code_cfg = ingest_cfg.get("chunk_code", {}) if isinstance(ingest_cfg, dict) else {}
         parse_options = {
             "ocr_mode": ingest_cfg.get("ocr_mode", "off"),
             "chunk_tokens": int(ingest_cfg.get("chunk_tokens", 200)),
             "chunk_overlap_tokens": int(ingest_cfg.get("chunk_overlap_tokens", 40)),
             "max_file_size_bytes": int(ingest_cfg.get("max_file_size_bytes", 209715200)),
             "ingest_config_hash": ingestion_config_hash(config),
+            "chunk_code_enabled": bool(
+                chunk_code_cfg.get("enabled", False) if isinstance(chunk_code_cfg, dict) else False
+            ),
         }
         for path in allowed:
             source_hash = sha256_file(path)

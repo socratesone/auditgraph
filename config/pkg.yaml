@@ -95,6 +95,16 @@ profiles:
           - "PERSON"
           - "ORG"
           - "GPE"
+        # Post-extraction quality filter (Issue 3 Phase 3). Drops the most
+        # common spaCy en_core_web_sm false positives on technical content:
+        # short acronym ner:org, single-word ner:person, ner:money without a
+        # currency marker. Each rule is configurable; see
+        # auditgraph/extract/ner.py:filter_low_quality_entities for details.
+        # Set filter_low_quality: false to disable the entire filter.
+        filter_low_quality: true
+        min_person_words: 2
+        max_short_acronym_org_length: 4
+        require_money_currency_marker: true
     knowledge_model:
       primary_namespace: "ag"
       allow_secondary_namespaces: true
