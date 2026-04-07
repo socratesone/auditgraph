@@ -52,7 +52,7 @@ Auditgraph solves the "where did this fact come from?" problem for technical not
 |---------|--------|-------|
 | File ingestion (text, markdown, code) | Implemented | Deterministic with stable IDs |
 | PDF/DOCX ingestion | Implemented | OCR mode: off/auto/on |
-| Entity extraction | Implemented | Notes, code symbols |
+| Entity extraction | Implemented | Notes. Code files produce one opaque `file` entity per file — no function/class/import extraction. See "Content extraction" below. |
 | NER entity extraction | Implemented | Opt-in (off by default). Requires `spacy` + a model; enable via config. Best on natural-language content, not code. |
 | Linking (co-occurrence) | Implemented | Explainable links with provenance |
 | BM25 keyword index | Implemented | Case-insensitive exact-key lookup |
@@ -146,7 +146,7 @@ Filter operators: `=`, `!=`, `>`, `>=`, `<`, `<=`, `~` (substring contains). Num
 Current extract stage behavior:
 
 - Creates note entities from markdown files.
-- Extracts code symbols from supported source files.
+- Creates one opaque `file` entity per supported source file (`.py`, `.js`, `.ts`, `.tsx`, `.jsx`). Despite the rule name `extract.code_symbols.v1`, this does **not** extract functions, classes, methods, or imports — each source file becomes a single node with just its name, canonical key, and source path. The rule is named for an intended behavior that was never implemented. For real code structure navigation, use a language-aware tool (LSP, ctags, ripgrep, treesitter-based analyzers).
 - Extracts NER entities from chunks when `profiles.<name>.extraction.ner.enabled: true`. **NER is off by default** because it runs spaCy inference over every chunk in the workspace and is meaningful only on natural-language content (notes, documents, PDFs). On code-only repositories the inference cost is high (minutes on a few hundred files) and the results are mostly false positives. To enable NER, install the model with `python -m spacy download en_core_web_sm` and then set `enabled: true` in your profile's `extraction.ner` config. Even when enabled, NER only runs on chunks whose source file is a natural-language document — by default that means `.md`, `.markdown`, `.txt`, `.rst`, `.pdf`, and `.docx`. The list is configurable via `extraction.ner.natural_language_extensions` if you need to add or restrict file types.
 
 #### NER quality limitations on technical content
