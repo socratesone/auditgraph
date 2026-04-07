@@ -5,6 +5,8 @@ Local-first, deterministic personal knowledge graph CLI for engineers. Ingests n
 This file is the working agreement between Claude Code and this codebase. Read it before doing nontrivial work.
 
 ## Active Technologies
+- Python 3.10+ (existing constraint, no change) + stdlib only for the new `build_file_nodes` function. No new dependencies. (025-remove-code-extraction)
+- Sharded JSON files under `.pkg/profiles/<profile>/` (existing `entities/<shard>/<id>.json` layout, no change) (025-remove-code-extraction)
 
 - Python 3.10+
 - argparse (CLI), PyYAML (config), stdlib `json` (storage I/O)
@@ -22,7 +24,7 @@ auditgraph/                 # main package
   config.py                 # workspace + profile config loader
   pipeline/runner.py        # PipelineRunner: ingest → git_provenance → normalize → extract → link → index
   ingest/                   # file scanning, parsing, frontmatter, manifests
-  extract/                  # entities, code symbols, NER, ADR, content
+  extract/                  # note entities, NER, ADR, content extractors, document parsers
   normalize/                # path & text normalization
   link/                     # co-occurrence + adjacency builders
   index/                    # bm25, type_index, adjacency_builder
@@ -97,6 +99,7 @@ auditgraph query --q "term" --type X   # extended search with filters
 - No print() in library code; CLI output goes through `cli._emit()`.
 
 ## Recent Changes
+- 025-remove-code-extraction: Added Python 3.10+ (existing constraint, no change) + stdlib only for the new `build_file_nodes` function. No new dependencies.
 
 - 023-local-query-filters: Added local query filters & aggregation. New `auditgraph list` command, extended `query`/`neighbors` with `--type`/`--where`/`--sort`/`--limit`/`--count`/`--group-by`/`--edge-type`/`--min-confidence`. New per-type indexes and filter engine. Forward adjacency now rebuilt from all link files (was empty for git-provenance links). New MCP tool `ag_list` with response envelope. 161 new tests.
 - 020-git-provenance-ingestion: Git provenance entities & links via dulwich. Commit/author/file/ref/tag entities; modifies/authored_by/parent_of/contains/tags/on_branch links. Git query commands.
@@ -166,6 +169,6 @@ The manifest has contract tests in `llm-tooling/tests/`:
 - **NER is opt-in (off by default)**: `config/pkg.yaml` has `extraction.ner.enabled: false`. NER runs spaCy inference over every chunk and only makes sense on natural-language content. On code-only repos it spends 15+ minutes producing false positives. If a user reports `auditgraph rebuild` "hanging", check whether they enabled NER without realizing it.
 - **NER has a natural-language extension allowlist**: Even when `enabled: true`, NER only runs on chunks whose source file extension is in `extraction.ner.natural_language_extensions` (default: `.md .markdown .txt .rst .pdf .docx`). Code files and extensionless files are skipped. Configurable allowlist, not a blocklist — adding new doc formats requires editing config; nothing accidentally pulls in code. See `auditgraph/extract/ner.py:_is_natural_language_source`.
 - **NER quality on technical content is poor**: The default `en_core_web_sm` model is trained on news and web text. On research papers, ML literature, or technical documentation it produces ~95% false positives — acronyms classified as ORG, concept words classified as PERSON, citation tokens classified as MONEY. The `quality_threshold` config field is misleadingly named: it filters chunk text quality (alphanumeric ratio), NOT entity confidence. spaCy `sm` models don't expose per-entity confidence at all (`ner_backend.py` hardcodes `score=1.0`). If users have technical content, recommend SciSpaCy's `en_core_sci_sm` via `extraction.ner.model` config. Future work for document classification + dynamic model selection is captured in `specs/024-document-classification-and-model-selection/NOTES.md`.
-- **Code files don't produce chunks by default**: Files with `.py`, `.js`, `.ts`, `.tsx`, `.jsx` extensions are routed to `parser_id == "text/code"` in `auditgraph/ingest/policy.py`, but `parse_file` in `auditgraph/ingest/parsers.py` only calls `_build_document_metadata` for `text/plain`, `text/markdown`, `document/pdf`, `document/docx`. Result: 0 chunks for code files. Code becomes `file` entities only (one per file via `extract.code_symbols.v1`), with no searchable body content. The opt-in flag `profiles.<name>.ingestion.chunk_code.enabled: true` (added by the same quality-sweep as this note) enables a sliding-window chunker over code body, but the resulting chunks are noisy. For real code navigation use `tldr` (in global rules) or other language-aware tooling.
+- **Source code files are not ingested**: Files with `.py`, `.js`, `.ts`, `.tsx`, `.jsx` extensions are skipped at the ingest stage with `skip_reason: unsupported_extension`. Auditgraph is a documents + provenance tool — code intelligence is permanently out of scope (per Spec 025). Do not suggest ingesting code, do not propose adding code chunking, do not propose tree-sitter integration. For code structure navigation, recommend `tldr` (available in global rules) or other language-aware tooling. File entities for paths in git history are produced by `auditgraph/git/materializer.py:build_file_nodes` when git provenance is enabled — they serve as provenance anchors for `modifies` links from commits, not as ingestion sources. The full rationale lives in `specs/025-remove-code-extraction/spec.md`.
 
 <!-- MANUAL ADDITIONS END -->

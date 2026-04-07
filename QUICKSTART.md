@@ -220,19 +220,9 @@ pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/e
 
 Then set `extraction.ner.model: en_core_sci_sm` in your profile config.
 
-## Optional: enable code chunking
+## Source code is not ingested
 
-By default, code files (`.py`, `.js`, `.ts`, etc.) are ingested as `file` entities but do not produce chunk-level body content. This means BM25 search can find files by name but not by what's inside them. If you want substring search over your code's body — e.g., to find docstrings or comments — enable code chunking:
-
-```yaml
-profiles:
-  default:
-    ingestion:
-      chunk_code:
-        enabled: true
-```
-
-Re-run `auditgraph rebuild`. Each code file will now produce 200-token sliding-window chunks the same way prose files do. Caveat: source code chunks are noisy (mid-function splits, syntax tokens, boilerplate) and BM25 hits on them are often false positives. For real code navigation, use a language-aware tool (`tldr`, `ctags`, ripgrep, your IDE's LSP).
+Auditgraph is a documents + provenance tool. Source code files (`.py`, `.js`, `.ts`, `.tsx`, `.jsx`) are skipped at the ingest stage with reason `unsupported_extension`. There is no opt-in flag to enable code ingestion — the project's scope is intentional. For code structure navigation, use a language-aware tool (`tldr`, `ctags`, ripgrep, your IDE's LSP, treesitter-based analyzers). If git provenance is enabled, code files in your repository's commit history will still appear as `file` entities (provenance anchors for `modifies` links from commits), but their body content is not indexed.
 
 ## Common fixes
 

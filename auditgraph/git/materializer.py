@@ -148,11 +148,13 @@ def build_file_nodes(
     """Build `file` entity dicts for every distinct path in any commit's
     files_changed list.
 
-    Per Spec 025, this is the sole creator of `file` entities. The schema
-    matches the existing `extract_code_symbols` output exactly (clarification
-    Q1) so existing tests and downstream consumers of `source_path` continue
-    to work without change. All paths are treated uniformly regardless of
-    git object kind (regular file, symlink, submodule) per clarification Q2.
+    Per Spec 025, this is the sole creator of `file` entities in the
+    project. The schema matches the prior file-entity output shape exactly
+    (Spec 025 clarification Q1: `id`, `type`, `name`, `canonical_key`,
+    `source_path`) so existing tests and downstream consumers of
+    `source_path` continue to work without change. All paths are treated
+    uniformly regardless of git object kind (regular file, symlink,
+    submodule) per Spec 025 clarification Q2.
 
     The function deduplicates paths across commits (a path touched by 100
     commits becomes 1 entity, not 100) and returns the result sorted by

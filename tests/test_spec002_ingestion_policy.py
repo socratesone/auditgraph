@@ -22,7 +22,11 @@ def test_allowlist_allows_markdown_and_routes_pdf(tmp_path: Path) -> None:
     policy = load_policy({})
 
     assert is_allowed(md_path, policy)
-    assert is_allowed(py_path, policy)
+    # Spec 025: source code files (.py .js .ts .tsx .jsx) are no longer
+    # in the default allowed extensions. Auditgraph is a documents +
+    # provenance tool; code files are skipped at ingest with reason
+    # `unsupported_extension`.
+    assert not is_allowed(py_path, policy)
     assert is_allowed(pdf_path, policy)
 
     result = parse_file(pdf_path, policy)
