@@ -18,7 +18,12 @@ def build_source_cooccurrence_links(
     by_source: dict[str, list[tuple[str, str]]] = defaultdict(list)
     for entity in entities:
         entity_id = str(entity.get("id", ""))
-        # Skip NER entities — they already have chunk-level CO_OCCURS_WITH links
+        # Skip NER entities — co-occurrence at the source-file level would be
+        # noisy for NER entities (a single document can have hundreds of NER
+        # mentions, producing N^2 links of low value). NER entities are linked
+        # at chunk level via MENTIONED_IN and CO_OCCURS_WITH rules in
+        # extract_ner_entities, written directly to the canonical link store
+        # during the extract stage.
         entity_type = str(entity.get("type", ""))
         if entity_type.startswith("ner:"):
             continue

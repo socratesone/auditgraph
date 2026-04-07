@@ -564,16 +564,28 @@ class PipelineRunner:
 
         # NER entity extraction from chunks
         ner_config = config.profile().get("extraction", {}).get("ner", {})
+        ner_link_paths: list[Path] = []
         if ner_config.get("enabled", False):
             from auditgraph.extract.ner import extract_ner_entities
             ner_entities, ner_links = extract_ner_entities(pkg_root, ner_config)
             for ent in ner_entities:
                 entities[ent["id"]] = ent
-            # Persist NER links as an intermediate artifact (do not write to links/ in extract stage)
+            # Write NER links directly to the canonical sharded link store so
+            # they participate in link/index/adjacency stages and are reachable
+            # via `auditgraph neighbors` and the link-type index. Previously
+            # NER links were written to pkg_root/ner/links.json as an orphaned
+            # intermediate artifact that no other stage consumed (Spec NER bug
+            # fix).
             if ner_links:
-                ner_links_path = pkg_root / "ner" / "links.json"
-                ner_links_path.parent.mkdir(parents=True, exist_ok=True)
-                write_json(ner_links_path, ner_links)
+                ner_link_paths = write_links(pkg_root, ner_links)
+            # Clean up any vestigial intermediate artifact from prior runs.
+            legacy_ner_links_path = pkg_root / "ner" / "links.json"
+            if legacy_ner_links_path.exists():
+                legacy_ner_links_path.unlink()
+                try:
+                    legacy_ner_links_path.parent.rmdir()
+                except OSError:
+                    pass  # directory not empty; leave it
 
         entity_list = list(entities.values())
         entity_paths = write_entities(pkg_root, entity_list)
@@ -583,11 +595,12 @@ class PipelineRunner:
             {
                 "entities": sorted(entity["id"] for entity in entity_list),
                 "claims": sorted(claim.get("id") for claim in claims),
+                "ner_links": sorted(str(path) for path in ner_link_paths),
             }
         )
         inputs_hash = str(ingest_manifest.get("outputs_hash", ""))
         config_hash = str(ingest_manifest.get("config_hash", ""))
-        artifacts = [str(path) for path in entity_paths + claim_paths]
+        artifacts = [str(path) for path in entity_paths + claim_paths + ner_link_paths]
         manifest_path = self._write_stage_manifest(
             pkg_root,
             stage="extract",
