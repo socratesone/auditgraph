@@ -81,8 +81,9 @@ prose but wrong for:
 - **Legal contracts**: clause boundaries matter; cutting mid-clause
   destroys meaning.
 - **Source code**: function/class boundaries matter; token-based
-  chunking is meaningless. (Already deferred to "Spec 024-style code
-  chunking" — but that's a related concern.)
+  chunking is meaningless. This is its own substantial concern — see
+  § 4 below for the full analysis of the code structure gap (the
+  existing `extract.code_symbols.v1` doesn't actually extract symbols).
 - **Tables / structured data**: row boundaries matter; chunking by
   token destroys row coherence.
 - **Transcripts**: speaker turns matter; cutting mid-turn loses
@@ -93,7 +94,106 @@ prose but wrong for:
 A document classification system would route each document to a
 chunker appropriate for its type.
 
-### 4. There's no document type beyond extension
+### 4. Code structure understanding is shallow (Issue 2, partial)
+
+The opt-in `ingestion.chunk_code.enabled` flag from the post-Spec-023
+quality sweep gives users a token-based escape hatch for code BM25
+search, but it doesn't address the deeper gap: auditgraph has no real
+understanding of code structure.
+
+**What `extract.code_symbols.v1` actually does today** (verified by
+reading `auditgraph/extract/code_symbols.py`):
+
+```python
+def extract_code_symbols(root, paths):
+    symbols = []
+    for path in paths:
+        if path.suffix.lower() not in {".py", ".js", ".ts", ".tsx", ".jsx"}:
+            continue
+        normalized = normalize_path(path, root=root)
+        symbols.append({
+            "type": "file",
+            "name": path.name,
+            "canonical_key": f"file:{normalized}",
+            "source_path": normalized,
+        })
+    return symbols
+```
+
+That's the whole function. **The name is a lie.** It doesn't extract
+symbols — it creates one `file` entity per file with just a name, a
+canonical key, and the source path. There are no function entities, no
+class entities, no method entities, no import relationships, no
+call edges. A Python file with 50 functions is the same one node as
+an empty `__init__.py`. The extractor was named for its intent, not
+its implementation.
+
+**Why this matters**:
+
+- `auditgraph query --q "load_ner_model"` cannot find a function by
+  name even when BM25 chunks are enabled, because the chunker is
+  character-based and the function name is buried inside a chunk.
+- `auditgraph neighbors <file_id>` returns nothing useful. A `file`
+  entity has no outbound edges (the existing cooccurrence rule skips
+  single-entity files and code files produce one entity per file).
+- Co-occurrence linking produces zero links between code entities,
+  because there's only ever one entity per source file, so no pair
+  ever shares a source.
+- `auditgraph list --type file` is a flat list of paths with no
+  structure. Users expecting to navigate a codebase get nothing the
+  filesystem doesn't already offer.
+- Git provenance (Spec 020) can answer "who authored this file"
+  but not "who authored this function" — and functions are usually
+  the unit of interest, not files.
+
+**What a real code structure extractor would look like**:
+
+New entity types:
+- `code:module` — one per file, replaces or extends the current `file`
+- `code:function` — one per top-level function or method
+- `code:class` — one per class definition
+- `code:import` — one per import statement (or one per imported symbol)
+
+New link types:
+- `defined_in` — function/class → module
+- `method_of` — method → class
+- `imports` — module → imported symbol or module
+- `calls` — function → function it calls (hardest; needs resolver)
+- `inherits_from` — class → base class
+- `decorates` — decorator → function/class it decorates
+
+Per-language parser strategy:
+- **Python**: stdlib `ast` module. Fast, no deps, built-in. Handles
+  module/class/function/import extraction trivially. Call graphs
+  require a resolver (libraries like `astroid` or `jedi` do this).
+- **JavaScript/TypeScript**: no stdlib parser. Options are
+  `tree-sitter-javascript`/`tree-sitter-typescript` (C extension,
+  fast, consistent API across languages) or `esprima` (pure-Python,
+  older, JS-only). Tree-sitter is the better long-term bet but adds
+  a C dependency.
+- **Multi-language**: tree-sitter covers most languages with a
+  consistent API. Could be the foundation for a general code
+  extractor. Ships as `tree_sitter` + per-grammar packages.
+
+Per-symbol chunking:
+- Each `code:function` entity's `text` field is the function body.
+- Each `code:class` entity's `text` field is the class body including
+  docstring.
+- Each `code:module` entity's `text` field is the module docstring +
+  top-level comments (the "file header" content).
+- No sliding-window chunking. Chunk boundaries follow AST node
+  boundaries. One chunk per symbol.
+
+BM25 indexing implications:
+- BM25 now indexes function bodies, class bodies, and docstrings —
+  but as per-symbol chunks rather than per-file blobs. A search for
+  "authenticate" finds every function whose body contains that
+  string, with a direct pointer to the containing symbol.
+- The entity's `name` field carries the symbol name (`load_ner_model`,
+  `PipelineRunner`), so BM25 over entity names also works.
+- Aliases could include short forms (`load_ner_model` → `load_ner`).
+
+### 5. There's no document type beyond extension
 
 The current `parser_id` is purely extension-based:
 - `.pdf` → `document/pdf`
@@ -225,6 +325,32 @@ infrastructure needed.
    `legal:party`, `legal:date_of_execution`, `legal:jurisdiction`. Each
    classification could declare its own entity ontology.
 
+7. **What does the existing `extract.code_symbols.v1` actually produce
+   per file?** Read a few generated `file` entity JSONs from a code
+   ingest. Confirm the implementation matches the one-entity-per-file
+   description in § 4 above. Check whether anything more than
+   `type/name/canonical_key/source_path` is present — if so, figure out
+   what fills those extra fields and whether the symbol-extraction
+   framing was partially implemented and abandoned.
+
+8. **Is tree-sitter a viable dependency for auditgraph?** tree-sitter
+   is the obvious cross-language parser foundation for real code
+   structure understanding, but it's a C extension and pulls in per-
+   language grammar packages. Measure: install footprint, startup
+   cost, whether it works on the auditgraph target platforms (Linux
+   x86_64 and macOS Intel/Apple Silicon per the README). If tree-
+   sitter is unacceptable, the fallback is Python-stdlib `ast` for
+   Python and no code-structure support for other languages in v1 —
+   which is worth a scope discussion before any implementation.
+
+9. **How does Python-stdlib `ast` handle the real auditgraph codebase?**
+   A prototype: write a 50-line script that walks `auditgraph/` with
+   `ast.parse` and prints every function and class it finds. Verify
+   it handles all the edge cases actually present in the codebase:
+   nested functions, methods, decorators, async defs, type-annotated
+   signatures, `if TYPE_CHECKING` blocks, conditional imports. If any
+   of these fail, document the failure mode.
+
 ## Why this is deferred and not urgent
 
 These improvements compound the value of auditgraph for users with
@@ -277,6 +403,32 @@ wait until:
   size, overlap)`. A document-classified chunker needs more
   context — at minimum it needs document type and structural metadata.
   Possibly a context object.
+- **Auditgraph's scope on code**: is auditgraph a code intelligence
+  tool or a document + provenance tool that happens to tolerate code
+  files? The README currently describes it as the latter. Section 4
+  above sketches a real code-structure extractor, which would move
+  auditgraph meaningfully into the former territory. The answer
+  determines whether spec 024 includes per-symbol code entities or
+  leaves code at the current one-entity-per-file shallow depth. If
+  auditgraph commits to code intelligence, it also takes on ongoing
+  per-language parser maintenance and competition with established
+  tools (LSP, ctags, tree-sitter-based analyzers, IDE indexers). If
+  it doesn't, the `ingestion.chunk_code.enabled` flag from the quality
+  sweep is the intended ceiling and § 4 is out of scope forever.
+- **Code entity merging with git provenance**: if a code:function
+  entity exists for `load_ner_model`, and git provenance has
+  `modifies` edges from commits to `file` entities, should the
+  granularity also extend down to functions? "Who last modified
+  `load_ner_model`?" is a useful question, but answering it requires
+  per-line blame → symbol mapping, which is significantly harder than
+  per-file modifies edges. Worth a dedicated discussion during spec
+  writing.
+- **Chunks vs entities for code**: does a code:function need its own
+  chunk (with text field = function body) AND its own entity, or can
+  the entity itself carry the body text? Documents today have both a
+  document record AND chunk records; code could follow the same
+  pattern or could collapse them. Cleaner on one side, more work on
+  the other.
 
 ## When to revisit
 
@@ -290,3 +442,10 @@ Run `/speckit.specify` against this when:
    and benchmarked against the current default
 4. There is a representative mixed-content test corpus to validate
    against
+5. The scope question in Open Questions (auditgraph as code
+   intelligence tool vs. document + provenance tool) has been
+   answered. If the answer is "document tool only", § 4 of these
+   notes is out of scope and the spec should only cover items 1-3
+   and 5. If the answer is "code intelligence too", § 4 is in
+   scope and the spec must include per-language parser choice,
+   new code entity types, and new code link types.
