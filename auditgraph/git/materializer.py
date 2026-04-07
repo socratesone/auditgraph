@@ -141,6 +141,50 @@ def build_ref_nodes(branches: list[Any], repo_path: str) -> list[dict[str, Any]]
     return nodes
 
 
+def build_file_nodes(
+    selected_commits: list[Any],
+    repo_path: str,
+) -> list[dict[str, Any]]:
+    """Build `file` entity dicts for every distinct path in any commit's
+    files_changed list.
+
+    Per Spec 025, this is the sole creator of `file` entities. The schema
+    matches the existing `extract_code_symbols` output exactly (clarification
+    Q1) so existing tests and downstream consumers of `source_path` continue
+    to work without change. All paths are treated uniformly regardless of
+    git object kind (regular file, symlink, submodule) per clarification Q2.
+
+    The function deduplicates paths across commits (a path touched by 100
+    commits becomes 1 entity, not 100) and returns the result sorted by
+    entity ID for determinism — matching the convention used by the other
+    `build_*_nodes` functions in this module.
+
+    The entity ID is derived via `entity_id(f"file:{path}")` using the
+    same hashing function that `build_links()` uses to compute `modifies`
+    link `to_id` values, guaranteeing the link targets resolve to real
+    entities on disk after the stage runs.
+    """
+    paths: set[str] = set()
+    for c in selected_commits:
+        for file_path in getattr(c, "files_changed", []):
+            if file_path:
+                paths.add(file_path)
+
+    nodes: list[dict[str, Any]] = []
+    for path in sorted(paths):
+        canonical_key = f"file:{path}"
+        nodes.append({
+            "id": entity_id(canonical_key),
+            "type": "file",
+            "name": path.rsplit("/", 1)[-1],
+            "canonical_key": canonical_key,
+            "source_path": path,
+        })
+
+    nodes.sort(key=lambda n: n["id"])
+    return nodes
+
+
 # ---------------------------------------------------------------------------
 # Link builders
 # ---------------------------------------------------------------------------

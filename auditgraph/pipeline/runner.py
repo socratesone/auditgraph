@@ -317,6 +317,7 @@ class PipelineRunner:
             build_tag_nodes,
             build_repo_node,
             build_ref_nodes,
+            build_file_nodes,
             build_links,
             build_reverse_index,
         )
@@ -371,6 +372,7 @@ class PipelineRunner:
             tag_nodes = build_tag_nodes(tags, repo_path)
             repo_node = build_repo_node(repo_path)
             ref_nodes = build_ref_nodes(branches, repo_path)
+            file_nodes = build_file_nodes(selected.commits, repo_path)
 
             # Build links
             links = build_links(
@@ -388,8 +390,12 @@ class PipelineRunner:
             modifies_links = [lnk for lnk in links if lnk.get("type") == "modifies"]
             reverse_index = build_reverse_index(modifies_links)
 
-            # Write entities to sharded storage
-            all_entities = commit_nodes + author_nodes + tag_nodes + ref_nodes + [repo_node]
+            # Write entities to sharded storage. Per Spec 025, file entities
+            # are now created here (by build_file_nodes) instead of by the
+            # deleted extract_code_symbols extractor. This fixes the
+            # pre-existing dangling-reference bug where modifies links pointed
+            # at file entities that were never materialized for non-code paths.
+            all_entities = commit_nodes + author_nodes + tag_nodes + ref_nodes + [repo_node] + file_nodes
             entity_artifacts: list[str] = []
             for entity in all_entities:
                 eid = entity["id"]
