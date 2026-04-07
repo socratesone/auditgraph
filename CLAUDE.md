@@ -163,5 +163,7 @@ The manifest has contract tests in `llm-tooling/tests/`:
 - **Adjacency was empty**: Before Spec 023, `indexes/graph/adjacency.json` only contained co-occurrence links and was effectively empty for most workspaces. It now contains all link types after running the `index` stage.
 - **Don't use `git add -A`**: The repo has many unrelated untracked files (specs/021-*, .specify/integrations/, .mcp.json). Always stage explicitly by name.
 - **Don't `set NOMATCH`**: tests/fixtures use literal filenames; glob patterns over fixture trees should be ordered (`sorted(rglob(...))`) for determinism.
+- **NER is opt-in (off by default)**: `config/pkg.yaml` has `extraction.ner.enabled: false`. NER runs spaCy inference over every chunk and only makes sense on natural-language content. On code-only repos it spends 15+ minutes producing false positives. If a user reports `auditgraph rebuild` "hanging", check whether they enabled NER without realizing it.
+- **NER has a natural-language extension allowlist**: Even when `enabled: true`, NER only runs on chunks whose source file extension is in `extraction.ner.natural_language_extensions` (default: `.md .markdown .txt .rst .pdf .docx`). Code files and extensionless files are skipped. Configurable allowlist, not a blocklist — adding new doc formats requires editing config; nothing accidentally pulls in code. See `auditgraph/extract/ner.py:_is_natural_language_source`.
 
 <!-- MANUAL ADDITIONS END -->

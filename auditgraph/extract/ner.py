@@ -32,6 +32,36 @@ _TITLE_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+# Default natural-language file extensions. NER inference is meaningful only on
+# natural-language content; on code files it produces mostly false-positive
+# entities (variable and function names matching PERSON/ORG patterns) at high
+# inference cost. Users can override this list via the
+# `extraction.ner.natural_language_extensions` config key.
+DEFAULT_NATURAL_LANGUAGE_EXTENSIONS: tuple[str, ...] = (
+    ".md",
+    ".markdown",
+    ".txt",
+    ".rst",
+    ".pdf",
+    ".docx",
+)
+
+
+def _is_natural_language_source(source_path: str, allowed_extensions: set[str]) -> bool:
+    """Return True if the chunk's source file is a natural-language document.
+
+    Empty source_path is treated as natural-language (safe default for legacy
+    chunks that pre-date this filter). Files with no extension or unknown
+    extensions are skipped. Extension comparison is case-insensitive.
+    """
+    if not source_path:
+        return True
+    if "." not in source_path.rsplit("/", 1)[-1]:
+        # No extension at all (e.g., "Makefile", "Dockerfile")
+        return False
+    ext = "." + source_path.rsplit(".", 1)[-1].lower()
+    return ext in allowed_extensions
+
 
 def _normalize_name(name: str) -> str:
     """T007: Canonical name normalization."""
@@ -84,6 +114,10 @@ def extract_ner_entities(
     quality_threshold = float(config.get("quality_threshold", 0.3))
     allowed_types = set(config.get("entity_types", list(_LABEL_MAP.keys())))
     cooccurrence_types = set(config.get("cooccurrence_types", ["PERSON", "ORG", "GPE"]))
+    nl_extensions = {
+        ext.lower()
+        for ext in config.get("natural_language_extensions", DEFAULT_NATURAL_LANGUAGE_EXTENSIONS)
+    }
 
     from auditgraph.extract.ner_backend import load_ner_model, extract_entities_from_text
 
@@ -129,6 +163,12 @@ def extract_ner_entities(
 
         source_path = chunk.get("source_path", "")
         source_hash = chunk.get("source_hash", "")
+
+        # Skip non-natural-language chunks (e.g., source code, build files).
+        # NER inference on code is expensive and produces mostly false positives
+        # from variable and function names. See DEFAULT_NATURAL_LANGUAGE_EXTENSIONS.
+        if not _is_natural_language_source(source_path, nl_extensions):
+            continue
 
         # Run spaCy NER
         spacy_entities = extract_entities_from_text(text, nlp, entity_types=allowed_types)

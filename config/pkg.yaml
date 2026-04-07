@@ -63,10 +63,27 @@ profiles:
         - "config/extractors/core.yaml"
       llm:
         enabled: false
+      # NER is opt-in. It runs spaCy inference over every chunk in the workspace
+      # and is meaningful only on natural-language content (notes, documents, PDFs).
+      # On code-only repositories the inference cost is high and the results are
+      # mostly false positives (variable/function names matching PERSON/ORG patterns).
+      # To enable: install the model with `python -m spacy download en_core_web_sm`,
+      # then set `enabled: true` below.
+      #
+      # Even when enabled, NER only runs on chunks whose source file extension is
+      # in `natural_language_extensions`. Add or remove extensions as needed.
+      # Files with no extension (e.g. Makefile) and unknown extensions are skipped.
       ner:
-        enabled: true
+        enabled: false
         model: "en_core_web_sm"
         quality_threshold: 0.3
+        natural_language_extensions:
+          - ".md"
+          - ".markdown"
+          - ".txt"
+          - ".rst"
+          - ".pdf"
+          - ".docx"
         entity_types:
           - "PERSON"
           - "ORG"
