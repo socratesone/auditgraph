@@ -66,7 +66,17 @@ _MD_ITALIC_SINGLE_STAR = re.compile(r"(?<![*\w])\*([^*\n]+?)\*(?![*\w])")
 # Citation tokens specific to research-paper markdown exports, e.g.
 # `citeturn1search7turn8search13`. The model treats these as currency-like
 # numeric tokens and assigns them ner:money or ner:person.
-_MD_CITETURN = re.compile(r"\bcite(?:turn[a-z0-9]+)+\b", re.IGNORECASE)
+#
+# Implementation notes:
+# - Case-sensitive: research-paper exports use lowercase `cite` literally.
+#   IGNORECASE would cause the inner [a-z0-9] class to also match
+#   uppercase letters, which would let the greedy [a-z0-9]+ consume the
+#   following word (e.g. `Latency` after `citeturn8search0turn3search1`).
+# - No trailing \b: a citation token can be glued directly to the next
+#   word with no separator (e.g. `citeturn8search0turn3search1Latency`).
+#   The case-sensitive [a-z0-9] class naturally stops at the uppercase
+#   start of the next word.
+_MD_CITETURN = re.compile(r"\bcite(?:turn[a-z0-9]+)+")
 
 
 # Currency markers used by the post-extraction money filter. Lowercased
@@ -168,15 +178,25 @@ def strip_markdown_noise(text: str) -> str:
     the human-readable content inside these constructs (link text, code
     body, heading text, etc.) so the underlying meaning still reaches NER.
 
+    Also strips Unicode private-use area (PUA) characters (U+E000-U+F8FF).
+    Some research-paper markdown exporters wrap citation tokens in PUA
+    delimiters as invisible markers. Removing them first lets the
+    citation regex match the now-contiguous text.
+
     Order is significant: fenced code blocks are stripped first so their
     triple-backtick fences don't get matched by the inline code pattern.
+    PUA chars are stripped before citation tokens so the citation pattern
+    sees the literal token text.
     """
     if not text:
         return text
 
+    # 0. Drop Unicode private-use area characters used as invisible
+    # delimiters by some markdown exporters around citation tokens.
+    out = re.sub(r"[\ue000-\uf8ff]", "", text)
     # 1. Drop fenced code blocks entirely (content + fences) — code body is
     # noise for NER even if you preserved it as inline text.
-    out = _MD_FENCED_CODE_BLOCK.sub("\n", text)
+    out = _MD_FENCED_CODE_BLOCK.sub("\n", out)
     # 2. Drop any leftover bare ``` lines from unbalanced/odd fences.
     out = _MD_FENCED_CODE_FENCE_LINE.sub("", out)
     # 3. Inline code -> bare content (drop the backticks).

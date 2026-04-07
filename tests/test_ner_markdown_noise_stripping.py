@@ -44,6 +44,38 @@ class TestStripMarkdownNoise:
         assert "citeturn" not in cleaned
         assert "ASR" in cleaned
 
+    def test_strips_citeturn_with_no_trailing_space(self):
+        """Real-world research-paper exports sometimes lack a space between
+        the citation token and the following word, e.g.
+        `citeturn8search0turn3search1Latency`. The stripper must still match
+        the citation prefix and leave the trailing word intact."""
+        text = "See citeturn8search0turn3search1 Latency benchmarks for details."
+        cleaned = strip_markdown_noise(text)
+        assert "citeturn" not in cleaned
+        assert "Latency" in cleaned
+
+    def test_strips_citeturn_glued_to_next_word(self):
+        text = "See citeturn8search0turn3search1Latency for details."
+        cleaned = strip_markdown_noise(text)
+        assert "citeturn" not in cleaned
+        # The trailing word should remain
+        assert "Latency" in cleaned
+
+    def test_strips_citeturn_with_unicode_pua_delimiters(self):
+        """Real markdown exports from some research-paper tools wrap
+        citation tokens in Unicode private-use area characters as invisible
+        delimiters: e.g. `\\ue200cite\\ue202turn8search0\\ue201`. The
+        stripper must handle this case so the citation is removed cleanly
+        and the surrounding real content survives."""
+        text = "See \ue200cite\ue202turn8search0\ue202turn3search1\ue201 Latency for details."
+        cleaned = strip_markdown_noise(text)
+        assert "citeturn" not in cleaned
+        assert "cite\ue202" not in cleaned
+        assert "\ue200" not in cleaned
+        assert "\ue201" not in cleaned
+        assert "\ue202" not in cleaned
+        assert "Latency" in cleaned
+
     def test_strips_atx_heading_markers(self):
         text = "## Recommendations\n\nUse Whisper for batch transcription."
         cleaned = strip_markdown_noise(text)
