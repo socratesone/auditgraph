@@ -39,11 +39,19 @@ def build_commit_nodes(selected_commits: list[Any], repo_path: str) -> list[dict
     """Build commit entity dicts from selected commits."""
     nodes: list[dict[str, Any]] = []
     for c in selected_commits:
+        subject_first_line = c.subject.split("\n")[0] if c.subject else ""
         node: dict[str, Any] = {
             "id": deterministic_commit_id(repo_path, c.sha),
             "type": "commit",
+            # `name` is the human-readable label used by BM25 indexing,
+            # `auditgraph node`, `auditgraph list --sort name`, and the
+            # node_view query. For commits we use the first line of the
+            # commit message (its "subject"), matching git's own convention.
+            # The `subject` field is preserved separately for backwards
+            # compatibility with code that already references it.
+            "name": subject_first_line,
             "sha": c.sha,
-            "subject": c.subject.split("\n")[0],
+            "subject": subject_first_line,
             "author_name": c.author_name,
             "author_email": c.author_email,
             "authored_at": c.authored_at,
@@ -76,9 +84,15 @@ def build_author_nodes(selected_commits: list[Any], repo_path: str) -> list[dict
     nodes: list[dict[str, Any]] = []
     for email in sorted(names_by_email.keys()):
         aliases = sorted(names_by_email[email])
+        # `name` is the human-readable display label. Prefer the first
+        # non-empty alias (the author's chosen display name); fall back to
+        # the email address when the alias is empty so the entity is still
+        # identifiable in BM25 search and node views.
+        display_name = next((a for a in aliases if a), email)
         nodes.append({
             "id": deterministic_author_id(repo_path, email),
             "type": "author_identity",
+            "name": display_name,
             "email": email,
             "name_aliases": aliases,
         })
