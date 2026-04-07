@@ -195,6 +195,20 @@ Optional tuning in `config/pkg.yaml`:
 
 Detailed guide: `specs/020-git-provenance-ingestion/quickstart.md`.
 
+## Optional: enable NER (named-entity extraction)
+
+NER is off by default because it runs spaCy inference over every chunk and is meaningful only on natural-language content (notes, documents, PDFs). To enable it on a workspace that contains documents:
+
+```bash
+python -m spacy download en_core_web_sm
+```
+
+Then set `extraction.ner.enabled: true` in your profile in `config/pkg.yaml`. Re-run `auditgraph rebuild`.
+
+Even when enabled, NER only runs on chunks whose source file is a natural-language document — by default `.md`, `.markdown`, `.txt`, `.rst`, `.pdf`, and `.docx`. Code files (`.py`, `.js`, `.ts`, etc.) and extensionless files (`Makefile`, `Dockerfile`) are skipped automatically. You can override the allowlist via `extraction.ner.natural_language_extensions` if you have custom document formats.
+
+For code-only repositories, you can leave NER off entirely — there's nothing for it to do.
+
 ## Common fixes
 
 - If you see `Missing schema_version in manifest`, run:
