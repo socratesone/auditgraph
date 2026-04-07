@@ -209,6 +209,31 @@ Even when enabled, NER only runs on chunks whose source file is a natural-langua
 
 For code-only repositories, you can leave NER off entirely — there's nothing for it to do.
 
+### NER quality on technical content
+
+The default `en_core_web_sm` model is trained on news and web text. On technical content like ML research papers, it produces a high rate of false positives — technical acronyms (`GPU`, `CPU`, `RNN`) get tagged as orgs, model names (`Whisper`, `NeMo`) get tagged as people, and markdown citation tokens get tagged as money. If your content is technical, consider installing SciSpaCy:
+
+```bash
+pip install scispacy
+pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_core_sci_sm-0.5.4.tar.gz
+```
+
+Then set `extraction.ner.model: en_core_sci_sm` in your profile config.
+
+## Optional: enable code chunking
+
+By default, code files (`.py`, `.js`, `.ts`, etc.) are ingested as `file` entities but do not produce chunk-level body content. This means BM25 search can find files by name but not by what's inside them. If you want substring search over your code's body — e.g., to find docstrings or comments — enable code chunking:
+
+```yaml
+profiles:
+  default:
+    ingestion:
+      chunk_code:
+        enabled: true
+```
+
+Re-run `auditgraph rebuild`. Each code file will now produce 200-token sliding-window chunks the same way prose files do. Caveat: source code chunks are noisy (mid-function splits, syntax tokens, boilerplate) and BM25 hits on them are often false positives. For real code navigation, use a language-aware tool (`tldr`, `ctags`, ripgrep, your IDE's LSP).
+
 ## Common fixes
 
 - If you see `Missing schema_version in manifest`, run:
