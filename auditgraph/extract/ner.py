@@ -47,6 +47,71 @@ DEFAULT_NATURAL_LANGUAGE_EXTENSIONS: tuple[str, ...] = (
 )
 
 
+# Markdown noise patterns. These tokens look entity-shaped to spaCy's
+# `en_core_web_sm` model and produce false-positive ner:money / ner:person /
+# ner:org entries when left in the NER input. Stripping them before inference
+# eliminates the worst category of false positives at near-zero cost.
+#
+# Pattern order matters: fenced code blocks must be stripped before inline
+# code spans (which would otherwise consume the closing triple-backtick).
+_MD_FENCED_CODE_BLOCK = re.compile(r"```[^\n]*\n.*?\n```", re.DOTALL)
+_MD_FENCED_CODE_FENCE_LINE = re.compile(r"^```[^\n]*$", re.MULTILINE)
+_MD_INLINE_CODE = re.compile(r"`([^`]+)`")
+_MD_IMAGE = re.compile(r"!\[([^\]]*)\]\([^)]*\)")
+_MD_LINK = re.compile(r"\[([^\]]+)\]\([^)]*\)")
+_MD_HEADING = re.compile(r"^#{1,6}\s*", re.MULTILINE)
+_MD_BOLD_DOUBLE_STAR = re.compile(r"\*\*([^*]+?)\*\*")
+_MD_BOLD_DOUBLE_UNDERSCORE = re.compile(r"__([^_]+?)__")
+_MD_ITALIC_SINGLE_STAR = re.compile(r"(?<![*\w])\*([^*\n]+?)\*(?![*\w])")
+# Citation tokens specific to research-paper markdown exports, e.g.
+# `citeturn1search7turn8search13`. The model treats these as currency-like
+# numeric tokens and assigns them ner:money or ner:person.
+_MD_CITETURN = re.compile(r"\bcite(?:turn[a-z0-9]+)+\b", re.IGNORECASE)
+
+
+def strip_markdown_noise(text: str) -> str:
+    """Remove markdown formatting noise that confuses NER models.
+
+    Strips citation tokens, heading markers, code fences and inline code
+    spans, link/image syntax, and bold/italic emphasis markers. Preserves
+    the human-readable content inside these constructs (link text, code
+    body, heading text, etc.) so the underlying meaning still reaches NER.
+
+    Order is significant: fenced code blocks are stripped first so their
+    triple-backtick fences don't get matched by the inline code pattern.
+    """
+    if not text:
+        return text
+
+    # 1. Drop fenced code blocks entirely (content + fences) — code body is
+    # noise for NER even if you preserved it as inline text.
+    out = _MD_FENCED_CODE_BLOCK.sub("\n", text)
+    # 2. Drop any leftover bare ``` lines from unbalanced/odd fences.
+    out = _MD_FENCED_CODE_FENCE_LINE.sub("", out)
+    # 3. Inline code -> bare content (drop the backticks).
+    out = _MD_INLINE_CODE.sub(r"\1", out)
+    # 4. Image syntax -> alt text only.
+    out = _MD_IMAGE.sub(r"\1", out)
+    # 5. Link syntax -> link text only (drop the URL).
+    out = _MD_LINK.sub(r"\1", out)
+    # 6. ATX heading markers -> drop the leading hashes (keep the heading text).
+    out = _MD_HEADING.sub("", out)
+    # 7. Bold (**X** and __X__) -> bare content.
+    out = _MD_BOLD_DOUBLE_STAR.sub(r"\1", out)
+    out = _MD_BOLD_DOUBLE_UNDERSCORE.sub(r"\1", out)
+    # 8. Italic single-star -> bare content. Done after bold so we don't
+    # eat the inner content of an unprocessed bold pair.
+    out = _MD_ITALIC_SINGLE_STAR.sub(r"\1", out)
+    # 9. Research-paper citation tokens -> drop entirely.
+    out = _MD_CITETURN.sub("", out)
+    # 10. Collapse multiple consecutive blank lines / whitespace runs that
+    # the substitutions above may have produced. Single blank line preserved
+    # so paragraph structure is still legible to spaCy's sentencer.
+    out = re.sub(r"\n{3,}", "\n\n", out)
+    out = re.sub(r"[ \t]+", " ", out)
+    return out.strip()
+
+
 def _is_natural_language_source(source_path: str, allowed_extensions: set[str]) -> bool:
     """Return True if the chunk's source file is a natural-language document.
 
@@ -170,8 +235,18 @@ def extract_ner_entities(
         if not _is_natural_language_source(source_path, nl_extensions):
             continue
 
-        # Run spaCy NER
-        spacy_entities = extract_entities_from_text(text, nlp, entity_types=allowed_types)
+        # Strip markdown formatting noise (citation tokens, heading markers,
+        # code fences, link/image syntax, emphasis markers) before NER. These
+        # tokens look entity-shaped to spaCy's en_core_web_sm and produce a
+        # large fraction of the false positives observed on technical content.
+        # The stripped text preserves real content but removes formatting
+        # tokens that have no semantic meaning.
+        ner_input_text = strip_markdown_noise(text)
+        if not ner_input_text:
+            continue
+
+        # Run spaCy NER on the stripped text
+        spacy_entities = extract_entities_from_text(ner_input_text, nlp, entity_types=allowed_types)
         for ent in spacy_entities:
             label = ent["label"]
             if label not in _LABEL_MAP:
