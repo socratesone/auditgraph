@@ -19,8 +19,7 @@ from auditgraph.ingest.scanner import split_allowed
 from auditgraph.ingest.importer import split_imported
 import json
 
-from auditgraph.extract.code_symbols import extract_code_symbols
-from auditgraph.extract.entities import build_entity, build_note_entity
+from auditgraph.extract.entities import build_note_entity
 from auditgraph.extract.manifest import extract_adr_claims, extract_log_claims, write_claims, write_entities
 from auditgraph.link import build_source_cooccurrence_links, write_links
 from auditgraph.link.adjacency import write_adjacency
@@ -144,20 +143,12 @@ class PipelineRunner:
         records = []
         source_payloads: list[tuple[Any, dict[str, object]]] = []
         ingest_cfg = profile.get("ingestion", {}) if isinstance(profile, dict) else {}
-        chunk_code_cfg = ingest_cfg.get("chunk_code", {}) if isinstance(ingest_cfg, dict) else {}
         parse_options = {
             "ocr_mode": ingest_cfg.get("ocr_mode", "off"),
             "chunk_tokens": int(ingest_cfg.get("chunk_tokens", 200)),
             "chunk_overlap_tokens": int(ingest_cfg.get("chunk_overlap_tokens", 40)),
             "max_file_size_bytes": int(ingest_cfg.get("max_file_size_bytes", 209715200)),
             "ingest_config_hash": ingestion_config_hash(config),
-            # Issue 2 Phase 2: opt-in code chunking. When enabled, code files
-            # (text/code parser_id) are routed through the same sliding-window
-            # chunker as text/markdown and text/plain so their body content
-            # becomes BM25-searchable. Off by default.
-            "chunk_code_enabled": bool(
-                chunk_code_cfg.get("enabled", False) if isinstance(chunk_code_cfg, dict) else False
-            ),
         }
         for path in allowed:
             source_hash = sha256_file(path)
@@ -317,6 +308,7 @@ class PipelineRunner:
             build_tag_nodes,
             build_repo_node,
             build_ref_nodes,
+            build_file_nodes,
             build_links,
             build_reverse_index,
         )
@@ -371,6 +363,7 @@ class PipelineRunner:
             tag_nodes = build_tag_nodes(tags, repo_path)
             repo_node = build_repo_node(repo_path)
             ref_nodes = build_ref_nodes(branches, repo_path)
+            file_nodes = build_file_nodes(selected.commits, repo_path)
 
             # Build links
             links = build_links(
@@ -388,8 +381,12 @@ class PipelineRunner:
             modifies_links = [lnk for lnk in links if lnk.get("type") == "modifies"]
             reverse_index = build_reverse_index(modifies_links)
 
-            # Write entities to sharded storage
-            all_entities = commit_nodes + author_nodes + tag_nodes + ref_nodes + [repo_node]
+            # Write entities to sharded storage. Per Spec 025, file entities
+            # are created here (by build_file_nodes), which is the sole
+            # creator of file entities in the project. This fixes the
+            # pre-existing dangling-reference bug where modifies links pointed
+            # at file entities that were never materialized for non-code paths.
+            all_entities = commit_nodes + author_nodes + tag_nodes + ref_nodes + [repo_node] + file_nodes
             entity_artifacts: list[str] = []
             for entity in all_entities:
                 eid = entity["id"]
@@ -555,12 +552,6 @@ class PipelineRunner:
                 note_entity = build_note_entity(str(title), source_path, source_hash, redactor=redactor)
                 entities[note_entity["id"]] = note_entity
 
-        code_symbols = extract_code_symbols(root, ok_paths)
-        for symbol in code_symbols:
-            source_path = str(symbol.get("source_path", ""))
-            source_hash = str(source_map.get(source_path, ""))
-            entity = build_entity(symbol, source_hash, redactor=redactor)
-            entities[entity["id"]] = entity
 
         adr_claims = extract_adr_claims(pkg_root, ok_paths)
         if adr_claims:
@@ -830,16 +821,12 @@ class PipelineRunner:
         pkg_root = profile_pkg_root(root, config)
         records = []
         ingest_cfg = profile.get("ingestion", {}) if isinstance(profile, dict) else {}
-        chunk_code_cfg = ingest_cfg.get("chunk_code", {}) if isinstance(ingest_cfg, dict) else {}
         parse_options = {
             "ocr_mode": ingest_cfg.get("ocr_mode", "off"),
             "chunk_tokens": int(ingest_cfg.get("chunk_tokens", 200)),
             "chunk_overlap_tokens": int(ingest_cfg.get("chunk_overlap_tokens", 40)),
             "max_file_size_bytes": int(ingest_cfg.get("max_file_size_bytes", 209715200)),
             "ingest_config_hash": ingestion_config_hash(config),
-            "chunk_code_enabled": bool(
-                chunk_code_cfg.get("enabled", False) if isinstance(chunk_code_cfg, dict) else False
-            ),
         }
         for path in allowed:
             source_hash = sha256_file(path)

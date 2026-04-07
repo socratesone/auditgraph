@@ -8,9 +8,9 @@ import hashlib
 import json
 
 from auditgraph.config import load_config
-from auditgraph.extract.entities import build_entity
 from auditgraph.storage.artifacts import profile_pkg_root
-from auditgraph.storage.hashing import sha256_text
+from auditgraph.storage.hashing import entity_id, sha256_text
+from auditgraph.storage.audit import DEFAULT_PIPELINE_VERSION
 
 
 DEFAULT_JOBS_YAML = """\
@@ -63,16 +63,35 @@ def pkg_root(root: Path) -> Path:
 
 
 def make_entity(name: str, source_path: str) -> dict[str, object]:
+    """Build a `file`-type entity dict for test fixtures.
+
+    Historically this wrapped `auditgraph.extract.entities.build_entity`,
+    which was deleted in Spec 025. The fields produced here match what
+    `auditgraph/git/materializer.py:build_file_nodes` produces (the new
+    sole creator of file entities), plus extras (`aliases`, `provenance`,
+    `refs`) that downstream test code expects on test-constructed entities.
+    """
     source_hash = sha256_text(f"{name}:{source_path}")
-    return build_entity(
-        {
-            "type": "file",
-            "name": name,
-            "canonical_key": f"file:{source_path}",
-            "source_path": source_path,
+    canonical = f"file:{source_path}"
+    return {
+        "id": entity_id(canonical),
+        "type": "file",
+        "name": name,
+        "canonical_key": canonical,
+        "aliases": [],
+        "provenance": {
+            "created_by_rule": "test.fixture.v1",
+            "input_hash": source_hash,
+            "pipeline_version": DEFAULT_PIPELINE_VERSION,
         },
-        source_hash,
-    )
+        "refs": [
+            {
+                "source_path": source_path,
+                "source_hash": source_hash,
+                "range": {"start_line": 1, "end_line": 1},
+            }
+        ],
+    }
 
 
 def assert_no_secret_in_dir(base_dir: Path, secret: str, *, allowlist: Iterable[Path] | None = None) -> None:

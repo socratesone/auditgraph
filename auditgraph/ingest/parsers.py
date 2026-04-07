@@ -220,19 +220,7 @@ def parse_file(path: Path, policy: IngestionPolicy, ingest_options: dict[str, ob
     if parser_id == "text/markdown":
         metadata["frontmatter"] = extract_frontmatter(text)
 
-    # Determine which parser_ids should produce chunks. Markdown and plain
-    # text always do. text/code is opt-in via the `chunk_code` option (Issue 2
-    # Phase 2): when enabled, code files are routed through the same
-    # sliding-window chunker so their body content becomes BM25-searchable.
-    # The default is off because prose-style chunking on code produces noisy
-    # chunks (mid-function splits) and dedicated code-navigation tools handle
-    # this better.
-    chunkable_parser_ids = {"text/plain", "text/markdown"}
-    chunk_code_enabled = bool(options.get("chunk_code_enabled", False))
-    if chunk_code_enabled:
-        chunkable_parser_ids.add("text/code")
-
-    if parser_id in chunkable_parser_ids:
+    if parser_id in ("text/plain", "text/markdown"):
         normalized = normalize_document_text(text)
         if normalized:
             metadata = _build_document_metadata(
