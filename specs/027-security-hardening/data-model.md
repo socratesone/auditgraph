@@ -198,9 +198,9 @@ On validation failure, `execute_tool` MUST return the error envelope **without i
 
 ## Cross-cutting: determinism and ordering
 
-All four data shapes above are deterministic:
+All four data shapes above are deterministic. For the specific sort keys of the `redaction_postcondition.misses` array, see `contracts/postcondition-manifest.md` §"Ordering determinism" which is the source of truth — this section summarizes but does not redefine.
 
-- **Manifest fields** sort arrays (`misses`, `source_records`) by a stable key (file path for `misses`; source hash for source records). Identical inputs produce identical JSON output.
+- **Manifest fields** sort arrays (`misses`, `source_records`) by stable keys. For `misses`, the sort order is `(path, field, category)` as specified in `contracts/postcondition-manifest.md`. For `source_records`, the key is `source_hash`. Identical inputs produce identical JSON output.
 - **Detector categories** appear in summary reports in a stable order (alphabetical by category name).
 - **Stderr warnings** emit in a stable order (symlink refusal summary after all walk output, Neo4j warning before any connection attempt). Multiple warnings within one run are ordered by when they were discovered.
 - **Validation errors** translate jsonschema path tuples to JSON Pointer strings via a deterministic join; errors from the same violation produce the same pointer regardless of jsonschema version (within the `>=4,<5` pin).
