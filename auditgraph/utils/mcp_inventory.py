@@ -13,6 +13,7 @@ READ_TOOLS = (
     "git-log",
     "git-introduced",
     "git-history",
+    "validate-store",
 )
 
 WRITE_TOOLS = (

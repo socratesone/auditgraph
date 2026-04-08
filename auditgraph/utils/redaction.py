@@ -113,7 +113,12 @@ def _default_detectors() -> dict[str, RedactionDetector]:
             name="credential_kv",
             category="credential",
             pattern=re.compile(
-                r"(?i)\b(password|secret|token|api_key|apikey|client_secret|private_key)\s*[:=]\s*([^\s\"']+)",
+                r"(?i)\b("
+                r"password|secret|token|api_key|apikey|client_secret|private_key"
+                r"|aws_access_key_id|aws_secret_access_key"
+                r"|auth_token|access_token|refresh_token|session_token"
+                r"|passwd|pwd|bearer|auth"
+                r")\s*[:=]\s*([^\s\"']+)",
             ),
             group=2,
         ),
@@ -126,7 +131,39 @@ def _default_detectors() -> dict[str, RedactionDetector]:
         "vendor_token": RedactionDetector(
             name="vendor_token",
             category="vendor_token",
-            pattern=re.compile(r"\b(ghp_[A-Za-z0-9]{12,}|xox[baprs]-[A-Za-z0-9-]{10,})\b"),
+            # GitHub classic + fine-grained PATs and Slack tokens (legacy + xoxe).
+            # `xoxe.xoxp-` must be anchored without a leading \b because `.` is
+            # a non-word char. We allow [A-Za-z0-9_.-] in the trailing run so
+            # `github_pat_` underscores and dot-separated segments match.
+            pattern=re.compile(
+                r"(?:"
+                r"ghp_[A-Za-z0-9]{12,}"
+                r"|github_pat_[A-Za-z0-9_]{20,}"
+                r"|gho_[A-Za-z0-9]{12,}"
+                r"|ghu_[A-Za-z0-9]{12,}"
+                r"|ghs_[A-Za-z0-9]{12,}"
+                r"|ghr_[A-Za-z0-9]{12,}"
+                r"|xoxe\.xoxp-[A-Za-z0-9-]{10,}"
+                r"|xox[baprs]-[A-Za-z0-9-]{10,}"
+                r")"
+            ),
+        ),
+        "cloud_keys": RedactionDetector(
+            name="cloud_keys",
+            category="cloud_keys",
+            pattern=re.compile(
+                r"""
+                (?:
+                    AKIA[0-9A-Z]{16}                            # AWS access key
+                    | AIza[0-9A-Za-z_\-]{35}                     # Google API key
+                    | sk-ant-api\d{2}-[A-Za-z0-9_\-]{40,}        # Anthropic key
+                    | sk-proj-[A-Za-z0-9_\-]{40,}                # OpenAI project-scoped
+                    | sk-[A-Za-z0-9]{48}                          # OpenAI legacy (48-char body)
+                    | sk_live_[A-Za-z0-9]{24,}                    # Stripe live secret
+                )
+                """,
+                re.VERBOSE,
+            ),
         ),
     }
 

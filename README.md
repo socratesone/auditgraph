@@ -274,7 +274,7 @@ auditgraph normalize --run-id <run_id>
 auditgraph extract --run-id <run_id>
 auditgraph link --run-id <run_id>
 auditgraph index --run-id <run_id>
-auditgraph rebuild
+auditgraph rebuild [--allow-redaction-misses]     # Spec 027 FR-027: tolerate postcondition misses
 auditgraph query --q "symbol" [--type T] [--where "f=v"] [--sort F] [--limit N]
 auditgraph list [--type T] [--where "f=v"] [--sort F] [--limit N] [--count] [--group-by F]
 auditgraph node <entity_id>
@@ -283,7 +283,8 @@ auditgraph why-connected --from <entity_id> --to <entity_id>
 auditgraph diff --run-a <run_id_1> --run-b <run_id_2>
 auditgraph export --format json
 auditgraph export-neo4j --output exports/neo4j/graph.cypher
-auditgraph sync-neo4j --dry-run
+auditgraph sync-neo4j --dry-run [--require-tls]    # Spec 027 FR-023a: refuse plaintext bolt:// to non-loopback
+auditgraph validate-store [--profile NAME | --all-profiles] [--format json|text]   # Spec 027 FR-019: read-only audit
 auditgraph replay <run_id>                         # Replay a previous run
 auditgraph git-provenance                          # Ingest git history
 auditgraph git-who <file>

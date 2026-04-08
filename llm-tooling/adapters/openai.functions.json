@@ -373,6 +373,35 @@
       }
     },
     {
+      "name": "ag_validate_store",
+      "description": "Audit an existing .pkg/ store for redaction misses (read-only).",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          },
+          "profile": {
+            "type": "string"
+          },
+          "all_profiles": {
+            "type": "boolean"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "json",
+              "text"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
       "name": "ag_version",
       "description": "Return the auditgraph CLI version.",
       "parameters": {

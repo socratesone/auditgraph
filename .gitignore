@@ -28,6 +28,9 @@ docs/source-material/
 thoughts/
 .github/
 
+.specify/*
+.mcp.json
+
 # Large data files
 source_graph.cypher
 

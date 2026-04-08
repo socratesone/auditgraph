@@ -25,6 +25,30 @@ def _load_adapter():
     return module
 
 
+def _load_validation():
+    """Load the validation module via importlib (mirrors _load_adapter pattern).
+
+    The module is loaded fresh per call so that tests which `monkeypatch.setenv`
+    `AUDITGRAPH_MCP_MAX_STRING_LENGTH` see the update immediately — but since
+    the validator reads the env var at *validation time*, a cached module is
+    equally safe. We cache for performance.
+    """
+    global _VALIDATION_MODULE
+    if _VALIDATION_MODULE is not None:
+        return _VALIDATION_MODULE
+    validation_path = Path(__file__).resolve().parent / "validation.py"
+    spec = importlib.util.spec_from_file_location("mcp_validation", validation_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("Unable to load validation module")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    _VALIDATION_MODULE = module
+    return module
+
+
+_VALIDATION_MODULE = None
+
+
 def list_tools(manifest: dict) -> list[str]:
     return [tool["name"] for tool in manifest.get("tools", [])]
 
@@ -62,8 +86,10 @@ def execute_tool(tool_name: str, payload: dict) -> dict:
     request_id = payload.get("request_id", "req-unknown")
 
     start = time.monotonic()
+    validation = _load_validation()
     try:
         _enforce_read_only(tool)
+        validation.validate(tool.get("input_schema", {}), payload, tool_name=tool_name)
         if tool.get("command") == "export" and payload.get("output"):
             adapter = _load_adapter()
             adapter.validate_output_path(payload["output"])
@@ -71,6 +97,9 @@ def execute_tool(tool_name: str, payload: dict) -> dict:
         argv = adapter.build_command(tool["command"], payload)
         result = adapter.run_command(argv)
         status = "ok"
+    except validation.ValidationFailed as exc:
+        result = exc.to_envelope()
+        status = "error"
     except Exception as exc:  # pragma: no cover - will be refined during tests
         result = {"error": normalize_error(type(exc).__name__, str(exc))}
         status = "error"

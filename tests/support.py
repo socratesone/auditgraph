@@ -129,3 +129,22 @@ def assert_spec017_fixture_checksums() -> dict[str, str]:
         observed[name] = digest
         assert digest == checksum
     return observed
+
+
+def null_parse_options() -> dict:
+    """Build parse_options containing an empty-detector Redactor.
+
+    Spec 027 FR-016 makes `parse_options["redactor"]` a required argument on
+    `parse_file`. Tests that don't care about redaction behavior should use
+    this helper to build an explicit no-op redactor — the design rejects
+    silent no-op defaults because that silent-skip path is exactly what
+    Spec 026 C1 closed.
+    """
+    import secrets as _secrets
+
+    from auditgraph.utils.redaction import RedactionPolicy, Redactor
+
+    policy = RedactionPolicy(
+        policy_id="test.null.v1", version="v1", enabled=True, detectors=()
+    )
+    return {"redactor": Redactor(policy, _secrets.token_bytes(32))}

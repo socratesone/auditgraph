@@ -27,6 +27,14 @@ def _make_redactor(*detector_names: str) -> Redactor:
     return Redactor(policy, KEY)
 
 
+def _null_redactor_options() -> dict:
+    """Spec 027 FR-016: parse_file requires a redactor in options."""
+    policy = RedactionPolicy(
+        policy_id="test.null.v1", version="v1", enabled=True, detectors=()
+    )
+    return {"redactor": Redactor(policy, KEY)}
+
+
 class TestTruncatedPemBlock:
     def test_truncated_pem_not_redacted(self) -> None:
         """A PEM block missing the END marker is NOT matched by the detector.
@@ -70,7 +78,7 @@ class TestCorruptedDocumentHandling:
         bad_pdf.write_bytes(b"%PDF-1.4 corrupted garbage data here")
         policy = load_policy(load_config(None).profile())
 
-        result = parse_file(bad_pdf, policy)
+        result = parse_file(bad_pdf, policy, _null_redactor_options())
 
         assert result.status == "failed"
         assert result.parser_id == "document/pdf"
@@ -83,7 +91,7 @@ class TestCorruptedDocumentHandling:
         empty_pdf.write_bytes(b"")
         policy = load_policy(load_config(None).profile())
 
-        result = parse_file(empty_pdf, policy)
+        result = parse_file(empty_pdf, policy, _null_redactor_options())
 
         assert result.status == "failed"
         assert result.parser_id == "document/pdf"
@@ -94,7 +102,7 @@ class TestCorruptedDocumentHandling:
         bad_docx.write_bytes(b"PK\x03\x04 not a real zip archive")
         policy = load_policy(load_config(None).profile())
 
-        result = parse_file(bad_docx, policy)
+        result = parse_file(bad_docx, policy, _null_redactor_options())
 
         assert result.status == "failed"
         assert result.parser_id == "document/docx"
