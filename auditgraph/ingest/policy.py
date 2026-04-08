@@ -25,6 +25,7 @@ PARSER_BY_SUFFIX = {
 }
 SKIP_REASON_UNSUPPORTED = "unsupported_extension"
 SKIP_REASON_UNCHANGED = "unchanged_source_hash"
+SKIP_REASON_SYMLINK_REFUSED = "symlink_refused"
 FAIL_REASON_UNSUPPORTED_DOC = "unsupported_doc_format"
 FAIL_REASON_ENCRYPTED = "encrypted_pdf"
 FAIL_REASON_CORRUPT = "corrupt_or_unreadable"

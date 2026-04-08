@@ -68,11 +68,33 @@ def _build_parser() -> argparse.ArgumentParser:
     ingest_parser = subparsers.add_parser("ingest", help="Run ingest stage")
     ingest_parser.add_argument("--root", default=".", help="Workspace root (default: CWD; override with AUDITGRAPH_ROOT)")
     ingest_parser.add_argument("--config", default=None, help="Config path (default: <root>/config/pkg.yaml; override with AUDITGRAPH_CONFIG)")
+    ingest_parser.add_argument(
+        "--allow-symlinks",
+        action="store_true",
+        default=False,
+        help=(
+            "RESERVED (Spec 027 FR-004a). Currently raises NotImplementedError; "
+            "symlinks escaping the workspace root are permanently refused in Phase 2. "
+            "File an issue at https://github.com/socratesone/auditgraph/issues to "
+            "discuss legitimate cross-workspace symlink use cases."
+        ),
+    )
 
     import_parser = subparsers.add_parser("import", help="Manually import files")
     import_parser.add_argument("paths", nargs="+", help="Files or directories to import")
     import_parser.add_argument("--root", default=".", help="Workspace root (default: CWD; override with AUDITGRAPH_ROOT)")
     import_parser.add_argument("--config", default=None, help="Config path (default: <root>/config/pkg.yaml; override with AUDITGRAPH_CONFIG)")
+    import_parser.add_argument(
+        "--allow-symlinks",
+        action="store_true",
+        default=False,
+        help=(
+            "RESERVED (Spec 027 FR-004a). Currently raises NotImplementedError; "
+            "symlinks escaping the workspace root are permanently refused in Phase 2. "
+            "File an issue at https://github.com/socratesone/auditgraph/issues to "
+            "discuss legitimate cross-workspace symlink use cases."
+        ),
+    )
 
     normalize_parser = subparsers.add_parser("normalize", help="Run normalize stage")
     normalize_parser.add_argument("--root", default=".", help="Workspace root (default: CWD; override with AUDITGRAPH_ROOT)")
@@ -228,6 +250,13 @@ def main() -> None:
             return
 
         if args.command == "ingest":
+            if getattr(args, "allow_symlinks", False):
+                raise NotImplementedError(
+                    "--allow-symlinks is reserved for forward compatibility; "
+                    "Spec 027 Phase 2 refuses escaping symlinks unconditionally. "
+                    "File an issue at https://github.com/socratesone/auditgraph/issues "
+                    "to discuss your use case."
+                )
             runner = PipelineRunner()
             root = _resolve_root(getattr(args, "root", "."))
             config = load_config(_resolve_config(getattr(args, "config", None), root))
@@ -236,6 +265,13 @@ def main() -> None:
             return
 
         if args.command == "import":
+            if getattr(args, "allow_symlinks", False):
+                raise NotImplementedError(
+                    "--allow-symlinks is reserved for forward compatibility; "
+                    "Spec 027 Phase 2 refuses escaping symlinks unconditionally. "
+                    "File an issue at https://github.com/socratesone/auditgraph/issues "
+                    "to discuss your use case."
+                )
             runner = PipelineRunner()
             root = _resolve_root(getattr(args, "root", "."))
             config = load_config(_resolve_config(getattr(args, "config", None), root))
@@ -469,6 +505,13 @@ def main() -> None:
                 _emit(payload)
                 return
 
+    except NotImplementedError:
+        # Spec 027 FR-004a: reserved flags like --allow-symlinks must surface
+        # as NotImplementedError directly, not be converted to SystemExit(1).
+        # The test suite (and careful operators) rely on catching this
+        # specific class so they can distinguish "deliberately not implemented
+        # yet" from generic runtime errors.
+        raise
     except Exception as exc:
         _emit({"status": "error", "message": str(exc)})
         raise SystemExit(1)

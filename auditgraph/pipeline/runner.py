@@ -13,10 +13,11 @@ from auditgraph.ingest import (
     load_policy,
     parse_file,
 )
-from auditgraph.ingest.policy import SKIP_REASON_UNSUPPORTED
+from auditgraph.ingest.policy import SKIP_REASON_UNSUPPORTED, SKIP_REASON_SYMLINK_REFUSED
 from auditgraph.ingest.policy import SKIP_REASON_UNCHANGED, parser_id_for
-from auditgraph.ingest.scanner import split_allowed
-from auditgraph.ingest.importer import split_imported
+from auditgraph.ingest.scanner import discover_files_with_refusals, split_allowed
+from auditgraph.ingest.importer import split_imported, split_imported_with_refusals
+import sys
 import json
 
 from auditgraph.extract.entities import build_note_entity
@@ -138,8 +139,9 @@ class PipelineRunner:
         if enforce_compatibility:
             ensure_latest_manifest_compatibility(pkg_root, ARTIFACT_SCHEMA_VERSION)
 
-        files = discover_files(root, include_paths, exclude_globs)
-        allowed, skipped = split_allowed(files, policy)
+        discover_result = discover_files_with_refusals(root, include_paths, exclude_globs)
+        allowed, skipped = split_allowed(discover_result.files, policy)
+        refused_symlinks = discover_result.refused_symlinks
         records = []
         source_payloads: list[tuple[Any, dict[str, object]]] = []
         ingest_cfg = profile.get("ingestion", {}) if isinstance(profile, dict) else {}
@@ -217,6 +219,27 @@ class PipelineRunner:
             records.append(record)
             source_payloads.append((record, metadata))
 
+        # Spec 027 FR-001..FR-004: refused symlinks surface as skipped sources
+        # with `skip_reason: symlink_refused`. The file contents are never read.
+        for path in refused_symlinks:
+            record, metadata = build_source_record(
+                path,
+                root,
+                "text/unknown",
+                "skipped",
+                status_reason=SKIP_REASON_SYMLINK_REFUSED,
+                skip_reason=SKIP_REASON_SYMLINK_REFUSED,
+            )
+            records.append(record)
+            source_payloads.append((record, metadata))
+
+        # Spec 027 FR-002: single-line stderr warning when ≥ 1 symlink refused.
+        if refused_symlinks:
+            sys.stderr.write(
+                f"WARN: refused {len(refused_symlinks)} symlinks pointing outside "
+                f"{root.resolve()} (see manifest for details)\n"
+            )
+
         source_bytes = sum(int(record.size) for record in records)
         budget_settings = footprint_budget_settings(config)
         budget_status = evaluate_pkg_budget(
@@ -283,12 +306,13 @@ class PipelineRunner:
         write_provenance_index(pkg_root, run_id, provenance_records)
 
         detail = {
-            "files": len(files),
+            "files": len(discover_result.files),
             "manifest": str(manifest_path),
             "profile": config.active_profile(),
             "ok": sum(1 for record in records if record.parse_status == "ok"),
             "skipped": sum(1 for record in records if record.parse_status == "skipped"),
             "failed": sum(1 for record in records if record.parse_status == "failed"),
+            "refused_symlinks": len(refused_symlinks),
         }
         if budget_status.status == "warn":
             detail["budget"] = {
@@ -833,7 +857,10 @@ class PipelineRunner:
         profile = config.profile()
         policy = load_policy(profile)
         exclude_globs = profile.get("exclude_globs", [])
-        allowed, skipped = split_imported(root, targets, exclude_globs, policy)
+        import_result = split_imported_with_refusals(root, targets, exclude_globs, policy)
+        allowed = import_result.allowed
+        skipped = import_result.skipped
+        refused_symlinks = import_result.refused_symlinks
         pkg_root = profile_pkg_root(root, config)
         records = []
         # SECURITY: `run_import` previously wrote sources/, documents/,
@@ -913,6 +940,28 @@ class PipelineRunner:
             records.append(record)
             source_path = pkg_root / "sources" / f"{record.source_hash}.json"
             write_json_redacted(source_path, metadata, redactor)
+
+        # Spec 027 FR-001..FR-004: refused symlinks surface as skipped sources
+        # under run_import as well, with the same skip reason as run_ingest.
+        for path in refused_symlinks:
+            record, metadata = build_source_record(
+                path,
+                root,
+                "text/unknown",
+                "skipped",
+                status_reason=SKIP_REASON_SYMLINK_REFUSED,
+                skip_reason=SKIP_REASON_SYMLINK_REFUSED,
+            )
+            records.append(record)
+            source_path = pkg_root / "sources" / f"{record.source_hash}.json"
+            write_json_redacted(source_path, metadata, redactor)
+
+        # Spec 027 FR-002: one-line stderr warning on refusal.
+        if refused_symlinks:
+            sys.stderr.write(
+                f"WARN: refused {len(refused_symlinks)} symlinks pointing outside "
+                f"{root.resolve()} (see manifest for details)\n"
+            )
 
         pipeline_version = str(config.raw.get("run_metadata", {}).get("pipeline_version", DEFAULT_PIPELINE_VERSION))
         input_hash = inputs_hash(records)

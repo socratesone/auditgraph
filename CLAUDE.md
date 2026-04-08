@@ -7,6 +7,8 @@ This file is the working agreement between Claude Code and this codebase. Read i
 ## Active Technologies
 - Python 3.10+ (existing constraint, no change) + stdlib only for the new `build_file_nodes` function. No new dependencies. (025-remove-code-extraction)
 - Sharded JSON files under `.pkg/profiles/<profile>/` (existing `entities/<shard>/<id>.json` layout, no change) (025-remove-code-extraction)
+- Python 3.10+ (unchanged from current project baseline; no new version requirement) + argparse (stdlib), PyYAML, pypdf, python-docx, dulwich, optional spaCy, optional neo4j driver. **NEW**: `jsonschema>=4,<5` (pure Python, ~200 KB, zero compiled deps). **PINNED** (lower bound only, no upper bound unless an incompatibility is discovered): `pyyaml`, `pypdf`, `python-docx`. (027-security-hardening)
+- Sharded JSON files under `.pkg/profiles/<profile>/` (unchanged). No new shard types, no new index files, no new schema version. The run manifest gains one new structured field (`redaction_postcondition`); otherwise the on-disk layout is untouched. (027-security-hardening)
 
 - Python 3.10+
 - argparse (CLI), PyYAML (config), stdlib `json` (storage I/O)
@@ -99,10 +101,10 @@ auditgraph query --q "term" --type X   # extended search with filters
 - No print() in library code; CLI output goes through `cli._emit()`.
 
 ## Recent Changes
+- 027-security-hardening: Added Python 3.10+ (unchanged from current project baseline; no new version requirement) + argparse (stdlib), PyYAML, pypdf, python-docx, dulwich, optional spaCy, optional neo4j driver. **NEW**: `jsonschema>=4,<5` (pure Python, ~200 KB, zero compiled deps). **PINNED** (lower bound only, no upper bound unless an incompatibility is discovered): `pyyaml`, `pypdf`, `python-docx`.
 - 025-remove-code-extraction: Added Python 3.10+ (existing constraint, no change) + stdlib only for the new `build_file_nodes` function. No new dependencies.
 
 - 023-local-query-filters: Added local query filters & aggregation. New `auditgraph list` command, extended `query`/`neighbors` with `--type`/`--where`/`--sort`/`--limit`/`--count`/`--group-by`/`--edge-type`/`--min-confidence`. New per-type indexes and filter engine. Forward adjacency now rebuilt from all link files (was empty for git-provenance links). New MCP tool `ag_list` with response envelope. 161 new tests.
-- 020-git-provenance-ingestion: Git provenance entities & links via dulwich. Commit/author/file/ref/tag entities; modifies/authored_by/parent_of/contains/tags/on_branch links. Git query commands.
 
 <!-- MANUAL ADDITIONS START -->
 
