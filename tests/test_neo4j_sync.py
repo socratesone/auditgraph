@@ -16,7 +16,7 @@ def test_sync_neo4j_dry_run_no_mutation(tmp_path: Path, monkeypatch) -> None:
 
     monkeypatch.setattr(
         "auditgraph.neo4j.sync.load_connection_from_env",
-        lambda: type("Conn", (), {"uri": "bolt://x", "database": "neo4j"})(),
+        lambda **_kw: type("Conn", (), {"uri": "bolt://x", "database": "neo4j"})(),
     )
     monkeypatch.setattr("auditgraph.neo4j.sync.create_driver", lambda conn: FakeDriver(store))
     monkeypatch.setattr("auditgraph.neo4j.sync.ping_connection", lambda driver, db: None)
@@ -35,7 +35,7 @@ def test_sync_neo4j_repeated_runs_keep_unique_ids(tmp_path: Path, monkeypatch) -
 
     monkeypatch.setattr(
         "auditgraph.neo4j.sync.load_connection_from_env",
-        lambda: type("Conn", (), {"uri": "bolt://x", "database": "neo4j"})(),
+        lambda **_kw: type("Conn", (), {"uri": "bolt://x", "database": "neo4j"})(),
     )
     monkeypatch.setattr("auditgraph.neo4j.sync.create_driver", lambda conn: FakeDriver(store))
     monkeypatch.setattr("auditgraph.neo4j.sync.ping_connection", lambda driver, db: None)

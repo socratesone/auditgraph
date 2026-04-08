@@ -135,6 +135,11 @@ def _build_parser() -> argparse.ArgumentParser:
     rebuild_parser = subparsers.add_parser("rebuild", help="Rebuild all stages")
     rebuild_parser.add_argument("--root", default=".", help="Workspace root (default: CWD; override with AUDITGRAPH_ROOT)")
     rebuild_parser.add_argument("--config", default=None, help="Config path (default: <root>/config/pkg.yaml; override with AUDITGRAPH_CONFIG)")
+    rebuild_parser.add_argument(
+        "--allow-redaction-misses",
+        action="store_true",
+        help="Tolerate redaction postcondition misses (Spec 027 FR-027). The miss list is still recorded in the manifest.",
+    )
 
     query_parser = subparsers.add_parser("query", help="Run query stage")
     query_parser.add_argument("--q", default="", help="Query string")
@@ -218,12 +223,76 @@ def _build_parser() -> argparse.ArgumentParser:
     sync_neo4j_parser.add_argument("--root", default=".", help="Workspace root (default: CWD; override with AUDITGRAPH_ROOT)")
     sync_neo4j_parser.add_argument("--config", default=None, help="Config path (default: <root>/config/pkg.yaml; override with AUDITGRAPH_CONFIG)")
     sync_neo4j_parser.add_argument("--dry-run", action="store_true", help="Validate without mutating target")
+    sync_neo4j_parser.add_argument(
+        "--require-tls",
+        action="store_true",
+        help="Refuse non-loopback bolt:///neo4j:// URIs (Spec 027 FR-023a). Equivalent to AUDITGRAPH_REQUIRE_TLS=1.",
+    )
+
+    # Spec 027 FR-019..FR-022: auditgraph validate-store
+    validate_store_parser = subparsers.add_parser(
+        "validate-store",
+        help="Audit an existing .pkg/ store for redaction misses (read-only)",
+    )
+    validate_store_parser.add_argument("--root", default=".", help="Workspace root")
+    validate_store_parser.add_argument("--config", default=None, help="Config path")
+    profile_group = validate_store_parser.add_mutually_exclusive_group()
+    profile_group.add_argument("--profile", default=None, help="Override the active profile")
+    profile_group.add_argument(
+        "--all-profiles",
+        action="store_true",
+        help="Scan every profile under .pkg/profiles/*/",
+    )
+    validate_store_parser.add_argument(
+        "--format",
+        choices=("json", "text"),
+        default="text",
+        help="Output format (default: text)",
+    )
 
     return parser
 
 
 def _emit(payload: dict[str, object]) -> None:
     print(json.dumps(payload, indent=2))
+
+
+def _render_validate_store_text(result: dict) -> None:
+    """Text renderer for `auditgraph validate-store` (Spec 027 US6)."""
+    if "message" in result and not result.get("misses") and "profiles" not in result:
+        print(result["message"])
+        return
+    if "profiles" in result:
+        # --all-profiles shape
+        any_fail = result.get("status") == "fail"
+        if not any_fail:
+            print("No redaction misses detected.")
+        else:
+            print("REDACTION MISSES DETECTED")
+            for profile_name in sorted(result["profiles"].keys()):
+                entry = result["profiles"][profile_name]
+                if entry["status"] == "fail":
+                    print(f"Profile: {profile_name}")
+                    for miss in entry["misses"]:
+                        print(f"  {miss['path']} ({miss['category']} in field `{miss['field']}`)")
+        total_scanned = sum(p.get("scanned_shards", 0) for p in result["profiles"].values())
+        print(f"\nScanned: {total_scanned} shards across {len(result['profiles'])} profile(s).")
+        if any_fail:
+            print("Exit code: 1")
+        return
+    # Single-profile shape
+    if result.get("status") == "pass":
+        print("No redaction misses detected.")
+    else:
+        print("REDACTION MISSES DETECTED")
+        print(f"Profile: {result.get('profile', '(unknown)')}")
+        for miss in result.get("misses", []):
+            print(f"  {miss['path']} ({miss['category']} in field `{miss['field']}`)")
+    scanned = result.get("scanned_shards", 0)
+    wallclock = result.get("wallclock_ms", 0)
+    print(f"\nScanned: {scanned} shards across 1 profile(s) in {wallclock}ms.")
+    if result.get("status") == "fail":
+        print("Exit code: 1")
 
 
 
@@ -332,10 +401,22 @@ def main() -> None:
             return
 
         if args.command == "rebuild":
+            from auditgraph.pipeline.postcondition import PostconditionFailed
+
             runner = PipelineRunner()
             root = _resolve_root(getattr(args, "root", "."))
             config = load_config(_resolve_config(getattr(args, "config", None), root))
-            result = runner.run_stage("rebuild", root=root, config=config)
+            try:
+                result = runner.run_stage(
+                    "rebuild",
+                    root=root,
+                    config=config,
+                    allow_redaction_misses=bool(getattr(args, "allow_redaction_misses", False)),
+                )
+            except PostconditionFailed as exc:
+                sys.stderr.write(f"ERROR: {exc}\n")
+                _emit({"stage": "rebuild", "status": "error", "redaction_postcondition": exc.result})
+                raise SystemExit(3)
             _emit({"stage": result.stage, "status": result.status, "detail": result.detail})
             return
 
@@ -479,16 +560,56 @@ def main() -> None:
         if args.command == "export-neo4j":
             root = _resolve_root(getattr(args, "root", "."))
             config = load_config(_resolve_config(getattr(args, "config", None), root))
-            output_path = Path(args.output).resolve() if args.output else None
+            export_base = (root / "exports" / "neo4j").resolve()
+            if args.output:
+                target = Path(args.output)
+                resolved = target.resolve() if target.is_absolute() else (root / target).resolve()
+                ensure_within_base(resolved, export_base, label="neo4j output path")
+                output_path = resolved
+            else:
+                output_path = export_base / "export.cypher"
             payload = export_neo4j(root, config, output_path=output_path)
             _emit(payload.to_dict())
             return
 
         if args.command == "sync-neo4j":
+            from auditgraph.neo4j.connection import Neo4jTlsRequiredError
+
             root = _resolve_root(getattr(args, "root", "."))
             config = load_config(_resolve_config(getattr(args, "config", None), root))
-            payload = sync_neo4j(root, config, dry_run=bool(args.dry_run))
+            require_tls_flag = bool(getattr(args, "require_tls", False)) or None
+            try:
+                payload = sync_neo4j(
+                    root,
+                    config,
+                    dry_run=bool(args.dry_run),
+                    require_tls=require_tls_flag,
+                )
+            except Neo4jTlsRequiredError as exc:
+                sys.stderr.write(f"ERROR: {exc}\n")
+                raise SystemExit(4)
             _emit(payload.to_dict())
+            return
+
+        if args.command == "validate-store":
+            from auditgraph.query.validate_store import validate_store
+
+            root = _resolve_root(getattr(args, "root", "."))
+            config = load_config(_resolve_config(getattr(args, "config", None), root))
+            pkg_root = root / ".pkg"
+            result = validate_store(
+                pkg_root,
+                config=config,
+                profile=getattr(args, "profile", None),
+                all_profiles=bool(getattr(args, "all_profiles", False)),
+            )
+            fmt = getattr(args, "format", "text")
+            if fmt == "json":
+                _emit(result)
+            else:
+                _render_validate_store_text(result)
+            if result.get("status") == "fail":
+                raise SystemExit(1)
             return
 
         if args.command == "jobs":

@@ -61,7 +61,7 @@ def test_spec017_neo4j_sync_retains_provenance(tmp_path: Path, monkeypatch) -> N
     store: dict[str, set[str]] = {"nodes": set(), "relationships": set()}
     monkeypatch.setattr(
         "auditgraph.neo4j.sync.load_connection_from_env",
-        lambda: type("Conn", (), {"uri": "bolt://x", "database": "neo4j"})(),
+        lambda **_kw: type("Conn", (), {"uri": "bolt://x", "database": "neo4j"})(),
     )
     monkeypatch.setattr("auditgraph.neo4j.sync.create_driver", lambda conn: FakeDriver(store))
     monkeypatch.setattr("auditgraph.neo4j.sync.ping_connection", lambda driver, db: None)

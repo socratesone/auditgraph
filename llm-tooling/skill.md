@@ -808,6 +808,66 @@ Rebuild all stages.
 }
 ```
 
+## ag_validate_store
+
+Audit an existing .pkg/ store for redaction misses (read-only).
+
+- Risk: low
+- Idempotency: idempotent
+
+### Inputs
+```
+{
+  "type": "object",
+  "properties": {
+    "root": {
+      "type": "string"
+    },
+    "config": {
+      "type": "string"
+    },
+    "profile": {
+      "type": "string"
+    },
+    "all_profiles": {
+      "type": "boolean"
+    },
+    "format": {
+      "type": "string",
+      "enum": [
+        "json",
+        "text"
+      ]
+    }
+  },
+  "additionalProperties": false
+}
+```
+
+### Outputs
+```
+{
+  "type": "object",
+  "additionalProperties": true
+}
+```
+
+### Example
+```
+{
+  "input": {
+    "format": "json"
+  },
+  "output": {
+    "profile": "default",
+    "status": "pass",
+    "misses": [],
+    "scanned_shards": 0,
+    "wallclock_ms": 1
+  }
+}
+```
+
 ## ag_version
 
 Return the auditgraph CLI version.

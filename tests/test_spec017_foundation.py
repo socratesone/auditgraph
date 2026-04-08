@@ -5,6 +5,7 @@ from pathlib import Path
 
 from auditgraph.config import load_config
 from auditgraph.ingest.parsers import parse_file
+from tests.support import null_parse_options
 from auditgraph.ingest.policy import load_policy
 from auditgraph.storage.config_snapshot import ingestion_config_hash
 from auditgraph.utils.chunking import chunk_text
@@ -59,17 +60,17 @@ def test_spec017_parser_routing_and_status_shape() -> None:
     fixture_dir = spec017_fixture_dir()
     policy = load_policy(load_config(None).profile())
 
-    pdf_result = parse_file(fixture_dir / "sample.pdf", policy)
+    pdf_result = parse_file(fixture_dir / "sample.pdf", policy, null_parse_options())
     assert pdf_result.parser_id == "document/pdf"
     assert pdf_result.status in {"ok", "failed"}
 
-    docx_result = parse_file(fixture_dir / "sample.docx", policy)
+    docx_result = parse_file(fixture_dir / "sample.docx", policy, null_parse_options())
     assert docx_result.parser_id == "document/docx"
     assert docx_result.status == "ok"
 
     unsupported_doc = fixture_dir / "unsupported.doc"
     unsupported_doc.write_text("legacy doc", encoding="utf-8")
-    doc_result = parse_file(unsupported_doc, policy)
+    doc_result = parse_file(unsupported_doc, policy, null_parse_options())
     assert doc_result.status == "failed"
     assert doc_result.status_reason == "unsupported_doc_format"
 
@@ -91,7 +92,7 @@ def test_spec017_config_hash_and_helpers_are_deterministic() -> None:
 def test_spec017_parse_metadata_contains_document_segments_chunks() -> None:
     fixture_dir = spec017_fixture_dir()
     policy = load_policy(load_config(None).profile())
-    result = parse_file(fixture_dir / "sample.docx", policy)
+    result = parse_file(fixture_dir / "sample.docx", policy, null_parse_options())
     assert result.status == "ok"
     assert isinstance(result.metadata, dict)
     metadata = result.metadata or {}
