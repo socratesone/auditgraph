@@ -50,9 +50,9 @@ Auditgraph solves the "where did this fact come from?" problem for technical not
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| File ingestion (text, markdown, code) | Implemented | Deterministic with stable IDs |
+| File ingestion (text, markdown, documents) | Implemented | Deterministic with stable IDs. Source code files are not ingested — see "Content extraction" below. |
 | PDF/DOCX ingestion | Implemented | OCR mode: off/auto/on |
-| Entity extraction | Implemented | Notes. Code files produce one opaque `file` entity per file — no function/class/import extraction. See "Content extraction" below. |
+| Entity extraction | Implemented | Notes (markdown). Source code files are not ingested. File entities (one per path in git history) are produced by the git provenance stage when enabled. |
 | NER entity extraction | Implemented | Opt-in (off by default). Requires `spacy` + a model; enable via config. Best on natural-language content, not code. |
 | Linking (co-occurrence) | Implemented | Explainable links with provenance |
 | BM25 keyword index | Implemented | Case-insensitive exact-key lookup |
@@ -146,16 +146,13 @@ Filter operators: `=`, `!=`, `>`, `>=`, `<`, `<=`, `~` (substring contains). Num
 Current extract stage behavior:
 
 - Creates note entities from markdown files.
-- Creates one opaque `file` entity per supported source file (`.py`, `.js`, `.ts`, `.tsx`, `.jsx`). Despite the rule name `extract.code_symbols.v1`, this does **not** extract functions, classes, methods, or imports — each source file becomes a single node with just its name, canonical key, and source path. The rule is named for an intended behavior that was never implemented. For real code structure navigation, use a language-aware tool (LSP, ctags, ripgrep, treesitter-based analyzers).
-- Extracts NER entities from chunks when `profiles.<name>.extraction.ner.enabled: true`. **NER is off by default** because it runs spaCy inference over every chunk in the workspace and is meaningful only on natural-language content (notes, documents, PDFs). On code-only repositories the inference cost is high (minutes on a few hundred files) and the results are mostly false positives. To enable NER, install the model with `python -m spacy download en_core_web_sm` and then set `enabled: true` in your profile's `extraction.ner` config. Even when enabled, NER only runs on chunks whose source file is a natural-language document — by default that means `.md`, `.markdown`, `.txt`, `.rst`, `.pdf`, and `.docx`. The list is configurable via `extraction.ner.natural_language_extensions` if you need to add or restrict file types.
+- **Source code files are not ingested.** Files with extensions `.py`, `.js`, `.ts`, `.tsx`, `.jsx` are skipped at the ingest stage with reason `unsupported_extension`. Auditgraph is a documents + provenance tool; code structure navigation is better served by language-aware tools (LSP, ctags, ripgrep, treesitter-based analyzers). The decision is documented in `specs/025-remove-code-extraction/spec.md`.
+- File entities are produced by the git provenance stage (one per distinct file path in commit history) when `git_provenance.enabled: true`. They serve as provenance anchors for `modifies` links from commits — every committed file, including markdown notes, PDFs, configs, and code, becomes a reachable node in the graph regardless of whether it would otherwise be ingested.
+- Extracts NER entities from chunks when `profiles.<name>.extraction.ner.enabled: true`. **NER is off by default** because it runs spaCy inference over every chunk in the workspace and is meaningful only on natural-language content (notes, documents, PDFs). To enable NER, install the model with `python -m spacy download en_core_web_sm` and then set `enabled: true` in your profile's `extraction.ner` config. Even when enabled, NER only runs on chunks whose source file is a natural-language document — by default that means `.md`, `.markdown`, `.txt`, `.rst`, `.pdf`, and `.docx`. The list is configurable via `extraction.ner.natural_language_extensions` if you need to add or restrict file types.
 
 #### NER quality limitations on technical content
 
 The default model `en_core_web_sm` is trained on news and web text. On technical or scientific content (research papers, ML literature, domain-specific writing) it produces a high false-positive rate: technical acronyms (`GPU`, `CPU`, `RNN`, `WER`) get classified as `ner:org`; concept words (`Edge`, `Training`, `Bias`) and model names (`Whisper`, `NeMo`) get classified as `ner:person`; numeric markdown citation tokens get classified as `ner:money`. If your content is technical, expect NER output to need manual filtering or post-processing before it's useful, or consider using a domain-tuned model. SciSpaCy's `en_core_sci_sm` is a better fit for biomedical/scientific text and can be installed alongside spaCy and selected via the `extraction.ner.model` config field.
-
-#### Code files do not produce chunks
-
-Source files with code extensions (`.py`, `.js`, `.ts`, `.tsx`, `.jsx`) are ingested but **do not go through the chunker by default**. They produce one `file` entity per file (via `extract.code_symbols.v1`) with the file name and source hash, but no chunk-level body content. This means BM25 search can find code files by name, not by content; `auditgraph query --q "load_user"` will not find a function definition unless `load_user` is also the file name. This is intentional: code structure is better served by language-aware tools (LSP, ctags, ripgrep, treesitter-based analyzers). Auditgraph is a knowledge graph for documents and provenance, not a code intelligence layer. If you need to enable basic token-based BM25 search over code body content, set `profiles.<name>.ingestion.chunk_code.enabled: true` in your config; this routes code files through the same sliding-window chunker used for prose, with the caveat that 200-token chunks of source code are noisy and rarely produce high-signal search results.
 
 Planned markdown sub-entities (implemented in extractor code but not wired into the default extract pipeline yet):
 
@@ -277,7 +274,7 @@ auditgraph normalize --run-id <run_id>
 auditgraph extract --run-id <run_id>
 auditgraph link --run-id <run_id>
 auditgraph index --run-id <run_id>
-auditgraph rebuild
+auditgraph rebuild [--allow-redaction-misses]     # Spec 027 FR-027: tolerate postcondition misses
 auditgraph query --q "symbol" [--type T] [--where "f=v"] [--sort F] [--limit N]
 auditgraph list [--type T] [--where "f=v"] [--sort F] [--limit N] [--count] [--group-by F]
 auditgraph node <entity_id>
@@ -286,7 +283,8 @@ auditgraph why-connected --from <entity_id> --to <entity_id>
 auditgraph diff --run-a <run_id_1> --run-b <run_id_2>
 auditgraph export --format json
 auditgraph export-neo4j --output exports/neo4j/graph.cypher
-auditgraph sync-neo4j --dry-run
+auditgraph sync-neo4j --dry-run [--require-tls]    # Spec 027 FR-023a: refuse plaintext bolt:// to non-loopback
+auditgraph validate-store [--profile NAME | --all-profiles] [--format json|text]   # Spec 027 FR-019: read-only audit
 auditgraph replay <run_id>                         # Replay a previous run
 auditgraph git-provenance                          # Ingest git history
 auditgraph git-who <file>

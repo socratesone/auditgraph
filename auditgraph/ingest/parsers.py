@@ -20,6 +20,7 @@ from auditgraph.storage.hashing import (
 )
 from auditgraph.utils.chunking import chunk_text
 from auditgraph.utils.document_text import normalize_document_text
+from auditgraph.utils.redaction import Redactor
 
 
 @dataclass(frozen=True)
@@ -55,11 +56,23 @@ def _build_document_metadata(
     options: dict[str, object],
     extra: dict[str, object] | None = None,
 ) -> dict[str, object]:
+    # Spec 027 FR-016: redact full document text BEFORE chunking so multi-line
+    # secrets (PEM keys) are caught regardless of chunk boundaries. The hotfix
+    # (Spec 026 C1) redacted post-chunking, which was too late for cross-chunk
+    # secrets. See specs/027-security-hardening/spec.md US5.
+    redactor = options.get("redactor")
+    if not isinstance(redactor, Redactor):
+        raise ValueError(
+            "parse_options[\"redactor\"] is required; parser-entry redaction is "
+            "the single canonical redaction site per Spec 027 FR-016"
+        )
+    text = redactor.redact_text(text).value
     document_id = deterministic_document_id(path.as_posix(), source_hash)
     normalized_segments: list[dict[str, object]] = []
     for segment in sorted(segments, key=lambda item: int(item.get("order", 0))):
         order = int(segment.get("order", 0))
         segment_text = normalize_document_text(str(segment.get("text", "")))
+        segment_text = redactor.redact_text(segment_text).value
         segment_type = str(segment.get("type", "other"))
         if not segment_text:
             continue
@@ -129,9 +142,16 @@ def _build_document_metadata(
 
 
 def parse_file(path: Path, policy: IngestionPolicy, ingest_options: dict[str, object] | None = None) -> ParseResult:
+    # Spec 027 FR-016: parser-entry is the single canonical redaction site.
+    # A missing redactor MUST raise loudly rather than silently skip scrubbing
+    # (that silent-skip path is exactly what Spec 026 C1 closed).
+    if not ingest_options or not isinstance(ingest_options.get("redactor"), Redactor):
+        raise ValueError(
+            "parse_options[\"redactor\"] is required; parser-entry redaction is "
+            "the single canonical redaction site per Spec 027 FR-016"
+        )
     options = _default_ingest_options()
-    if ingest_options:
-        options.update(ingest_options)
+    options.update(ingest_options)
 
     suffix = path.suffix.lower()
     if suffix == ".doc":
@@ -220,19 +240,7 @@ def parse_file(path: Path, policy: IngestionPolicy, ingest_options: dict[str, ob
     if parser_id == "text/markdown":
         metadata["frontmatter"] = extract_frontmatter(text)
 
-    # Determine which parser_ids should produce chunks. Markdown and plain
-    # text always do. text/code is opt-in via the `chunk_code` option (Issue 2
-    # Phase 2): when enabled, code files are routed through the same
-    # sliding-window chunker so their body content becomes BM25-searchable.
-    # The default is off because prose-style chunking on code produces noisy
-    # chunks (mid-function splits) and dedicated code-navigation tools handle
-    # this better.
-    chunkable_parser_ids = {"text/plain", "text/markdown"}
-    chunk_code_enabled = bool(options.get("chunk_code_enabled", False))
-    if chunk_code_enabled:
-        chunkable_parser_ids.add("text/code")
-
-    if parser_id in chunkable_parser_ids:
+    if parser_id in ("text/plain", "text/markdown"):
         normalized = normalize_document_text(text)
         if normalized:
             metadata = _build_document_metadata(

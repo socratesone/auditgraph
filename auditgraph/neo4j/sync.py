@@ -87,7 +87,7 @@ def sync_relationships_batch(
     return (0, updated)
 
 
-def sync_neo4j(root, config: Config, dry_run: bool = False) -> ExportSummary:
+def sync_neo4j(root, config: Config, dry_run: bool = False, *, require_tls: bool | None = None) -> ExportSummary:
     started = perf_counter()
     timestamp = datetime.now(timezone.utc).isoformat()
     profile_name = config.active_profile()
@@ -101,7 +101,7 @@ def sync_neo4j(root, config: Config, dry_run: bool = False) -> ExportSummary:
         redactor=redactor,
     )
 
-    conn = load_connection_from_env()
+    conn = load_connection_from_env(require_tls=require_tls)
     summary = ExportSummary(
         mode="dry-run" if dry_run else "sync",
         profile=profile_name,

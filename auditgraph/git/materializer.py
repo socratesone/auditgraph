@@ -39,11 +39,19 @@ def build_commit_nodes(selected_commits: list[Any], repo_path: str) -> list[dict
     """Build commit entity dicts from selected commits."""
     nodes: list[dict[str, Any]] = []
     for c in selected_commits:
+        subject_first_line = c.subject.split("\n")[0] if c.subject else ""
         node: dict[str, Any] = {
             "id": deterministic_commit_id(repo_path, c.sha),
             "type": "commit",
+            # `name` is the human-readable label used by BM25 indexing,
+            # `auditgraph node`, `auditgraph list --sort name`, and the
+            # node_view query. For commits we use the first line of the
+            # commit message (its "subject"), matching git's own convention.
+            # The `subject` field is preserved separately for backwards
+            # compatibility with code that already references it.
+            "name": subject_first_line,
             "sha": c.sha,
-            "subject": c.subject.split("\n")[0],
+            "subject": subject_first_line,
             "author_name": c.author_name,
             "author_email": c.author_email,
             "authored_at": c.authored_at,
@@ -76,9 +84,15 @@ def build_author_nodes(selected_commits: list[Any], repo_path: str) -> list[dict
     nodes: list[dict[str, Any]] = []
     for email in sorted(names_by_email.keys()):
         aliases = sorted(names_by_email[email])
+        # `name` is the human-readable display label. Prefer the first
+        # non-empty alias (the author's chosen display name); fall back to
+        # the email address when the alias is empty so the entity is still
+        # identifiable in BM25 search and node views.
+        display_name = next((a for a in aliases if a), email)
         nodes.append({
             "id": deterministic_author_id(repo_path, email),
             "type": "author_identity",
+            "name": display_name,
             "email": email,
             "name_aliases": aliases,
         })
@@ -124,6 +138,52 @@ def build_ref_nodes(branches: list[Any], repo_path: str) -> list[dict[str, Any]]
             "ref_type": "branch",
             "head_sha": b.head_sha,
         })
+    return nodes
+
+
+def build_file_nodes(
+    selected_commits: list[Any],
+    repo_path: str,
+) -> list[dict[str, Any]]:
+    """Build `file` entity dicts for every distinct path in any commit's
+    files_changed list.
+
+    Per Spec 025, this is the sole creator of `file` entities in the
+    project. The schema matches the prior file-entity output shape exactly
+    (Spec 025 clarification Q1: `id`, `type`, `name`, `canonical_key`,
+    `source_path`) so existing tests and downstream consumers of
+    `source_path` continue to work without change. All paths are treated
+    uniformly regardless of git object kind (regular file, symlink,
+    submodule) per Spec 025 clarification Q2.
+
+    The function deduplicates paths across commits (a path touched by 100
+    commits becomes 1 entity, not 100) and returns the result sorted by
+    entity ID for determinism — matching the convention used by the other
+    `build_*_nodes` functions in this module.
+
+    The entity ID is derived via `entity_id(f"file:{path}")` using the
+    same hashing function that `build_links()` uses to compute `modifies`
+    link `to_id` values, guaranteeing the link targets resolve to real
+    entities on disk after the stage runs.
+    """
+    paths: set[str] = set()
+    for c in selected_commits:
+        for file_path in getattr(c, "files_changed", []):
+            if file_path:
+                paths.add(file_path)
+
+    nodes: list[dict[str, Any]] = []
+    for path in sorted(paths):
+        canonical_key = f"file:{path}"
+        nodes.append({
+            "id": entity_id(canonical_key),
+            "type": "file",
+            "name": path.rsplit("/", 1)[-1],
+            "canonical_key": canonical_key,
+            "source_path": path,
+        })
+
+    nodes.sort(key=lambda n: n["id"])
     return nodes
 
 

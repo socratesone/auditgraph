@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>auditgraph Architecture Diagram</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: #020617;
+      min-height: 100vh;
+      padding: 2rem;
+      color: white;
+    }
+    .container { max-width: 1280px; margin: 0 auto; }
+    .header { margin-bottom: 2rem; }
+    .header-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
+    .pulse-dot {
+      width: 12px; height: 12px;
+      background: #22d3ee;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.025em; }
+    .subtitle { color: #94a3b8; font-size: 0.875rem; margin-left: 1.75rem; }
+    .diagram-container {
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 1rem;
+      border: 1px solid #1e293b;
+      padding: 1.5rem;
+      overflow-x: auto;
+    }
+    svg { width: 100%; min-width: 1100px; display: block; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 0.75rem;
+      border: 1px solid #1e293b;
+      padding: 1.25rem;
+    }
+    .card-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .card-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .card-dot.cyan { background: #22d3ee; }
+    .card-dot.emerald { background: #34d399; }
+    .card-dot.violet { background: #a78bfa; }
+    .card-dot.amber { background: #fbbf24; }
+    .card-dot.rose { background: #fb7185; }
+    .card-dot.orange { background: #fb923c; }
+    .card h3 { font-size: 0.875rem; font-weight: 600; }
+    .card ul { list-style: none; color: #94a3b8; font-size: 0.75rem; }
+    .card li { margin-bottom: 0.375rem; }
+    .footer { text-align: center; margin-top: 1.5rem; color: #475569; font-size: 0.75rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-row">
+        <div class="pulse-dot"></div>
+        <h1>auditgraph Architecture</h1>
+      </div>
+      <p class="subtitle">Local-first, deterministic personal knowledge graph CLI · sharded JSON storage · optional Neo4j export</p>
+    </div>
+
+    <!-- Main Diagram -->
+    <div class="diagram-container">
+      <svg viewBox="0 0 1160 940">
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+          </marker>
+          <marker id="arrowhead-cyan" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee"/>
+          </marker>
+          <marker id="arrowhead-emerald" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#34d399"/>
+          </marker>
+          <marker id="arrowhead-violet" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#a78bfa"/>
+          </marker>
+          <marker id="arrowhead-rose" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#fb7185"/>
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- Background grid -->
+        <rect width="100%" height="100%" fill="url(#grid)"/>
+
+        <!-- ================================================================
+             SECTION LABELS
+             ================================================================ -->
+        <text x="30" y="35" fill="#475569" font-size="10" font-weight="600" letter-spacing="2">INPUT SOURCES</text>
+        <text x="30" y="175" fill="#475569" font-size="10" font-weight="600" letter-spacing="2">CLIENTS  ·  ACCESS SURFACE</text>
+        <text x="30" y="355" fill="#475569" font-size="10" font-weight="600" letter-spacing="2">CORE PIPELINE — deterministic, offline, 6 stages</text>
+        <text x="30" y="605" fill="#475569" font-size="10" font-weight="600" letter-spacing="2">STORAGE — sharded JSON under .pkg/profiles/&lt;profile&gt;/</text>
+        <text x="30" y="800" fill="#475569" font-size="10" font-weight="600" letter-spacing="2">QUERY LAYER  ·  EXPORT</text>
+
+        <!-- ================================================================
+             CONNECTION ARROWS — drawn early so they render behind boxes
+             ================================================================ -->
+
+        <!-- Clients → Interfaces -->
+        <line x1="150" y1="235" x2="238" y2="235" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrowhead-cyan)"/>
+        <text x="194" y="228" fill="#94a3b8" font-size="8" text-anchor="middle">invoke</text>
+        <line x1="150" y1="305" x2="238" y2="305" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrowhead-cyan)"/>
+        <text x="194" y="298" fill="#94a3b8" font-size="8" text-anchor="middle">stdio/MCP</text>
+
+        <!-- Tool Manifest → MCP server (and adapters) -->
+        <line x1="430" y1="305" x2="372" y2="305" stroke="#fbbf24" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="400" y="298" fill="#fbbf24" font-size="7" text-anchor="middle">schema</text>
+
+        <!-- Interface → Pipeline (entry to ingest) -->
+        <line x1="300" y1="340" x2="300" y2="440" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowhead-emerald)"/>
+
+        <!-- Sources → ingest (top to pipeline) -->
+        <path d="M 100 100 Q 100 220 220 260 Q 300 290 300 440" fill="none" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#arrowhead)"/>
+
+        <!-- Pipeline stage arrows -->
+        <line x1="375" y1="475" x2="420" y2="475" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowhead-emerald)"/>
+        <line x1="510" y1="475" x2="555" y2="475" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowhead-emerald)"/>
+        <line x1="645" y1="475" x2="690" y2="475" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowhead-emerald)"/>
+        <line x1="780" y1="475" x2="825" y2="475" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowhead-emerald)"/>
+        <line x1="915" y1="475" x2="960" y2="475" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowhead-emerald)"/>
+
+        <!-- Pipeline → Storage (vertical arrows from each stage output) -->
+        <line x1="475" y1="540" x2="475" y2="640" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arrowhead-violet)"/>
+        <line x1="745" y1="540" x2="745" y2="640" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arrowhead-violet)"/>
+        <line x1="1015" y1="540" x2="1015" y2="640" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arrowhead-violet)"/>
+        <text x="618" y="595" fill="#94a3b8" font-size="8" text-anchor="middle">write (deterministic, sort_keys)</text>
+
+        <!-- Storage → Query -->
+        <line x1="300" y1="790" x2="300" y2="835" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrowhead-violet)"/>
+        <text x="330" y="815" fill="#94a3b8" font-size="8">read</text>
+
+        <!-- Storage → Neo4j export (right side) -->
+        <line x1="1100" y1="715" x2="1100" y2="835" stroke="#a78bfa" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#arrowhead-violet)"/>
+        <text x="1078" y="780" fill="#fb7185" font-size="8" text-anchor="end">TLS req</text>
+
+        <!-- Query → back to CLI/MCP (response) -->
+        <path d="M 300 835 Q 170 835 170 420 Q 170 340 238 340" fill="none" stroke="#22d3ee" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#arrowhead-cyan)"/>
+        <text x="162" y="600" fill="#22d3ee" font-size="8" text-anchor="end">JSON response</text>
+
+        <!-- ================================================================
+             SECURITY BOUNDARY (wraps pipeline)
+             ================================================================ -->
+        <rect x="260" y="380" width="880" height="200" rx="12"
+              fill="rgba(136, 19, 55, 0.05)" stroke="#fb7185" stroke-width="1" stroke-dasharray="8,4"/>
+        <text x="276" y="398" fill="#fb7185" font-size="10" font-weight="600">Spec 027 Security Boundary</text>
+        <text x="276" y="411" fill="#fb7185" font-size="8">redactor at parser entry · postcondition scan · symlink containment · TLS gate</text>
+
+        <!-- ================================================================
+             SECTION 1 — INPUT SOURCES (top row)
+             ================================================================ -->
+        <!-- Markdown / notes -->
+        <rect x="30" y="50" width="140" height="60" rx="6" fill="rgba(30, 41, 59, 0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+        <text x="100" y="72" fill="white" font-size="11" font-weight="600" text-anchor="middle">Markdown / Text</text>
+        <text x="100" y="87" fill="#94a3b8" font-size="8" text-anchor="middle">.md .markdown .txt .rst</text>
+        <text x="100" y="100" fill="#94a3b8" font-size="8" text-anchor="middle">frontmatter · ADR logs</text>
+
+        <!-- PDF / DOCX -->
+        <rect x="185" y="50" width="140" height="60" rx="6" fill="rgba(30, 41, 59, 0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+        <text x="255" y="72" fill="white" font-size="11" font-weight="600" text-anchor="middle">Documents</text>
+        <text x="255" y="87" fill="#94a3b8" font-size="8" text-anchor="middle">.pdf  →  pypdf</text>
+        <text x="255" y="100" fill="#94a3b8" font-size="8" text-anchor="middle">.docx →  python-docx</text>
+
+        <!-- Git repos -->
+        <rect x="340" y="50" width="140" height="60" rx="6" fill="rgba(30, 41, 59, 0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+        <text x="410" y="72" fill="white" font-size="11" font-weight="600" text-anchor="middle">Git Repositories</text>
+        <text x="410" y="87" fill="#94a3b8" font-size="8" text-anchor="middle">dulwich (pure Python)</text>
+        <text x="410" y="100" fill="#94a3b8" font-size="8" text-anchor="middle">commits · file history</text>
+
+        <!-- Config / jobs -->
+        <rect x="495" y="50" width="140" height="60" rx="6" fill="rgba(30, 41, 59, 0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+        <text x="565" y="72" fill="white" font-size="11" font-weight="600" text-anchor="middle">Config · Jobs</text>
+        <text x="565" y="87" fill="#94a3b8" font-size="8" text-anchor="middle">config/pkg.yaml</text>
+        <text x="565" y="100" fill="#94a3b8" font-size="8" text-anchor="middle">config/jobs.yaml · PyYAML</text>
+
+        <!-- Excluded: source code (out of scope note) -->
+        <rect x="650" y="50" width="200" height="60" rx="6" fill="rgba(15,23,42,0.4)" stroke="#475569" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="750" y="72" fill="#64748b" font-size="10" font-weight="600" text-anchor="middle">Source code — OUT OF SCOPE</text>
+        <text x="750" y="87" fill="#64748b" font-size="8" text-anchor="middle">.py .ts .tsx .js .jsx skipped</text>
+        <text x="750" y="100" fill="#64748b" font-size="8" text-anchor="middle">(Spec 025) — use tldr instead</text>
+
+        <!-- ================================================================
+             SECTION 2 — CLIENTS (left column) & INTERFACES (middle)
+             ================================================================ -->
+        <!-- Clients -->
+        <rect x="30" y="210" width="120" height="50" rx="6" fill="rgba(30, 41, 59, 0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+        <text x="90" y="232" fill="white" font-size="11" font-weight="600" text-anchor="middle">Operator</text>
+        <text x="90" y="247" fill="#94a3b8" font-size="8" text-anchor="middle">terminal / scripts</text>
+
+        <rect x="30" y="280" width="120" height="50" rx="6" fill="rgba(30, 41, 59, 0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+        <text x="90" y="302" fill="white" font-size="11" font-weight="600" text-anchor="middle">LLM clients</text>
+        <text x="90" y="317" fill="#94a3b8" font-size="8" text-anchor="middle">Claude / GPT / agents</text>
+
+        <!-- Interfaces (backend green) - opaque masks -->
+        <rect x="240" y="210" width="130" height="50" rx="6" fill="#0f172a"/>
+        <rect x="240" y="210" width="130" height="50" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="305" y="232" fill="white" font-size="11" font-weight="600" text-anchor="middle">CLI</text>
+        <text x="305" y="247" fill="#94a3b8" font-size="8" text-anchor="middle">auditgraph/cli.py · argparse</text>
+
+        <rect x="240" y="280" width="130" height="50" rx="6" fill="#0f172a"/>
+        <rect x="240" y="280" width="130" height="50" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="305" y="302" fill="white" font-size="11" font-weight="600" text-anchor="middle">MCP Server</text>
+        <text x="305" y="317" fill="#94a3b8" font-size="8" text-anchor="middle">llm-tooling/mcp/ · stdio JSON-RPC</text>
+
+        <!-- Tool Manifest + adapters (amber, generated) -->
+        <rect x="430" y="200" width="200" height="140" rx="6" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="530" y="220" fill="white" font-size="11" font-weight="600" text-anchor="middle">Tool Manifest (source of truth)</text>
+        <text x="530" y="237" fill="#fbbf24" font-size="8" text-anchor="middle">llm-tooling/tool.manifest.json</text>
+        <text x="530" y="256" fill="#94a3b8" font-size="8" text-anchor="middle">24 tools · 14 read · 10 write</text>
+        <text x="530" y="271" fill="#94a3b8" font-size="8" text-anchor="middle">risk · idempotency · timeouts</text>
+        <text x="530" y="290" fill="#94a3b8" font-size="8" text-anchor="middle">⇣  generators  ⇣</text>
+        <text x="530" y="306" fill="#94a3b8" font-size="8" text-anchor="middle">• skill.md</text>
+        <text x="530" y="320" fill="#94a3b8" font-size="8" text-anchor="middle">• adapters/openai.functions.json</text>
+        <text x="530" y="334" fill="#fbbf24" font-size="7" text-anchor="middle">contract-tested</text>
+
+        <!-- Config loader sidecar -->
+        <rect x="680" y="200" width="160" height="60" rx="6" fill="rgba(30,41,59,0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+        <text x="760" y="220" fill="white" font-size="11" font-weight="600" text-anchor="middle">Config Loader</text>
+        <text x="760" y="237" fill="#94a3b8" font-size="8" text-anchor="middle">auditgraph/config.py</text>
+        <text x="760" y="251" fill="#94a3b8" font-size="8" text-anchor="middle">workspace + profile resolution</text>
+
+        <!-- LLM provider (optional, NullProvider only) -->
+        <rect x="680" y="275" width="160" height="60" rx="6" fill="rgba(15,23,42,0.4)" stroke="#475569" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="760" y="295" fill="#64748b" font-size="11" font-weight="600" text-anchor="middle">LLM Provider iface</text>
+        <text x="760" y="311" fill="#64748b" font-size="8" text-anchor="middle">auditgraph/llm/</text>
+        <text x="760" y="325" fill="#64748b" font-size="8" text-anchor="middle">NullProvider only (no net calls)</text>
+
+        <!-- Plugins sidecar -->
+        <rect x="870" y="200" width="140" height="60" rx="6" fill="rgba(30,41,59,0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+        <text x="940" y="220" fill="white" font-size="11" font-weight="600" text-anchor="middle">Plugins</text>
+        <text x="940" y="237" fill="#94a3b8" font-size="8" text-anchor="middle">auditgraph/plugins/</text>
+        <text x="940" y="251" fill="#94a3b8" font-size="8" text-anchor="middle">extensibility hooks</text>
+
+        <!-- Jobs runner sidecar -->
+        <rect x="870" y="275" width="140" height="60" rx="6" fill="rgba(30,41,59,0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+        <text x="940" y="295" fill="white" font-size="11" font-weight="600" text-anchor="middle">Jobs Runner</text>
+        <text x="940" y="311" fill="#94a3b8" font-size="8" text-anchor="middle">auditgraph/jobs/</text>
+        <text x="940" y="325" fill="#94a3b8" font-size="8" text-anchor="middle">YAML automation</text>
+
+        <!-- ================================================================
+             SECTION 3 — CORE PIPELINE (6 stages, horizontal)
+             ================================================================ -->
+        <!-- Pipeline Runner wrapper label -->
+        <text x="276" y="430" fill="#34d399" font-size="10" font-weight="600">PipelineRunner  —  auditgraph/pipeline/runner.py</text>
+
+        <!-- Stage 1: ingest -->
+        <rect x="240" y="440" width="135" height="70" rx="6" fill="#0f172a"/>
+        <rect x="240" y="440" width="135" height="70" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="307" y="460" fill="white" font-size="11" font-weight="600" text-anchor="middle">ingest</text>
+        <text x="307" y="477" fill="#94a3b8" font-size="8" text-anchor="middle">scan · parse · manifest</text>
+        <text x="307" y="490" fill="#94a3b8" font-size="8" text-anchor="middle">symlink containment</text>
+        <text x="307" y="503" fill="#fb7185" font-size="8" text-anchor="middle">⚑ Redactor required</text>
+
+        <!-- Stage 2: git_provenance -->
+        <rect x="375" y="440" width="135" height="70" rx="6" fill="#0f172a"/>
+        <rect x="375" y="440" width="135" height="70" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="442" y="460" fill="white" font-size="11" font-weight="600" text-anchor="middle">git-provenance</text>
+        <text x="442" y="477" fill="#94a3b8" font-size="8" text-anchor="middle">commit entities</text>
+        <text x="442" y="490" fill="#94a3b8" font-size="8" text-anchor="middle">modifies links</text>
+        <text x="442" y="503" fill="#94a3b8" font-size="8" text-anchor="middle">file-commits index</text>
+
+        <!-- Stage 3: normalize -->
+        <rect x="510" y="440" width="135" height="70" rx="6" fill="#0f172a"/>
+        <rect x="510" y="440" width="135" height="70" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="577" y="460" fill="white" font-size="11" font-weight="600" text-anchor="middle">normalize</text>
+        <text x="577" y="477" fill="#94a3b8" font-size="8" text-anchor="middle">paths · text</text>
+        <text x="577" y="490" fill="#94a3b8" font-size="8" text-anchor="middle">deterministic order</text>
+
+        <!-- Stage 4: extract -->
+        <rect x="645" y="440" width="135" height="70" rx="6" fill="#0f172a"/>
+        <rect x="645" y="440" width="135" height="70" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="712" y="460" fill="white" font-size="11" font-weight="600" text-anchor="middle">extract</text>
+        <text x="712" y="477" fill="#94a3b8" font-size="8" text-anchor="middle">note entities · ADR</text>
+        <text x="712" y="490" fill="#94a3b8" font-size="8" text-anchor="middle">claims · chunks</text>
+        <text x="712" y="503" fill="#94a3b8" font-size="8" text-anchor="middle">NER (opt, spaCy)</text>
+
+        <!-- Stage 5: link -->
+        <rect x="780" y="440" width="135" height="70" rx="6" fill="#0f172a"/>
+        <rect x="780" y="440" width="135" height="70" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="847" y="460" fill="white" font-size="11" font-weight="600" text-anchor="middle">link</text>
+        <text x="847" y="477" fill="#94a3b8" font-size="8" text-anchor="middle">co-occurrence</text>
+        <text x="847" y="490" fill="#94a3b8" font-size="8" text-anchor="middle">adjacency builder</text>
+
+        <!-- Stage 6: index -->
+        <rect x="915" y="440" width="135" height="70" rx="6" fill="#0f172a"/>
+        <rect x="915" y="440" width="135" height="70" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="982" y="460" fill="white" font-size="11" font-weight="600" text-anchor="middle">index</text>
+        <text x="982" y="477" fill="#94a3b8" font-size="8" text-anchor="middle">BM25 · type_index</text>
+        <text x="982" y="490" fill="#94a3b8" font-size="8" text-anchor="middle">adjacency_builder</text>
+        <text x="982" y="503" fill="#fb7185" font-size="8" text-anchor="middle">⚑ Postcondition →</text>
+
+        <!-- Postcondition gate -->
+        <rect x="1060" y="440" width="90" height="70" rx="6" fill="rgba(136, 19, 55, 0.4)" stroke="#fb7185" stroke-width="1.5"/>
+        <text x="1105" y="462" fill="white" font-size="10" font-weight="600" text-anchor="middle">Postcondition</text>
+        <text x="1105" y="476" fill="#94a3b8" font-size="8" text-anchor="middle">shard scan</text>
+        <text x="1105" y="489" fill="#94a3b8" font-size="8" text-anchor="middle">credential-</text>
+        <text x="1105" y="500" fill="#94a3b8" font-size="8" text-anchor="middle">shape regex</text>
+
+        <!-- Link from index to postcondition -->
+        <line x1="1050" y1="475" x2="1058" y2="475" stroke="#fb7185" stroke-width="1.5" marker-end="url(#arrowhead-rose)"/>
+
+        <!-- Stage annotations underneath showing data shape -->
+        <text x="645" y="555" fill="#64748b" font-size="8" text-anchor="middle">inputs_hash → outputs_hash · stage-manifest.json · replay-log.jsonl</text>
+
+        <!-- ================================================================
+             SECTION 4 — STORAGE (sharded JSON)
+             ================================================================ -->
+        <!-- Storage outer box -->
+        <rect x="30" y="620" width="1020" height="160" rx="10" fill="rgba(76, 29, 149, 0.15)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="46" y="640" fill="#a78bfa" font-size="10" font-weight="600">.pkg/profiles/&lt;profile&gt;/  —  append-only, sorted-keys JSON</text>
+
+        <!-- Storage components -->
+        <!-- entities -->
+        <rect x="50" y="655" width="140" height="110" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="120" y="675" fill="white" font-size="11" font-weight="600" text-anchor="middle">entities/</text>
+        <text x="120" y="692" fill="#94a3b8" font-size="8" text-anchor="middle">&lt;shard&gt;/&lt;id&gt;.json</text>
+        <text x="120" y="708" fill="#94a3b8" font-size="8" text-anchor="middle">ent_* · commit_*</text>
+        <text x="120" y="722" fill="#94a3b8" font-size="8" text-anchor="middle">notes · people</text>
+        <text x="120" y="736" fill="#94a3b8" font-size="8" text-anchor="middle">ADR · NER types</text>
+        <text x="120" y="754" fill="#a78bfa" font-size="7" text-anchor="middle">2-char shard</text>
+
+        <!-- links -->
+        <rect x="200" y="655" width="140" height="110" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="270" y="675" fill="white" font-size="11" font-weight="600" text-anchor="middle">links/</text>
+        <text x="270" y="692" fill="#94a3b8" font-size="8" text-anchor="middle">&lt;shard&gt;/&lt;id&gt;.json</text>
+        <text x="270" y="708" fill="#94a3b8" font-size="8" text-anchor="middle">co-occurrence</text>
+        <text x="270" y="722" fill="#94a3b8" font-size="8" text-anchor="middle">modifies</text>
+        <text x="270" y="736" fill="#94a3b8" font-size="8" text-anchor="middle">confidence-weighted</text>
+
+        <!-- chunks + documents -->
+        <rect x="350" y="655" width="160" height="110" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="430" y="675" fill="white" font-size="11" font-weight="600" text-anchor="middle">chunks/ · documents/</text>
+        <text x="430" y="692" fill="#94a3b8" font-size="8" text-anchor="middle">&lt;shard&gt;/&lt;id&gt;.json</text>
+        <text x="430" y="708" fill="#94a3b8" font-size="8" text-anchor="middle">content segments</text>
+        <text x="430" y="722" fill="#94a3b8" font-size="8" text-anchor="middle">redacted payloads</text>
+        <text x="430" y="736" fill="#94a3b8" font-size="8" text-anchor="middle">document metadata</text>
+
+        <!-- sources -->
+        <rect x="520" y="655" width="130" height="110" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="585" y="675" fill="white" font-size="11" font-weight="600" text-anchor="middle">sources/</text>
+        <text x="585" y="692" fill="#94a3b8" font-size="8" text-anchor="middle">&lt;hash&gt;.json</text>
+        <text x="585" y="708" fill="#94a3b8" font-size="8" text-anchor="middle">provenance</text>
+        <text x="585" y="722" fill="#94a3b8" font-size="8" text-anchor="middle">mtime · sha256</text>
+
+        <!-- indexes/ -->
+        <rect x="660" y="655" width="180" height="110" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="750" y="675" fill="white" font-size="11" font-weight="600" text-anchor="middle">indexes/</text>
+        <text x="750" y="692" fill="#94a3b8" font-size="8" text-anchor="middle">bm25/index.json</text>
+        <text x="750" y="706" fill="#94a3b8" font-size="8" text-anchor="middle">types/&lt;type&gt;.json</text>
+        <text x="750" y="720" fill="#94a3b8" font-size="8" text-anchor="middle">link-types/&lt;type&gt;.json</text>
+        <text x="750" y="734" fill="#94a3b8" font-size="8" text-anchor="middle">graph/adjacency.json</text>
+        <text x="750" y="748" fill="#94a3b8" font-size="8" text-anchor="middle">git-provenance/file-commits.json</text>
+
+        <!-- runs/ -->
+        <rect x="850" y="655" width="190" height="110" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="945" y="675" fill="white" font-size="11" font-weight="600" text-anchor="middle">runs/&lt;run_id&gt;/</text>
+        <text x="945" y="692" fill="#94a3b8" font-size="8" text-anchor="middle">&lt;stage&gt;-manifest.json</text>
+        <text x="945" y="706" fill="#94a3b8" font-size="8" text-anchor="middle">replay-log.jsonl</text>
+        <text x="945" y="720" fill="#94a3b8" font-size="8" text-anchor="middle">inputs_hash · outputs_hash</text>
+        <text x="945" y="736" fill="#94a3b8" font-size="8" text-anchor="middle">deterministic run_id</text>
+        <text x="945" y="752" fill="#fb7185" font-size="7" text-anchor="middle">redaction_postcondition</text>
+
+        <!-- ================================================================
+             SECTION 5 — QUERY LAYER (bottom left)
+             ================================================================ -->
+        <rect x="30" y="820" width="860" height="100" rx="10" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="46" y="840" fill="#22d3ee" font-size="11" font-weight="600">Query Layer  —  auditgraph/query/</text>
+
+        <!-- Query commands row 1 (reads) -->
+        <rect x="50" y="852" width="100" height="24" rx="4" fill="rgba(8, 51, 68, 0.6)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="100" y="868" fill="white" font-size="9" text-anchor="middle">query (BM25)</text>
+
+        <rect x="158" y="852" width="80" height="24" rx="4" fill="rgba(8, 51, 68, 0.6)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="198" y="868" fill="white" font-size="9" text-anchor="middle">list</text>
+
+        <rect x="246" y="852" width="100" height="24" rx="4" fill="rgba(8, 51, 68, 0.6)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="296" y="868" fill="white" font-size="9" text-anchor="middle">neighbors</text>
+
+        <rect x="354" y="852" width="120" height="24" rx="4" fill="rgba(8, 51, 68, 0.6)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="414" y="868" fill="white" font-size="9" text-anchor="middle">why-connected</text>
+
+        <rect x="482" y="852" width="80" height="24" rx="4" fill="rgba(8, 51, 68, 0.6)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="522" y="868" fill="white" font-size="9" text-anchor="middle">node</text>
+
+        <rect x="570" y="852" width="80" height="24" rx="4" fill="rgba(8, 51, 68, 0.6)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="610" y="868" fill="white" font-size="9" text-anchor="middle">diff</text>
+
+        <rect x="658" y="852" width="100" height="24" rx="4" fill="rgba(8, 51, 68, 0.6)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="708" y="868" fill="white" font-size="9" text-anchor="middle">git-log / -who</text>
+
+        <rect x="766" y="852" width="120" height="24" rx="4" fill="rgba(8, 51, 68, 0.6)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="826" y="868" fill="white" font-size="9" text-anchor="middle">validate-store</text>
+
+        <!-- Row 2: filters and options -->
+        <text x="50" y="898" fill="#22d3ee" font-size="8">local filters:</text>
+        <text x="138" y="898" fill="#94a3b8" font-size="8">--type  --where  --sort  --limit  --count  --group-by  --edge-type  --min-confidence  (Spec 023)</text>
+
+        <!-- ================================================================
+             SECTION 6 — EXPORT (right side)
+             ================================================================ -->
+        <rect x="910" y="820" width="220" height="100" rx="10" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="922" y="840" fill="#fbbf24" font-size="11" font-weight="600">Optional Export</text>
+
+        <rect x="928" y="852" width="180" height="32" rx="4" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1"/>
+        <text x="1018" y="868" fill="white" font-size="10" font-weight="600" text-anchor="middle">Neo4j sync-neo4j</text>
+        <text x="1018" y="879" fill="#94a3b8" font-size="7" text-anchor="middle">auditgraph/neo4j/ · neo4j driver</text>
+
+        <text x="928" y="902" fill="#fb7185" font-size="7">AUDITGRAPH_REQUIRE_TLS=1 → bolt+s / neo4j+s required</text>
+        <text x="928" y="913" fill="#94a3b8" font-size="7">local-first: Neo4j is an export target, not a runtime dep</text>
+
+        <!-- ================================================================
+             LEGEND (top right, above header region of diagram)
+             ================================================================ -->
+        <rect x="900" y="40" width="240" height="138" rx="6" fill="rgba(15,23,42,0.6)" stroke="#1e293b" stroke-width="1"/>
+        <text x="912" y="58" fill="white" font-size="10" font-weight="600">Legend</text>
+
+        <rect x="912" y="68" width="16" height="10" rx="2" fill="rgba(30, 41, 59, 0.5)" stroke="#94a3b8" stroke-width="1"/>
+        <text x="936" y="77" fill="#94a3b8" font-size="8">External / inputs</text>
+
+        <rect x="912" y="84" width="16" height="10" rx="2" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="936" y="93" fill="#94a3b8" font-size="8">Application code (pipeline, CLI, MCP)</text>
+
+        <rect x="912" y="100" width="16" height="10" rx="2" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1"/>
+        <text x="936" y="109" fill="#94a3b8" font-size="8">Storage (sharded JSON)</text>
+
+        <rect x="912" y="116" width="16" height="10" rx="2" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="936" y="125" fill="#94a3b8" font-size="8">Query surface</text>
+
+        <rect x="912" y="132" width="16" height="10" rx="2" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1"/>
+        <text x="936" y="141" fill="#94a3b8" font-size="8">Manifest / export target</text>
+
+        <rect x="912" y="148" width="16" height="10" rx="2" fill="rgba(136, 19, 55, 0.4)" stroke="#fb7185" stroke-width="1"/>
+        <text x="936" y="157" fill="#94a3b8" font-size="8">Security control (Spec 027)</text>
+
+        <line x1="912" y1="168" x2="928" y2="168" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="936" y="171" fill="#94a3b8" font-size="8">Security boundary / trust edge</text>
+
+      </svg>
+    </div>
+
+    <!-- Info Cards -->
+    <div class="cards">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot emerald"></div>
+          <h3>Deterministic Pipeline</h3>
+        </div>
+        <ul>
+          <li>• 6 stages: ingest → git-provenance → normalize → extract → link → index</li>
+          <li>• <code>inputs_hash</code>/<code>outputs_hash</code> per stage manifest</li>
+          <li>• Deterministic <code>run_id</code> and timestamps</li>
+          <li>• Sort with stable tiebreakers (typically <code>entity.id</code>)</li>
+          <li>• <code>replay-log.jsonl</code> captures every write</li>
+          <li>• No network calls in core path — local-first by design</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot rose"></div>
+          <h3>Security Hardening (Spec 027)</h3>
+        </div>
+        <ul>
+          <li>• Redactor required at <code>parse_file</code> entry — no silent fallback</li>
+          <li>• Post-index postcondition scan → exit 3 on credential-shape hits</li>
+          <li>• <code>--allow-redaction-misses</code> tolerated-mode escape hatch</li>
+          <li>• Symlink containment at ingest (US1)</li>
+          <li>• <code>AUDITGRAPH_REQUIRE_TLS=1</code> gates Neo4j export (exit 4)</li>
+          <li>• Pinned deps: pyyaml, pypdf, python-docx, jsonschema&lt;5</li>
+          <li>• Shared <code>scan_shards_for_misses</code> used by validate-store &amp; postcondition</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot violet"></div>
+          <h3>Storage — Sharded JSON</h3>
+        </div>
+        <ul>
+          <li>• Root: <code>.pkg/profiles/&lt;profile&gt;/</code></li>
+          <li>• One file per entity/link/chunk: <code>&lt;shard&gt;/&lt;id&gt;.json</code></li>
+          <li>• 2-char shard derived via <code>storage.sharding.shard_dir</code></li>
+          <li>• All I/O through <code>read_json</code>/<code>write_json</code> (sort_keys, indent)</li>
+          <li>• Indexes rebuilt from materialized entities + all link files</li>
+          <li>• Source code extensions skipped at ingest (Spec 025, out of scope)</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot amber"></div>
+          <h3>MCP Tooling</h3>
+        </div>
+        <ul>
+          <li>• <code>tool.manifest.json</code> is the single source of truth</li>
+          <li>• <code>skill.md</code> + OpenAI adapters are <em>generated</em></li>
+          <li>• Read tools: timeout ≤ 5000 ms; every tool has ≥1 example</li>
+          <li>• Contract tests in <code>llm-tooling/tests/</code> enforce manifest shape</li>
+          <li>• 14 read + 10 write tools covering the full CLI surface</li>
+          <li>• Adding a new tool: manifest + <code>mcp_inventory.py</code> + payload-validation guard</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot cyan"></div>
+          <h3>Query Surface</h3>
+        </div>
+        <ul>
+          <li>• <code>query</code> (BM25), <code>list</code>, <code>neighbors</code>, <code>why-connected</code>, <code>node</code>, <code>diff</code></li>
+          <li>• Git-aware: <code>git-log</code>, <code>git-who</code>, <code>git-introduced</code>, <code>git-history</code></li>
+          <li>• Local filters (Spec 023): <code>--type --where --sort --limit --count --group-by</code></li>
+          <li>• Edge filters: <code>--edge-type --min-confidence</code></li>
+          <li>• Loaders return generators — deterministic iteration order</li>
+          <li>• All CLI output through <code>cli._emit()</code> (no stray prints)</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot orange"></div>
+          <h3>Optional / Opt-In</h3>
+        </div>
+        <ul>
+          <li>• NER via spaCy — <code>enabled: false</code> by default</li>
+          <li>• Natural-language extension allowlist gates NER per chunk</li>
+          <li>• Neo4j export via <code>sync-neo4j</code> — offline target only</li>
+          <li>• LLM provider interface present (NullProvider only shipped)</li>
+          <li>• Jobs runner (<code>jobs.yaml</code>) for automating stage chains</li>
+          <li>• No backwards-incompatible CLI changes — new flags are additive</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <p class="footer">
+      auditgraph · local-first deterministic knowledge graph · Python 3.10+ · stdlib JSON · sharded store at .pkg/profiles/&lt;profile&gt;/
+    </p>
+  </div>
+</body>
+</html>

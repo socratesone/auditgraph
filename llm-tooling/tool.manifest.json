@@ -24,24 +24,37 @@
       "output_schema": {
         "type": "object",
         "properties": {
-          "version": { "type": "string" }
+          "version": {
+            "type": "string"
+          }
         },
-        "required": ["version"],
+        "required": [
+          "version"
+        ],
         "additionalProperties": false
       },
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
           "input": {},
-          "output": { "version": "0.1.0" }
+          "output": {
+            "version": "0.1.0"
+          }
         }
       ],
       "constraints": {
@@ -59,14 +72,35 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "q": { "type": "string" },
-          "type": { "type": "string", "description": "Filter by entity type" },
-          "where": { "type": "string", "description": "Field predicate: field<op>value" },
-          "sort": { "type": "string", "description": "Sort by field name" },
-          "limit": { "type": "integer", "description": "Max results" },
-          "offset": { "type": "integer", "description": "Skip first N results" },
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "q": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "description": "Filter by entity type"
+          },
+          "where": {
+            "type": "string",
+            "description": "Field predicate: field<op>value"
+          },
+          "sort": {
+            "type": "string",
+            "description": "Sort by field name"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Max results"
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Skip first N results"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
@@ -76,16 +110,28 @@
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "q": "payments" },
-          "output": { "query": "payments", "results": [] }
+          "input": {
+            "q": "payments"
+          },
+          "output": {
+            "query": "payments",
+            "results": []
+          }
         }
       ],
       "constraints": {
@@ -103,11 +149,19 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "id": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
-        "required": ["id"],
+        "required": [
+          "id"
+        ],
         "additionalProperties": false
       },
       "output_schema": {
@@ -116,16 +170,27 @@
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "id": "entity:123" },
-          "output": { "id": "entity:123" }
+          "input": {
+            "id": "entity:123"
+          },
+          "output": {
+            "id": "entity:123"
+          }
         }
       ],
       "constraints": {
@@ -143,14 +208,30 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "depth": { "type": "integer" },
-          "edge_type": { "type": "string", "description": "Filter by edge type" },
-          "min_confidence": { "type": "number", "description": "Minimum confidence threshold" },
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "id": {
+            "type": "string"
+          },
+          "depth": {
+            "type": "integer"
+          },
+          "edge_type": {
+            "type": "string",
+            "description": "Filter by edge type"
+          },
+          "min_confidence": {
+            "type": "number",
+            "description": "Minimum confidence threshold"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
-        "required": ["id"],
+        "required": [
+          "id"
+        ],
         "additionalProperties": false
       },
       "output_schema": {
@@ -159,16 +240,29 @@
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "id": "entity:123", "depth": 1 },
-          "output": { "id": "entity:123", "neighbors": [] }
+          "input": {
+            "id": "entity:123",
+            "depth": 1
+          },
+          "output": {
+            "id": "entity:123",
+            "neighbors": []
+          }
         }
       ],
       "constraints": {
@@ -186,10 +280,18 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "run_a": { "type": "string" },
-          "run_b": { "type": "string" },
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "run_a": {
+            "type": "string"
+          },
+          "run_b": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
@@ -199,16 +301,28 @@
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "run_a": "run-1", "run_b": "run-2" },
-          "output": { "diff": [] }
+          "input": {
+            "run_a": "run-1",
+            "run_b": "run-2"
+          },
+          "output": {
+            "diff": []
+          }
         }
       ],
       "constraints": {
@@ -226,8 +340,12 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
@@ -237,16 +355,25 @@
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
           "input": {},
-          "output": { "jobs": [] }
+          "output": {
+            "jobs": []
+          }
         }
       ],
       "constraints": {
@@ -264,12 +391,23 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "from_id": { "type": "string" },
-          "to_id": { "type": "string" },
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "from_id": {
+            "type": "string"
+          },
+          "to_id": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
-        "required": ["from_id", "to_id"],
+        "required": [
+          "from_id",
+          "to_id"
+        ],
         "additionalProperties": false
       },
       "output_schema": {
@@ -278,16 +416,28 @@
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "from_id": "entity:1", "to_id": "entity:2" },
-          "output": { "path": [] }
+          "input": {
+            "from_id": "entity:1",
+            "to_id": "entity:2"
+          },
+          "output": {
+            "path": []
+          }
         }
       ],
       "constraints": {
@@ -305,8 +455,12 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "root": { "type": "string" },
-          "config_source": { "type": "string" }
+          "root": {
+            "type": "string"
+          },
+          "config_source": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
@@ -316,16 +470,27 @@
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "root": "." },
-          "output": { "created": true }
+          "input": {
+            "root": "."
+          },
+          "output": {
+            "created": true
+          }
         }
       ],
       "constraints": {
@@ -343,8 +508,12 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
@@ -354,16 +523,28 @@
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "root": "." },
-          "output": { "stage": "ingest", "status": "ok" }
+          "input": {
+            "root": "."
+          },
+          "output": {
+            "stage": "ingest",
+            "status": "ok"
+          }
         }
       ],
       "constraints": {
@@ -381,11 +562,22 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "paths": { "type": "array", "items": { "type": "string" } },
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
-        "required": ["paths"],
+        "required": [
+          "paths"
+        ],
         "additionalProperties": false
       },
       "output_schema": {
@@ -394,16 +586,30 @@
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "paths": ["./src"] },
-          "output": { "stage": "import", "status": "ok" }
+          "input": {
+            "paths": [
+              "./src"
+            ]
+          },
+          "output": {
+            "stage": "import",
+            "status": "ok"
+          }
         }
       ],
       "constraints": {
@@ -421,9 +627,15 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "root": { "type": "string" },
-          "config": { "type": "string" },
-          "run_id": { "type": "string" }
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
@@ -433,16 +645,28 @@
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "root": "." },
-          "output": { "stage": "normalize", "status": "ok" }
+          "input": {
+            "root": "."
+          },
+          "output": {
+            "stage": "normalize",
+            "status": "ok"
+          }
         }
       ],
       "constraints": {
@@ -460,9 +684,15 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "root": { "type": "string" },
-          "config": { "type": "string" },
-          "run_id": { "type": "string" }
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
@@ -472,16 +702,28 @@
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "root": "." },
-          "output": { "stage": "extract", "status": "ok" }
+          "input": {
+            "root": "."
+          },
+          "output": {
+            "stage": "extract",
+            "status": "ok"
+          }
         }
       ],
       "constraints": {
@@ -499,9 +741,15 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "root": { "type": "string" },
-          "config": { "type": "string" },
-          "run_id": { "type": "string" }
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
@@ -511,16 +759,28 @@
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "root": "." },
-          "output": { "stage": "link", "status": "ok" }
+          "input": {
+            "root": "."
+          },
+          "output": {
+            "stage": "link",
+            "status": "ok"
+          }
         }
       ],
       "constraints": {
@@ -538,9 +798,15 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "root": { "type": "string" },
-          "config": { "type": "string" },
-          "run_id": { "type": "string" }
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
@@ -550,16 +816,28 @@
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "root": "." },
-          "output": { "stage": "index", "status": "ok" }
+          "input": {
+            "root": "."
+          },
+          "output": {
+            "stage": "index",
+            "status": "ok"
+          }
         }
       ],
       "constraints": {
@@ -577,8 +855,12 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
@@ -588,16 +870,28 @@
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "root": "." },
-          "output": { "stage": "rebuild", "status": "ok" }
+          "input": {
+            "root": "."
+          },
+          "output": {
+            "stage": "rebuild",
+            "status": "ok"
+          }
         }
       ],
       "constraints": {
@@ -615,10 +909,18 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "format": { "type": "string" },
-          "root": { "type": "string" },
-          "config": { "type": "string" },
-          "output": { "type": "string" }
+          "format": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          },
+          "output": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
@@ -628,16 +930,29 @@
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "format": "json", "output": "exports/graph.json" },
-          "output": { "format": "json", "path": "exports/graph.json" }
+          "input": {
+            "format": "json",
+            "output": "exports/graph.json"
+          },
+          "output": {
+            "format": "json",
+            "path": "exports/graph.json"
+          }
         }
       ],
       "constraints": {
@@ -656,11 +971,19 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "name": { "type": "string" },
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "name": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "additionalProperties": false
       },
       "output_schema": {
@@ -669,16 +992,28 @@
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "name": "daily" },
-          "output": { "job": "daily", "status": "queued" }
+          "input": {
+            "name": "daily"
+          },
+          "output": {
+            "job": "daily",
+            "status": "queued"
+          }
         }
       ],
       "constraints": {
@@ -696,31 +1031,70 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "type": { "type": "string", "description": "Filter by entity type" },
-          "where": { "type": "string", "description": "Field predicate: field<op>value" },
-          "sort": { "type": "string", "description": "Sort by field name" },
-          "limit": { "type": "integer", "default": 100, "description": "Max results (default 100)" },
-          "offset": { "type": "integer", "default": 0, "description": "Skip first N results" },
-          "count": { "type": "boolean", "description": "Return count only" },
-          "group_by": { "type": "string", "description": "Group results by field" },
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "type": {
+            "type": "string",
+            "description": "Filter by entity type"
+          },
+          "where": {
+            "type": "string",
+            "description": "Field predicate: field<op>value"
+          },
+          "sort": {
+            "type": "string",
+            "description": "Sort by field name"
+          },
+          "limit": {
+            "type": "integer",
+            "default": 100,
+            "description": "Max results (default 100)"
+          },
+          "offset": {
+            "type": "integer",
+            "default": 0,
+            "description": "Skip first N results"
+          },
+          "count": {
+            "type": "boolean",
+            "description": "Return count only"
+          },
+          "group_by": {
+            "type": "string",
+            "description": "Group results by field"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       },
-      "output_schema": { "type": "object" },
+      "output_schema": {
+        "type": "object"
+      },
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "type": "commit", "limit": 10 },
+          "input": {
+            "type": "commit",
+            "limit": 10
+          },
           "output": {
             "results": [],
             "total_count": 0,
@@ -745,35 +1119,66 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "file": { "type": "string" },
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "file": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
-        "required": ["file"],
+        "required": [
+          "file"
+        ],
         "additionalProperties": false
       },
       "output_schema": {
         "type": "object",
         "properties": {
-          "status": { "type": "string" },
-          "file": { "type": "string" },
-          "authors": { "type": "array" }
+          "status": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          },
+          "authors": {
+            "type": "array"
+          }
         },
-        "required": ["status", "file", "authors"]
+        "required": [
+          "status",
+          "file",
+          "authors"
+        ]
       },
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "file": "src/main.py" },
-          "output": { "status": "ok", "file": "src/main.py", "authors": [] }
+          "input": {
+            "file": "src/main.py"
+          },
+          "output": {
+            "status": "ok",
+            "file": "src/main.py",
+            "authors": []
+          }
         }
       ],
       "constraints": {
@@ -791,35 +1196,66 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "file": { "type": "string" },
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "file": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
-        "required": ["file"],
+        "required": [
+          "file"
+        ],
         "additionalProperties": false
       },
       "output_schema": {
         "type": "object",
         "properties": {
-          "status": { "type": "string" },
-          "file": { "type": "string" },
-          "commits": { "type": "array" }
+          "status": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          },
+          "commits": {
+            "type": "array"
+          }
         },
-        "required": ["status", "file", "commits"]
+        "required": [
+          "status",
+          "file",
+          "commits"
+        ]
       },
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "file": "src/main.py" },
-          "output": { "status": "ok", "file": "src/main.py", "commits": [] }
+          "input": {
+            "file": "src/main.py"
+          },
+          "output": {
+            "status": "ok",
+            "file": "src/main.py",
+            "commits": []
+          }
         }
       ],
       "constraints": {
@@ -837,36 +1273,71 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "file": { "type": "string" },
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "file": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
-        "required": ["file"],
+        "required": [
+          "file"
+        ],
         "additionalProperties": false
       },
       "output_schema": {
         "type": "object",
         "properties": {
-          "status": { "type": "string" },
-          "file": { "type": "string" },
-          "commit": { "type": "object" },
-          "lineage": { "type": "array" }
+          "status": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          },
+          "commit": {
+            "type": "object"
+          },
+          "lineage": {
+            "type": "array"
+          }
         },
-        "required": ["status", "file", "commit", "lineage"]
+        "required": [
+          "status",
+          "file",
+          "commit",
+          "lineage"
+        ]
       },
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "file": "src/main.py" },
-          "output": { "status": "ok", "file": "src/main.py", "commit": {}, "lineage": [] }
+          "input": {
+            "file": "src/main.py"
+          },
+          "output": {
+            "status": "ok",
+            "file": "src/main.py",
+            "commit": {},
+            "lineage": []
+          }
         }
       ],
       "constraints": {
@@ -884,38 +1355,152 @@
       "input_schema": {
         "type": "object",
         "properties": {
-          "file": { "type": "string" },
-          "root": { "type": "string" },
-          "config": { "type": "string" }
+          "file": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          }
         },
-        "required": ["file"],
+        "required": [
+          "file"
+        ],
         "additionalProperties": false
       },
       "output_schema": {
         "type": "object",
         "properties": {
-          "status": { "type": "string" },
-          "file": { "type": "string" },
-          "authors": { "type": "array" },
-          "commits": { "type": "array" },
-          "introduced": { "type": "object" },
-          "lineage": { "type": "array" }
+          "status": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          },
+          "authors": {
+            "type": "array"
+          },
+          "commits": {
+            "type": "array"
+          },
+          "introduced": {
+            "type": "object"
+          },
+          "lineage": {
+            "type": "array"
+          }
         },
-        "required": ["status", "file", "authors", "commits", "introduced", "lineage"]
+        "required": [
+          "status",
+          "file",
+          "authors",
+          "commits",
+          "introduced",
+          "lineage"
+        ]
       },
       "error_schema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "message": { "type": "string" }
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["code", "message"],
+        "required": [
+          "code",
+          "message"
+        ],
         "additionalProperties": false
       },
       "examples": [
         {
-          "input": { "file": "src/main.py" },
-          "output": { "status": "ok", "file": "src/main.py", "authors": [], "commits": [], "introduced": {}, "lineage": [] }
+          "input": {
+            "file": "src/main.py"
+          },
+          "output": {
+            "status": "ok",
+            "file": "src/main.py",
+            "authors": [],
+            "commits": [],
+            "introduced": {},
+            "lineage": []
+          }
+        }
+      ],
+      "constraints": {
+        "read_only_safe": true
+      }
+    },
+    {
+      "name": "ag_validate_store",
+      "title": "Validate Store",
+      "description": "Audit an existing .pkg/ store for redaction misses (read-only).",
+      "risk": "low",
+      "idempotency": "idempotent",
+      "timeout_ms": 5000,
+      "command": "validate-store",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string"
+          },
+          "config": {
+            "type": "string"
+          },
+          "profile": {
+            "type": "string"
+          },
+          "all_profiles": {
+            "type": "boolean"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "json",
+              "text"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "error_schema": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": {
+            "format": "json"
+          },
+          "output": {
+            "profile": "default",
+            "status": "pass",
+            "misses": [],
+            "scanned_shards": 0,
+            "wallclock_ms": 1
+          }
         }
       ],
       "constraints": {

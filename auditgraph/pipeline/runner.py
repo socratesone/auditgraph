@@ -13,14 +13,14 @@ from auditgraph.ingest import (
     load_policy,
     parse_file,
 )
-from auditgraph.ingest.policy import SKIP_REASON_UNSUPPORTED
+from auditgraph.ingest.policy import SKIP_REASON_UNSUPPORTED, SKIP_REASON_SYMLINK_REFUSED
 from auditgraph.ingest.policy import SKIP_REASON_UNCHANGED, parser_id_for
-from auditgraph.ingest.scanner import split_allowed
-from auditgraph.ingest.importer import split_imported
+from auditgraph.ingest.scanner import discover_files_with_refusals, split_allowed
+from auditgraph.ingest.importer import split_imported, split_imported_with_refusals
+import sys
 import json
 
-from auditgraph.extract.code_symbols import extract_code_symbols
-from auditgraph.extract.entities import build_entity, build_note_entity
+from auditgraph.extract.entities import build_note_entity
 from auditgraph.extract.manifest import extract_adr_claims, extract_log_claims, write_claims, write_entities
 from auditgraph.link import build_source_cooccurrence_links, write_links
 from auditgraph.link.adjacency import write_adjacency
@@ -139,25 +139,21 @@ class PipelineRunner:
         if enforce_compatibility:
             ensure_latest_manifest_compatibility(pkg_root, ARTIFACT_SCHEMA_VERSION)
 
-        files = discover_files(root, include_paths, exclude_globs)
-        allowed, skipped = split_allowed(files, policy)
+        discover_result = discover_files_with_refusals(root, include_paths, exclude_globs)
+        allowed, skipped = split_allowed(discover_result.files, policy)
+        refused_symlinks = discover_result.refused_symlinks
         records = []
         source_payloads: list[tuple[Any, dict[str, object]]] = []
         ingest_cfg = profile.get("ingestion", {}) if isinstance(profile, dict) else {}
-        chunk_code_cfg = ingest_cfg.get("chunk_code", {}) if isinstance(ingest_cfg, dict) else {}
         parse_options = {
             "ocr_mode": ingest_cfg.get("ocr_mode", "off"),
             "chunk_tokens": int(ingest_cfg.get("chunk_tokens", 200)),
             "chunk_overlap_tokens": int(ingest_cfg.get("chunk_overlap_tokens", 40)),
             "max_file_size_bytes": int(ingest_cfg.get("max_file_size_bytes", 209715200)),
             "ingest_config_hash": ingestion_config_hash(config),
-            # Issue 2 Phase 2: opt-in code chunking. When enabled, code files
-            # (text/code parser_id) are routed through the same sliding-window
-            # chunker as text/markdown and text/plain so their body content
-            # becomes BM25-searchable. Off by default.
-            "chunk_code_enabled": bool(
-                chunk_code_cfg.get("enabled", False) if isinstance(chunk_code_cfg, dict) else False
-            ),
+            # Spec 027 FR-016: parser-entry redaction is the canonical site.
+            # See auditgraph/ingest/parsers.py:_build_document_metadata.
+            "redactor": redactor,
         }
         for path in allowed:
             source_hash = sha256_file(path)
@@ -196,7 +192,19 @@ class PipelineRunner:
             segments_payload = metadata.get("segments") if isinstance(metadata, dict) else None
             chunks_payload = metadata.get("chunks") if isinstance(metadata, dict) else None
             if isinstance(document_payload, dict) and isinstance(segments_payload, list) and isinstance(chunks_payload, list):
-                write_document_artifacts(pkg_root, document_payload, segments_payload, chunks_payload)
+                # SECURITY (Spec 027 FR-016): payloads are already redacted by
+                # the parser entry point (see auditgraph/ingest/parsers.py). The
+                # hotfix's post-chunking pass has been retired because it was
+                # too late for multi-line secrets (PEM keys straddling a chunk
+                # boundary would survive). Parser-entry is the single source of
+                # truth — adding a second pass here would mask bugs in the
+                # canonical site.
+                write_document_artifacts(
+                    pkg_root,
+                    document_payload,
+                    segments_payload,
+                    chunks_payload,
+                )
 
         for path in skipped:
             record, metadata = build_source_record(
@@ -209,6 +217,27 @@ class PipelineRunner:
             )
             records.append(record)
             source_payloads.append((record, metadata))
+
+        # Spec 027 FR-001..FR-004: refused symlinks surface as skipped sources
+        # with `skip_reason: symlink_refused`. The file contents are never read.
+        for path in refused_symlinks:
+            record, metadata = build_source_record(
+                path,
+                root,
+                "text/unknown",
+                "skipped",
+                status_reason=SKIP_REASON_SYMLINK_REFUSED,
+                skip_reason=SKIP_REASON_SYMLINK_REFUSED,
+            )
+            records.append(record)
+            source_payloads.append((record, metadata))
+
+        # Spec 027 FR-002: single-line stderr warning when ≥ 1 symlink refused.
+        if refused_symlinks:
+            sys.stderr.write(
+                f"WARN: refused {len(refused_symlinks)} symlinks pointing outside "
+                f"{root.resolve()} (see manifest for details)\n"
+            )
 
         source_bytes = sum(int(record.size) for record in records)
         budget_settings = footprint_budget_settings(config)
@@ -276,12 +305,13 @@ class PipelineRunner:
         write_provenance_index(pkg_root, run_id, provenance_records)
 
         detail = {
-            "files": len(files),
+            "files": len(discover_result.files),
             "manifest": str(manifest_path),
             "profile": config.active_profile(),
             "ok": sum(1 for record in records if record.parse_status == "ok"),
             "skipped": sum(1 for record in records if record.parse_status == "skipped"),
             "failed": sum(1 for record in records if record.parse_status == "failed"),
+            "refused_symlinks": len(refused_symlinks),
         }
         if budget_status.status == "warn":
             detail["budget"] = {
@@ -317,6 +347,7 @@ class PipelineRunner:
             build_tag_nodes,
             build_repo_node,
             build_ref_nodes,
+            build_file_nodes,
             build_links,
             build_reverse_index,
         )
@@ -371,6 +402,7 @@ class PipelineRunner:
             tag_nodes = build_tag_nodes(tags, repo_path)
             repo_node = build_repo_node(repo_path)
             ref_nodes = build_ref_nodes(branches, repo_path)
+            file_nodes = build_file_nodes(selected.commits, repo_path)
 
             # Build links
             links = build_links(
@@ -388,8 +420,12 @@ class PipelineRunner:
             modifies_links = [lnk for lnk in links if lnk.get("type") == "modifies"]
             reverse_index = build_reverse_index(modifies_links)
 
-            # Write entities to sharded storage
-            all_entities = commit_nodes + author_nodes + tag_nodes + ref_nodes + [repo_node]
+            # Write entities to sharded storage. Per Spec 025, file entities
+            # are created here (by build_file_nodes), which is the sole
+            # creator of file entities in the project. This fixes the
+            # pre-existing dangling-reference bug where modifies links pointed
+            # at file entities that were never materialized for non-code paths.
+            all_entities = commit_nodes + author_nodes + tag_nodes + ref_nodes + [repo_node] + file_nodes
             entity_artifacts: list[str] = []
             for entity in all_entities:
                 eid = entity["id"]
@@ -555,12 +591,6 @@ class PipelineRunner:
                 note_entity = build_note_entity(str(title), source_path, source_hash, redactor=redactor)
                 entities[note_entity["id"]] = note_entity
 
-        code_symbols = extract_code_symbols(root, ok_paths)
-        for symbol in code_symbols:
-            source_path = str(symbol.get("source_path", ""))
-            source_hash = str(source_map.get(source_path, ""))
-            entity = build_entity(symbol, source_hash, redactor=redactor)
-            entities[entity["id"]] = entity
 
         adr_claims = extract_adr_claims(pkg_root, ok_paths)
         if adr_claims:
@@ -793,53 +823,112 @@ class PipelineRunner:
             detail={"manifest": str(manifest_path), "profile": config.active_profile(), "run_id": resolved},
         )
 
-    def run_rebuild(self, root: Path, config: Config) -> StageResult:
+    def run_rebuild(
+        self,
+        root: Path,
+        config: Config,
+        *,
+        allow_redaction_misses: bool = False,
+    ) -> StageResult:
+        from auditgraph.pipeline.postcondition import (
+            PostconditionFailed,
+            run_postcondition,
+            skipped_result,
+        )
+
         pkg_root = profile_pkg_root(root, config)
         check_latest_manifest_compatibility(pkg_root, ARTIFACT_SCHEMA_VERSION)
-        ingest = self.run_ingest(root=root, config=config, enforce_compatibility=False)
-        if ingest.status != "ok":
-            return ingest
-        manifest_path = Path(str(ingest.detail.get("manifest", "")))
-        run_id = manifest_path.parent.name if manifest_path.exists() else None
-        git_prov = self.run_git_provenance(root=root, config=config, run_id=run_id)
-        if git_prov.status not in ("ok", "skipped"):
-            return git_prov
-        normalize = self.run_normalize(root=root, config=config, run_id=run_id)
-        if normalize.status != "ok":
-            return normalize
-        extract = self.run_extract(root=root, config=config, run_id=run_id)
-        if extract.status != "ok":
-            return extract
-        link = self.run_link(root=root, config=config, run_id=run_id)
-        if link.status != "ok":
-            return link
-        index = self.run_index(root=root, config=config, run_id=run_id)
-        if index.status != "ok":
-            return index
-        return StageResult(
-            stage="rebuild",
-            status="ok",
-            detail={"run_id": run_id, "manifest": index.detail.get("manifest")},
-        )
+
+        def _attach_postcondition_to_index_manifest(run_id: str | None, block: dict) -> None:
+            """Read the index manifest, merge the postcondition block, write it back."""
+            if not run_id:
+                return
+            manifest_path = pkg_root / "runs" / run_id / "index-manifest.json"
+            if not manifest_path.exists():
+                return
+            data = read_json(manifest_path)
+            data["redaction_postcondition"] = block
+            write_json(manifest_path, data)
+
+        run_id: str | None = None
+        try:
+            ingest = self.run_ingest(root=root, config=config, enforce_compatibility=False)
+            if ingest.status != "ok":
+                return ingest
+            manifest_path = Path(str(ingest.detail.get("manifest", "")))
+            run_id = manifest_path.parent.name if manifest_path.exists() else None
+            git_prov = self.run_git_provenance(root=root, config=config, run_id=run_id)
+            if git_prov.status not in ("ok", "skipped"):
+                return git_prov
+            normalize = self.run_normalize(root=root, config=config, run_id=run_id)
+            if normalize.status != "ok":
+                return normalize
+            extract = self.run_extract(root=root, config=config, run_id=run_id)
+            if extract.status != "ok":
+                return extract
+            link = self.run_link(root=root, config=config, run_id=run_id)
+            if link.status != "ok":
+                return link
+            index = self.run_index(root=root, config=config, run_id=run_id)
+            if index.status != "ok":
+                return index
+
+            # Spec 027 FR-024..FR-028: redaction postcondition
+            profile_root = profile_pkg_root(root, config)
+            postcondition_block = run_postcondition(
+                profile_root,
+                profile=config.active_profile(),
+                config=config,
+                allow_misses=allow_redaction_misses,
+                raise_on_fail=True,
+            )
+            _attach_postcondition_to_index_manifest(run_id, postcondition_block)
+            return StageResult(
+                stage="rebuild",
+                status="ok",
+                detail={
+                    "run_id": run_id,
+                    "manifest": index.detail.get("manifest"),
+                    "redaction_postcondition": postcondition_block,
+                },
+            )
+        except PostconditionFailed as exc:
+            _attach_postcondition_to_index_manifest(run_id, exc.result)
+            raise
+        except Exception:
+            # Any earlier-stage failure: write a `skipped` postcondition
+            # entry to the index manifest if it exists, so consumers can
+            # tell "didn't run" from "passed".
+            _attach_postcondition_to_index_manifest(run_id, skipped_result())
+            raise
 
     def run_import(self, root: Path, config: Config, targets: list[str]) -> StageResult:
         profile = config.profile()
         policy = load_policy(profile)
         exclude_globs = profile.get("exclude_globs", [])
-        allowed, skipped = split_imported(root, targets, exclude_globs, policy)
+        import_result = split_imported_with_refusals(root, targets, exclude_globs, policy)
+        allowed = import_result.allowed
+        skipped = import_result.skipped
+        refused_symlinks = import_result.refused_symlinks
         pkg_root = profile_pkg_root(root, config)
         records = []
+        # SECURITY: `run_import` previously wrote sources/, documents/,
+        # segments/, and chunks/ with plain `write_json`, bypassing the
+        # redactor entirely. That meant `auditgraph import <path>` was
+        # even worse than `run_ingest` for credential leakage — not a
+        # single artifact was scrubbed. Build the same redactor
+        # `run_ingest` uses and route every write through it. See
+        # specs/026-security-hardening/NOTES.md finding C1.
+        redactor = build_redactor(root, config)
         ingest_cfg = profile.get("ingestion", {}) if isinstance(profile, dict) else {}
-        chunk_code_cfg = ingest_cfg.get("chunk_code", {}) if isinstance(ingest_cfg, dict) else {}
         parse_options = {
             "ocr_mode": ingest_cfg.get("ocr_mode", "off"),
             "chunk_tokens": int(ingest_cfg.get("chunk_tokens", 200)),
             "chunk_overlap_tokens": int(ingest_cfg.get("chunk_overlap_tokens", 40)),
             "max_file_size_bytes": int(ingest_cfg.get("max_file_size_bytes", 209715200)),
             "ingest_config_hash": ingestion_config_hash(config),
-            "chunk_code_enabled": bool(
-                chunk_code_cfg.get("enabled", False) if isinstance(chunk_code_cfg, dict) else False
-            ),
+            # Spec 027 FR-016: parser-entry redaction (see parsers.py).
+            "redactor": redactor,
         }
         for path in allowed:
             source_hash = sha256_file(path)
@@ -858,7 +947,7 @@ class PipelineRunner:
                     )
                     records.append(record)
                     source_path = pkg_root / "sources" / f"{record.source_hash}.json"
-                    write_json(source_path, metadata)
+                    write_json_redacted(source_path, metadata, redactor)
                     continue
 
             parse_options["source_hash"] = source_hash
@@ -874,13 +963,20 @@ class PipelineRunner:
             )
             records.append(record)
             source_path = pkg_root / "sources" / f"{record.source_hash}.json"
-            write_json(source_path, metadata)
+            write_json_redacted(source_path, metadata, redactor)
 
             document_payload = metadata.get("document") if isinstance(metadata, dict) else None
             segments_payload = metadata.get("segments") if isinstance(metadata, dict) else None
             chunks_payload = metadata.get("chunks") if isinstance(metadata, dict) else None
             if isinstance(document_payload, dict) and isinstance(segments_payload, list) and isinstance(chunks_payload, list):
-                write_document_artifacts(pkg_root, document_payload, segments_payload, chunks_payload)
+                # SECURITY (Spec 027 FR-016): payloads are already redacted by
+                # the parser entry point (see auditgraph/ingest/parsers.py).
+                write_document_artifacts(
+                    pkg_root,
+                    document_payload,
+                    segments_payload,
+                    chunks_payload,
+                )
 
         for path in skipped:
             record, metadata = build_source_record(
@@ -893,7 +989,29 @@ class PipelineRunner:
             )
             records.append(record)
             source_path = pkg_root / "sources" / f"{record.source_hash}.json"
-            write_json(source_path, metadata)
+            write_json_redacted(source_path, metadata, redactor)
+
+        # Spec 027 FR-001..FR-004: refused symlinks surface as skipped sources
+        # under run_import as well, with the same skip reason as run_ingest.
+        for path in refused_symlinks:
+            record, metadata = build_source_record(
+                path,
+                root,
+                "text/unknown",
+                "skipped",
+                status_reason=SKIP_REASON_SYMLINK_REFUSED,
+                skip_reason=SKIP_REASON_SYMLINK_REFUSED,
+            )
+            records.append(record)
+            source_path = pkg_root / "sources" / f"{record.source_hash}.json"
+            write_json_redacted(source_path, metadata, redactor)
+
+        # Spec 027 FR-002: one-line stderr warning on refusal.
+        if refused_symlinks:
+            sys.stderr.write(
+                f"WARN: refused {len(refused_symlinks)} symlinks pointing outside "
+                f"{root.resolve()} (see manifest for details)\n"
+            )
 
         pipeline_version = str(config.raw.get("run_metadata", {}).get("pipeline_version", DEFAULT_PIPELINE_VERSION))
         input_hash = inputs_hash(records)

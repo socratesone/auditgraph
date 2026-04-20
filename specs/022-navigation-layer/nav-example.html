@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Joshua Albert | Agentic AI Engineer</title>
+<meta name="description" content="Senior full-stack engineer specializing in agentic AI systems. LangChain, LangGraph, graph-backed retrieval, and production workflow automation. Denver, CO.">
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0a0e17;
+  --bg-secondary: #111827;
+  --bg-tertiary: #1a2236;
+  --bg-node: #141c2e;
+  --bg-node-hover: #1c2844;
+  --bg-node-active: #1e3055;
+  --border-subtle: #1e2d4a;
+  --border-node: #2a3f6b;
+  --border-active: #4a7ccc;
+  --border-cta: #3b82c4;
+  --text-primary: #e8ecf4;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  --text-accent: #7cb8f0;
+  --accent-blue: #3b82f6;
+  --accent-blue-dim: rgba(59, 130, 246, 0.15);
+  --accent-teal: #2dd4bf;
+  --accent-teal-dim: rgba(45, 212, 191, 0.1);
+  --accent-violet: #8b5cf6;
+  --accent-violet-dim: rgba(139, 92, 246, 0.1);
+  --accent-amber: #f59e0b;
+  --glow-blue: rgba(59, 130, 246, 0.25);
+  --glow-teal: rgba(45, 212, 191, 0.2);
+  --shadow-node: 0 4px 24px rgba(0,0,0,0.4), 0 0 1px rgba(59,130,246,0.2);
+  --shadow-active: 0 4px 32px rgba(59,130,246,0.15), 0 0 1px rgba(59,130,246,0.4);
+  --radius-node: 12px;
+  --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+}
+
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ===== BACKGROUND CANVAS ===== */
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ===== LAYOUT ===== */
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== GRAPH VIEWPORT ===== */
+.graph-viewport {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+}
+.graph-viewport.dragging { cursor: grabbing; }
+.graph-viewport.node-dragging { cursor: grabbing; }
+
+/* Edge canvas — direct child of viewport, NOT of graph-world */
+#edge-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Node container — sits above edges */
+.graph-world {
+  position: absolute;
+  width: 0;
+  height: 0;
+  z-index: 2;
+}
+
+/* ===== GRAPH NODES ===== */
+.graph-node {
+  position: absolute;
+  z-index: 10;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  outline: none;
+  transition: opacity 0.4s ease, box-shadow var(--transition-base);
+  will-change: transform, opacity;
+}
+.graph-node.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.graph-node.entering {
+  animation: nodeEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes nodeEnter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.node-inner {
+  background: var(--bg-node);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-node);
+  padding: 14px 20px;
+  min-width: 140px;
+  max-width: 220px;
+  text-align: center;
+  box-shadow: var(--shadow-node);
+  transition: border-color var(--transition-base), background var(--transition-base),
+              box-shadow var(--transition-base), transform var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.graph-node:hover .node-inner,
+.graph-node:focus-visible .node-inner {
+  border-color: var(--border-node);
+  background: var(--bg-node-hover);
+  box-shadow: var(--shadow-active);
+  transform: scale(1.04);
+}
+
+.graph-node.active .node-inner {
+  border-color: var(--border-active);
+  background: var(--bg-node-active);
+  box-shadow: var(--shadow-active);
+}
+
+.graph-node.cta-node .node-inner {
+  border-color: var(--border-cta);
+  background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(45,212,191,0.08));
+}
+
+.graph-node.root-node .node-inner {
+  min-width: 240px;
+  padding: 20px 28px;
+  border-color: var(--border-active);
+  background: linear-gradient(135deg, var(--bg-node) 0%, rgba(59,130,246,0.08) 100%);
+}
+
+/* Depth dimming for non-adjacent nodes */
+.graph-node.depth-far {
+  opacity: 0.45;
+}
+.graph-node.depth-far .node-inner {
+  transform: scale(0.92);
+}
+
+.node-icon {
+  font-size: 1.3rem;
+  margin-bottom: 6px;
+  display: block;
+  opacity: 0.9;
+}
+
+.node-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+
+.root-node .node-label { font-size: 1rem; }
+
+.node-sublabel {
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+  margin-top: 3px;
+  font-weight: 400;
+}
+
+.node-expand-indicator {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-blue);
+  margin-top: 8px;
+  opacity: 0.6;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.graph-node.expanded .node-expand-indicator { display: none; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.3); }
+}
+
+/* ===== DETAIL PANEL ===== */
+.detail-panel {
+  width: 420px;
+  min-width: 380px;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+  transform: translateX(100%);
+  transition: transform var(--transition-base);
+  overflow: hidden;
+}
+.detail-panel.open { transform: translateX(0); }
+
+.panel-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.panel-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.panel-category {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-accent);
+  margin-top: 4px;
+  font-family: var(--font-mono);
+}
+
+.panel-close {
+  background: none;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  transition: all var(--transition-base);
+}
+.panel-close:hover { border-color: var(--border-node); color: var(--text-primary); }
+
+.panel-body {
+  padding: 20px 24px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.panel-body p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+.panel-body p:last-child { margin-bottom: 0; }
+.panel-body strong { color: var(--text-primary); font-weight: 600; }
+
+.proof-stat {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin: 16px 0;
+}
+
+.proof-stat .stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent-teal);
+  font-family: var(--font-mono);
+}
+
+.proof-stat .stat-label {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.tech-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 14px 0;
+}
+
+.tech-tag {
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--accent-blue-dim);
+  color: var(--text-accent);
+  border: 1px solid rgba(59,130,246,0.15);
+  white-space: nowrap;
+}
+
+.tech-tag.teal {
+  background: var(--accent-teal-dim);
+  color: var(--accent-teal);
+  border-color: rgba(45,212,191,0.15);
+}
+
+.tech-tag.violet {
+  background: var(--accent-violet-dim);
+  color: var(--accent-violet);
+  border-color: rgba(139,92,246,0.15);
+}
+
+.panel-cta {
+  display: block;
+  width: 100%;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  margin-top: 20px;
+  transition: all var(--transition-base);
+  letter-spacing: 0.01em;
+}
+.panel-cta:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+.panel-list {
+  list-style: none;
+  margin: 14px 0;
+}
+
+.panel-list li {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  padding: 6px 0 6px 18px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.panel-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 13px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-blue);
+  opacity: 0.6;
+}
+
+/* ===== BREADCRUMB / PATH ===== */
+.path-bar {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  max-width: calc(100vw - 480px);
+}
+
+.path-segment {
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  color: var(--text-tertiary);
+  background: rgba(17,24,39,0.85);
+  backdrop-filter: blur(8px);
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  white-space: nowrap;
+}
+.path-segment:hover { color: var(--text-accent); border-color: var(--border-node); }
+.path-segment.current { color: var(--text-accent); border-color: var(--border-active); }
+
+.path-arrow {
+  color: var(--text-tertiary);
+  font-size: 0.65rem;
+  opacity: 0.5;
+}
+
+/* ===== CONTROLS ===== */
+.graph-controls {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 30;
+  display: flex;
+  gap: 8px;
+}
+
+.ctrl-btn {
+  background: rgba(17,24,39,0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  transition: all var(--transition-base);
+}
+.ctrl-btn:hover { border-color: var(--border-node); color: var(--text-primary); }
+
+/* ===== BRAND ===== */
+.brand-mark {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 30;
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  color: var(--text-tertiary);
+  opacity: 0.5;
+  letter-spacing: 0.05em;
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 860px) {
+  .detail-panel {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    min-width: 0;
+    border-left: none;
+    border-radius: 0;
+    transform: translateY(100%);
+    z-index: 50;
+  }
+  .detail-panel.open { transform: translateY(0); }
+  .path-bar { max-width: calc(100vw - 32px); }
+  .brand-mark { display: none; }
+
+  .node-inner {
+    min-width: 110px;
+    max-width: 170px;
+    padding: 10px 14px;
+  }
+  .node-label { font-size: 0.78rem; }
+  .root-node .node-inner { min-width: 200px; padding: 16px 20px; }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  .node-expand-indicator { animation: none; opacity: 0.6; }
+}
+
+/* ===== FOCUS ===== */
+.graph-node:focus-visible .node-inner {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 3px;
+}
+.panel-close:focus-visible,
+.ctrl-btn:focus-visible,
+.path-segment:focus-visible,
+.panel-cta:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+/* ===== SCROLLBAR ===== */
+.panel-body::-webkit-scrollbar { width: 4px; }
+.panel-body::-webkit-scrollbar-track { background: transparent; }
+.panel-body::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+<div class="app-container">
+  <div class="graph-viewport" id="graphViewport" role="application" aria-label="Interactive graph navigation. Click nodes to explore services and capabilities.">
+    <!-- Edge canvas is a direct child of viewport, same coordinate space as manual transforms -->
+    <canvas id="edge-canvas" aria-hidden="true"></canvas>
+    <!-- Node container — no CSS transforms applied here; nodes positioned via JS transform -->
+    <div class="graph-world" id="graphWorld"></div>
+  </div>
+  <aside class="detail-panel" id="detailPanel" role="complementary" aria-label="Detail panel">
+    <div class="panel-header">
+      <div>
+        <div class="panel-category" id="panelCategory"></div>
+        <h2 class="panel-title" id="panelTitle"></h2>
+      </div>
+      <button class="panel-close" id="panelClose" aria-label="Close panel">&times;</button>
+    </div>
+    <div class="panel-body" id="panelBody"></div>
+  </aside>
+</div>
+
+<nav class="path-bar" id="pathBar" aria-label="Graph traversal path"></nav>
+
+<div class="graph-controls">
+  <button class="ctrl-btn" id="btnRecenter" aria-label="Recenter graph" title="Recenter">&#8982;</button>
+  <button class="ctrl-btn" id="btnZoomIn" aria-label="Zoom in" title="Zoom in">+</button>
+  <button class="ctrl-btn" id="btnZoomOut" aria-label="Zoom out" title="Zoom out">&minus;</button>
+  <button class="ctrl-btn" id="btnReset" aria-label="Reset graph" title="Reset graph">&#8634;</button>
+</div>
+
+<div class="brand-mark">SocratesOne Development LLC &middot; Denver, CO</div>
+
+<script>
+/* ================================================================
+   GRAPH DATA
+   ================================================================ */
+const GRAPH_DATA = {
+  nodes: {
+    root: {
+      label: 'Agentic Engineering\nThat Works',
+      icon: '',
+      sublabel: 'Joshua Albert \u00b7 Denver, CO',
+      category: '',
+      isRoot: true,
+      children: ['build-agents', 'fix-workflows', 'integrate', 'how-i-work', 'contact'],
+      content: {
+        title: 'Agentic Engineering That Actually Works',
+        category: 'Overview',
+        body: `<p><strong>Joshua Albert</strong> is a senior full-stack engineer focused on production agentic AI systems, currently based in Denver, CO.</p>
+<p>I've spent the past year building agent orchestration, context and memory systems, graph-backed retrieval, and the full-stack tooling that makes AI workflows actually function in production. Before that, five years of data-heavy application development, graph interfaces, and enterprise feature delivery.</p>
+<p>I'm looking for a team where this combination of <strong>agentic systems depth and full-stack engineering fundamentals</strong> can have real impact. The independent work has been good, but the problems I want to solve next are team-scale.</p>
+<a href="mailto:socratesone@gmail.com" class="panel-cta">Let's Talk</a>`
+      }
+    },
+
+    'build-agents': {
+      label: 'Build Agents',
+      icon: '\u2699',
+      sublabel: 'Design & implement',
+      category: 'Services',
+      children: ['langchain-langgraph', 'memory-context', 'graph-retrieval'],
+      content: {
+        title: 'Agent Systems Built for Production',
+        category: 'What I Build',
+        body: `<p>I design and implement agentic AI systems structured for <strong>testability, observability, and incremental rollout</strong> from day one.</p>
+<p>Recent work: multi-agent orchestration, context and memory systems, graph-backed retrieval, MCP-compatible tooling, and spec-driven development workflows.</p>`
+      }
+    },
+
+    'langchain-langgraph': {
+      label: 'LangChain +\nLangGraph',
+      icon: '\u26d3',
+      sublabel: 'Core orchestration',
+      category: 'Stack',
+      children: ['langsmith', 'supervisor', 'swarm'],
+      content: {
+        title: 'LangChain & LangGraph',
+        category: 'Stack',
+        body: `<p>I build with the <strong>LangChain ecosystem</strong> and LangGraph's stateful, graph-native orchestration model. It's how I think about agent architecture.</p>
+<p>I'm currently developing <strong>agent-foundry-lab</strong>, a private project exploring orchestration and composition patterns across the LangChain/LangGraph surface area.</p>
+<div class="tech-tags">
+<span class="tech-tag">LangChain</span>
+<span class="tech-tag">LangGraph</span>
+<span class="tech-tag">Python</span>
+</div>`
+      }
+    },
+
+    'langsmith': {
+      label: 'LangSmith',
+      icon: '\u{1f50d}',
+      sublabel: 'Observability & tracing',
+      category: 'Stack',
+      children: [],
+      content: {
+        title: 'LangSmith',
+        category: 'Stack \u00b7 Observability',
+        body: `<p>I've been working with <strong>LangSmith</strong> for agent tracing and observability as part of my ongoing agent-foundry-lab work. Early days, but it's a natural fit for debugging agent behavior in development.</p>`
+      }
+    },
+
+    'supervisor': {
+      label: 'Supervisor\nPatterns',
+      icon: '\u{1f4cb}',
+      sublabel: 'Coordinated agent teams',
+      category: 'Pattern',
+      children: [],
+      content: {
+        title: 'Supervisor Patterns',
+        category: 'Pattern',
+        body: `<p>I've been exploring <strong>supervisor-based multi-agent patterns</strong> \u2014 specialist agents coordinated by a central orchestrator. Still developing my understanding, but the pattern maps well to real delivery workflows.</p>`
+      }
+    },
+
+    'swarm': {
+      label: 'Swarm\nPatterns',
+      icon: '\u{1f41d}',
+      sublabel: 'Peer-to-peer handoffs',
+      category: 'Pattern',
+      children: [],
+      content: {
+        title: 'Swarm Patterns',
+        category: 'Pattern',
+        body: `<p>I've been experimenting with <strong>swarm-style agent composition</strong> \u2014 decentralized specialist handoffs without a central coordinator. Interesting trade-offs compared to supervisor patterns, and an area I'm actively learning.</p>`
+      }
+    },
+
+    'memory-context': {
+      label: 'Memory +\nContext',
+      icon: '\u{1f9e0}',
+      sublabel: 'State management',
+      category: 'Capability',
+      children: [],
+      content: {
+        title: 'Context Engineering & Memory',
+        category: 'Capability',
+        body: `<p>Agents fail when they lose context. I work on <strong>memory architectures</strong> that give agents the right information at the right time \u2014 session vs. long-term separation, semantic retrieval, graph-backed knowledge persistence.</p>
+<p>Context engineering is what separates a demo from something that works on the tenth call of the day.</p>`
+      }
+    },
+
+    'graph-retrieval': {
+      label: 'Graph-Backed\nRetrieval',
+      icon: '\u{1f578}',
+      sublabel: 'Knowledge graphs + RAG',
+      category: 'Capability',
+      children: [],
+      content: {
+        title: 'Graph-Backed Retrieval',
+        category: 'Capability',
+        body: `<p>Vector search alone isn't enough for complex domains. I work on <strong>graph-backed retrieval</strong> that combines structured relationships with semantic search.</p>
+<div class="proof-stat">
+<div class="stat-value"><a href="https://github.com/socratesone/auditgraph" target="_blank" rel="noopener" style="color: var(--accent-teal); text-decoration: none; border-bottom: 1px solid rgba(45,212,191,0.3);">auditgraph</a></div>
+<div class="stat-label">Open-source: local-first auditable knowledge graph RAG with MCP server support and Neo4j export</div>
+</div>
+<div class="tech-tags">
+<span class="tech-tag">Neo4j</span>
+<span class="tech-tag teal">NetworkX</span>
+<span class="tech-tag">RAG</span>
+<span class="tech-tag violet">MCP Server</span>
+</div>`
+      }
+    },
+
+    'fix-workflows': {
+      label: 'Fix Broken\nWorkflows',
+      icon: '\u{1f527}',
+      sublabel: 'Debug & harden',
+      category: 'Services',
+      children: ['why-agents-fail'],
+      content: {
+        title: 'Fixing Agent Workflows That Aren\'t Working',
+        category: 'Problem Solving',
+        body: `<p>Most agent systems fail not because the LLM is wrong, but because the <strong>orchestration, context, or integration layer</strong> is fragile.</p>
+<p>These are the problems I gravitate toward \u2014 hallucinating retrievals, workflows that break with real data, runaway token costs, missing observability. My instinct is <strong>structured debugging and systematic hardening</strong>, not prompt-tweaking.</p>`
+      }
+    },
+
+    'why-agents-fail': {
+      label: 'Why Agents\nFail',
+      icon: '\u26a0',
+      sublabel: 'Common failure modes',
+      category: 'Insight',
+      children: [],
+      content: {
+        title: 'Why Agents Fail',
+        category: 'Insight',
+        body: `<p>Patterns I keep seeing: agents built on prompts alone with no schema boundaries. Vector search returning plausible but wrong context. Memory systems that forget everything or remember too much. No observability into what the agent actually did.</p>
+<p>Good agent systems need <strong>structure, not just prompts</strong>.</p>`
+      }
+    },
+
+    'integrate': {
+      label: 'Integrate with\nExisting Systems',
+      icon: '\u{1f50c}',
+      sublabel: 'APIs, data, infra',
+      category: 'Services',
+      children: ['stack', 'delivery'],
+      content: {
+        title: 'Integrating Agents with Real Infrastructure',
+        category: 'Integration',
+        body: `<p>The hard part is connecting agents to <strong>existing APIs, databases, auth systems, and deployment pipelines</strong> without breaking what's already working.</p>
+<p>Years of full-stack application development with complex data flows, enterprise auth, and production CI/CD is what makes the agent work practical.</p>`
+      }
+    },
+
+    'stack': {
+      label: 'Tech Stack',
+      icon: '\u{1f4e6}',
+      sublabel: 'Full-stack depth',
+      category: 'Stack',
+      children: [],
+      content: {
+        title: 'Technical Stack & Specialties',
+        category: 'Stack',
+        body: `<p><strong>Agentic AI & Orchestration</strong></p>
+<div class="tech-tags">
+<span class="tech-tag">LangChain</span>
+<span class="tech-tag">LangGraph</span>
+<span class="tech-tag teal">MCP Protocol</span>
+<span class="tech-tag violet">Multi-Agent Systems</span>
+<span class="tech-tag">Prompt & Schema Design</span>
+</div>
+<p><strong>Backend & Data</strong></p>
+<div class="tech-tags">
+<span class="tech-tag">Python</span>
+<span class="tech-tag">FastAPI</span>
+<span class="tech-tag">PHP</span>
+<span class="tech-tag teal">Neo4j</span>
+<span class="tech-tag">PostgreSQL</span>
+<span class="tech-tag">MySQL</span>
+<span class="tech-tag violet">Redis</span>
+<span class="tech-tag">REST APIs</span>
+</div>
+<p><strong>Frontend & Visualization</strong></p>
+<div class="tech-tags">
+<span class="tech-tag">Vue</span>
+<span class="tech-tag">React</span>
+<span class="tech-tag teal">TypeScript</span>
+<span class="tech-tag">JavaScript</span>
+<span class="tech-tag">D3.js</span>
+<span class="tech-tag violet">Apache ECharts</span>
+<span class="tech-tag">HTML/CSS</span>
+</div>
+<p><strong>Infrastructure & Delivery</strong></p>
+<div class="tech-tags">
+<span class="tech-tag">Docker</span>
+<span class="tech-tag teal">GitHub Actions</span>
+<span class="tech-tag">CI/CD</span>
+<span class="tech-tag violet">SAML/OAuth</span>
+<span class="tech-tag">Testing</span>
+</div>`
+      }
+    },
+
+    'delivery': {
+      label: 'Delivery &\nReliability',
+      icon: '\u2705',
+      sublabel: 'Ship with confidence',
+      category: 'Methodology',
+      children: [],
+      content: {
+        title: 'Delivery & Reliability',
+        category: 'Methodology',
+        body: `<p>I treat agent systems with the same rigor as any production software. TDD, CI/CD, scripted rollback paths, observability, and incremental delivery.</p>
+<p>Good agent systems aren't just smart. They're <strong>testable, debuggable, and safe to deploy</strong>.</p>`
+      }
+    },
+
+    'how-i-work': {
+      label: 'How I Work',
+      icon: '\u{1f91d}',
+      sublabel: 'Collaboration model',
+      category: 'Process',
+      children: ['pairing', 'engagement'],
+      content: {
+        title: 'How I Work',
+        category: 'Collaboration',
+        body: `<p>I'm a <strong>pair-first engineer</strong>. I think best out loud, and I care about leaving codebases better than I found them.</p>
+<p>Incremental delivery, documented architecture decisions, testing as a habit. I want to be on a team where these are valued, not unusual.</p>`
+      }
+    },
+
+    'pairing': {
+      label: 'Pairing +\nKnowledge Transfer',
+      icon: '\u{1f4ac}',
+      sublabel: 'How I collaborate',
+      category: 'Methodology',
+      children: [],
+      content: {
+        title: 'Pairing & Knowledge Transfer',
+        category: 'Collaboration',
+        body: `<p><strong>Pair programming</strong> is how I prefer to work. It builds shared understanding fast and raises the level of everyone involved, including me.</p>
+<p>At Visible Network Labs I mentored junior developers, promoted pairing, and helped introduce a dev-focused work stream that improved testing and product quality across the team.</p>`
+      }
+    },
+
+    'engagement': {
+      label: 'What I\'m\nLooking For',
+      icon: '\u{1f4cb}',
+      sublabel: 'The right fit',
+      category: 'Opportunity',
+      children: ['cta-design', 'cta-automate', 'cta-pilot'],
+      content: {
+        title: 'What I\'m Looking For',
+        category: 'Next Step',
+        body: `<p>I've been building these systems independently since mid-2025. The work is going well, but the problems I'm most drawn to are bigger than one person.</p>
+<p>I'm looking for a team that ships production agent systems and values the engineering fundamentals that make them reliable.</p>
+<a href="mailto:socratesone@gmail.com" class="panel-cta">Start a Conversation</a>`
+      }
+    },
+
+    'cta-design': {
+      label: 'Architecture\n& Design',
+      icon: '\u{1f5fa}',
+      sublabel: '',
+      category: 'CTA',
+      isCta: true,
+      children: [],
+      content: {
+        title: 'Architecture & Systems Design',
+        category: 'Strengths',
+        body: `<p>I think in <strong>graphs, systems, and production constraints</strong>. I want to be in the room where agent architectures get designed, integration points get mapped, and hard trade-offs get made.</p>
+<p>I do my best work when I can own a problem from architecture through implementation.</p>
+<a href="mailto:socratesone@gmail.com?subject=Let's%20Talk" class="panel-cta">Get in Touch</a>`
+      }
+    },
+
+    'cta-automate': {
+      label: 'Build &\nShip',
+      icon: '\u26a1',
+      sublabel: '',
+      category: 'CTA',
+      isCta: true,
+      children: [],
+      content: {
+        title: 'Build & Ship',
+        category: 'Strengths',
+        body: `<p>I'm not an advisor. I write code, ship features, and debug production issues. I want to be on a team where <strong>building and shipping</strong> is the primary output, with proper testing and observability baked in.</p>
+<a href="mailto:socratesone@gmail.com?subject=Let's%20Talk" class="panel-cta">Get in Touch</a>`
+      }
+    },
+
+    'cta-pilot': {
+      label: 'Prove\nthe Fit',
+      icon: '\u{1f680}',
+      sublabel: '',
+      category: 'CTA',
+      isCta: true,
+      children: [],
+      content: {
+        title: 'Prove the Fit',
+        category: 'Next Step',
+        body: `<p>I'm happy to start with a <strong>focused trial or contract period</strong>. Pick a bounded problem, let me build a solution, and we'll both know quickly whether this is the right fit.</p>
+<a href="mailto:socratesone@gmail.com?subject=Let's%20Talk" class="panel-cta">Let's Talk</a>`
+      }
+    },
+
+    'contact': {
+      label: 'Get in Touch',
+      icon: '\u2709',
+      sublabel: 'socratesone@gmail.com',
+      category: 'Contact',
+      isCta: true,
+      children: [],
+      content: {
+        title: 'Let\'s Talk',
+        category: 'Contact',
+        body: `<p>If you're building production agent systems and looking for an engineer who can work across the full stack, from orchestration design through delivery, I'd like to hear about it.</p>
+<p><strong>Joshua Albert</strong><br>Senior Full-Stack Engineer &middot; Agentic AI Systems<br>Denver, Colorado</p>
+<a href="mailto:socratesone@gmail.com" class="panel-cta">socratesone@gmail.com</a>
+<a href="#" id="aiCloneLink" class="panel-cta" style="margin-top: 10px; background: linear-gradient(135deg, #8b5cf6, #6d28d9);">Talk to my AI Clone</a>
+<p style="margin-top: 16px; font-size: 0.82rem; color: var(--text-tertiary);">I typically respond within one business day. Include a brief description of your project or challenge and I'll come prepared.</p>`
+      }
+    }
+  },
+
+  edges: [
+    ['root', 'build-agents'],
+    ['root', 'fix-workflows'],
+    ['root', 'integrate'],
+    ['root', 'how-i-work'],
+    ['root', 'contact'],
+    ['build-agents', 'langchain-langgraph'],
+    ['build-agents', 'memory-context'],
+    ['build-agents', 'graph-retrieval'],
+    ['langchain-langgraph', 'langsmith'],
+    ['langchain-langgraph', 'supervisor'],
+    ['langchain-langgraph', 'swarm'],
+    ['fix-workflows', 'why-agents-fail'],
+    ['integrate', 'stack'],
+    ['integrate', 'delivery'],
+    ['how-i-work', 'pairing'],
+    ['how-i-work', 'engagement'],
+    ['engagement', 'cta-design'],
+    ['engagement', 'cta-automate'],
+    ['engagement', 'cta-pilot']
+  ]
+};
+
+/* ================================================================
+   ADJACENCY HELPERS
+   ================================================================ */
+function buildAdjacency(edges) {
+  const adj = {};
+  for (const [a, b] of edges) {
+    if (!adj[a]) adj[a] = new Set();
+    if (!adj[b]) adj[b] = new Set();
+    adj[a].add(b);
+    adj[b].add(a);
+  }
+  return adj;
+}
+
+function bfsDistances(startId, adj) {
+  const dist = {};
+  const queue = [startId];
+  dist[startId] = 0;
+  while (queue.length > 0) {
+    const cur = queue.shift();
+    const neighbors = adj[cur] || new Set();
+    for (const n of neighbors) {
+      if (dist[n] === undefined) {
+        dist[n] = dist[cur] + 1;
+        queue.push(n);
+      }
+    }
+  }
+  return dist;
+}
+
+const ADJACENCY = buildAdjacency(GRAPH_DATA.edges);
+
+/* ================================================================
+   LAYOUT ENGINE — computes positions centered on a given focus node
+   ================================================================ */
+function computeLayout(focusId, visibleNodes, centerX, centerY) {
+  const positions = {};
+  const node = GRAPH_DATA.nodes[focusId];
+  if (!node) return positions;
+
+  /* Place focus node at center */
+  positions[focusId] = { x: centerX, y: centerY };
+
+  /* BFS outward from focus node, only through visible nodes */
+  const visited = new Set([focusId]);
+  const queue = [{ id: focusId, depth: 0 }];
+  const levels = { 0: [focusId] };
+
+  /* Build parent map for visible nodes */
+  const parentOf = {};
+
+  while (queue.length > 0) {
+    const { id, depth } = queue.shift();
+    const neighbors = ADJACENCY[id] || new Set();
+    for (const nid of neighbors) {
+      if (!visited.has(nid) && visibleNodes.has(nid)) {
+        visited.add(nid);
+        parentOf[nid] = id;
+        const d = depth + 1;
+        if (!levels[d]) levels[d] = [];
+        levels[d].push(nid);
+        queue.push({ id: nid, depth: d });
+      }
+    }
+  }
+
+  /* Radial layout for each depth level */
+  const radiusStep = Math.min(300, Math.max(200, Math.min(centerX, centerY) * 0.45));
+
+  for (let depth = 1; depth <= 4; depth++) {
+    const nodesAtDepth = levels[depth] || [];
+    if (nodesAtDepth.length === 0) continue;
+
+    /* Group by parent for angular coherence */
+    const parentGroups = {};
+    for (const nid of nodesAtDepth) {
+      const pid = parentOf[nid] || focusId;
+      if (!parentGroups[pid]) parentGroups[pid] = [];
+      parentGroups[pid].push(nid);
+    }
+
+    const parentIds = Object.keys(parentGroups);
+
+    if (depth === 1) {
+      /* First ring: distribute evenly around center */
+      const count = nodesAtDepth.length;
+      const startAngle = -Math.PI / 2;
+      nodesAtDepth.forEach((id, i) => {
+        const angle = startAngle + (2 * Math.PI * i) / count;
+        const r = radiusStep;
+        positions[id] = {
+          x: centerX + r * Math.cos(angle),
+          y: centerY + r * Math.sin(angle)
+        };
+      });
+    } else {
+      /* Outer rings: fan out from parent direction */
+      for (const pid of parentIds) {
+        const group = parentGroups[pid];
+        const parentPos = positions[pid];
+        if (!parentPos) continue;
+        const parentAngle = Math.atan2(parentPos.y - centerY, parentPos.x - centerX);
+        const spread = Math.min(Math.PI * 0.45, (Math.PI * 0.7) / Math.max(1, group.length - 1));
+        const startAngle = parentAngle - spread * (group.length - 1) / 2;
+
+        group.forEach((id, i) => {
+          const angle = group.length === 1 ? parentAngle : startAngle + spread * i;
+          const r = radiusStep * depth;
+          positions[id] = {
+            x: centerX + r * Math.cos(angle),
+            y: centerY + r * Math.sin(angle)
+          };
+        });
+      }
+    }
+  }
+
+  return positions;
+}
+
+/* ================================================================
+   GRAPH RENDERER
+   ================================================================ */
+class GraphRenderer {
+  constructor() {
+    this.viewport = document.getElementById('graphViewport');
+    this.world = document.getElementById('graphWorld');
+    this.edgeCanvas = document.getElementById('edge-canvas');
+    this.edgeCtx = this.edgeCanvas.getContext('2d');
+    this.bgCanvas = document.getElementById('bg-canvas');
+    this.bgCtx = this.bgCanvas.getContext('2d');
+    this.panel = document.getElementById('detailPanel');
+    this.panelTitle = document.getElementById('panelTitle');
+    this.panelCategory = document.getElementById('panelCategory');
+    this.panelBody = document.getElementById('panelBody');
+    this.pathBar = document.getElementById('pathBar');
+
+    this.nodeElements = {};
+    /* Current rendered positions (in world space) — animated toward targets */
+    this.renderPos = {};
+    /* Target positions from layout computation */
+    this.targetPos = {};
+    this.visibleNodes = new Set(['root']);
+    this.expandedNodes = new Set();
+    this.activeNodeId = null;
+    this.focusNodeId = 'root';
+    this.traversalPath = ['root'];
+
+    /* Pan/zoom state — camera in screen space */
+    this.panX = 0;
+    this.panY = 0;
+    this.zoom = 1;
+    this.isDragging = false;
+    this.dragStartX = 0;
+    this.dragStartY = 0;
+    this.panStartX = 0;
+    this.panStartY = 0;
+
+    /* Node dragging */
+    this.draggedNodeId = null;
+    this.nodeDragStartX = 0;
+    this.nodeDragStartY = 0;
+    this.nodePosStartX = 0;
+    this.nodePosStartY = 0;
+    this.pointerMovedDuringDrag = false;
+
+    /* Edge animation */
+    this.edgePulseOffset = 0;
+    this.animFrame = null;
+
+    /* Background particles */
+    this.bgParticles = [];
+
+    this.init();
+  }
+
+  init() {
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+
+    this.initBgParticles();
+    this.createNodeElements();
+    this.recomputeLayout('root');
+    /* Snap positions immediately on first render */
+    for (const id of Object.keys(this.targetPos)) {
+      this.renderPos[id] = { ...this.targetPos[id] };
+    }
+    this.updateNodeTransforms();
+    this.updateVisibility();
+    this.bindEvents();
+    this.animate();
+
+    setTimeout(() => this.selectNode('root'), 300);
+  }
+
+  resize() {
+    const w = this.viewport.clientWidth || window.innerWidth;
+    const h = this.viewport.clientHeight || window.innerHeight;
+    /* Edge canvas sized to viewport, using 2x for retina */
+    this.edgeCanvas.width = w * 2;
+    this.edgeCanvas.height = h * 2;
+    this.edgeCanvas.style.width = w + 'px';
+    this.edgeCanvas.style.height = h + 'px';
+    this.bgCanvas.width = w;
+    this.bgCanvas.height = h;
+  }
+
+  /* ---- Coordinate Conversions ---- */
+  /* World coords → Screen coords */
+  worldToScreen(wx, wy) {
+    return {
+      x: wx * this.zoom + this.panX,
+      y: wy * this.zoom + this.panY
+    };
+  }
+
+  /* Screen coords → World coords */
+  screenToWorld(sx, sy) {
+    return {
+      x: (sx - this.panX) / this.zoom,
+      y: (sy - this.panY) / this.zoom
+    };
+  }
+
+  /* ---- Layout Computation ---- */
+  recomputeLayout(focusId) {
+    const vw = this.viewport.clientWidth || window.innerWidth;
+    const vh = this.viewport.clientHeight || window.innerHeight;
+    const panelW = this.panel.classList.contains('open') && window.innerWidth > 860 ? 420 : 0;
+    const cx = (vw - panelW) / 2;
+    const cy = vh / 2;
+
+    /* Compute in world-space, centered on (cx/zoom - panX/zoom, cy/zoom - panY/zoom)
+       Actually simpler: compute layout around world origin, then set pan to center focus */
+    this.targetPos = computeLayout(focusId, this.visibleNodes, 0, 0);
+    this.focusNodeId = focusId;
+
+    /* Set camera so that focus node (world 0,0) is at screen center */
+    const targetPanX = cx;
+    const targetPanY = cy;
+    this.animatePan(targetPanX, targetPanY);
+  }
+
+  animatePan(targetX, targetY) {
+    const startX = this.panX;
+    const startY = this.panY;
+    const duration = 500;
+    const start = performance.now();
+
+    const step = (now) => {
+      const t = Math.min(1, (now - start) / duration);
+      const ease = 1 - Math.pow(1 - t, 3);
+      this.panX = startX + (targetX - startX) * ease;
+      this.panY = startY + (targetY - startY) * ease;
+      if (t < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  /* ---- Background Particles ---- */
+  initBgParticles() {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    this.bgParticles = [];
+    const count = Math.floor((w * h) / 14000);
+    for (let i = 0; i < count; i++) {
+      this.bgParticles.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.15,
+        vy: (Math.random() - 0.5) * 0.15,
+        r: Math.random() * 1.5 + 0.3,
+        alpha: Math.random() * 0.25 + 0.05
+      });
+    }
+  }
+
+  drawBackground() {
+    const ctx = this.bgCtx;
+    const w = this.bgCanvas.width;
+    const h = this.bgCanvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    /* Subtle grid */
+    ctx.strokeStyle = 'rgba(30, 45, 74, 0.15)';
+    ctx.lineWidth = 0.5;
+    const gridSize = 60;
+    for (let x = 0; x < w; x += gridSize) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+    }
+    for (let y = 0; y < h; y += gridSize) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+
+    /* Particles */
+    for (const p of this.bgParticles) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
+      if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(59, 130, 246, ${p.alpha})`;
+      ctx.fill();
+    }
+
+    /* Close-particle connections */
+    ctx.strokeStyle = 'rgba(59, 130, 246, 0.04)';
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i < this.bgParticles.length; i++) {
+      for (let j = i + 1; j < this.bgParticles.length; j++) {
+        const a = this.bgParticles[i], b = this.bgParticles[j];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        if (dx * dx + dy * dy < 8000) {
+          ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        }
+      }
+    }
+  }
+
+  /* ---- Node Elements ---- */
+  createNodeElements() {
+    for (const [id, node] of Object.entries(GRAPH_DATA.nodes)) {
+      const el = document.createElement('div');
+      el.className = 'graph-node';
+      if (node.isRoot) el.classList.add('root-node');
+      if (node.isCta) el.classList.add('cta-node');
+      el.setAttribute('role', 'button');
+      el.setAttribute('tabindex', '0');
+      el.setAttribute('aria-label', node.label.replace('\n', ' '));
+      el.dataset.nodeId = id;
+
+      const lines = node.label.split('\n');
+      el.innerHTML = `
+        <div class="node-inner">
+          ${node.icon ? `<span class="node-icon" aria-hidden="true">${node.icon}</span>` : ''}
+          <div class="node-label">${lines.join('<br>')}</div>
+          ${node.sublabel ? `<div class="node-sublabel">${node.sublabel}</div>` : ''}
+          ${(node.children && node.children.length > 0) ? '<div class="node-expand-indicator" aria-hidden="true"></div>' : ''}
+        </div>
+      `;
+
+      this.world.appendChild(el);
+      this.nodeElements[id] = el;
+    }
+  }
+
+  /* Position nodes using CSS transform (screen-space) */
+  updateNodeTransforms() {
+    for (const [id, el] of Object.entries(this.nodeElements)) {
+      if (!this.visibleNodes.has(id)) continue;
+      const pos = this.renderPos[id];
+      if (!pos) continue;
+      const screen = this.worldToScreen(pos.x, pos.y);
+      el.style.transform = `translate(${screen.x}px, ${screen.y}px) translate(-50%, -50%) scale(${this.zoom})`;
+    }
+  }
+
+  /* Animate renderPos toward targetPos */
+  interpolatePositions() {
+    const lerpFactor = 0.12;
+    for (const id of this.visibleNodes) {
+      const target = this.targetPos[id];
+      if (!target) continue;
+      if (!this.renderPos[id]) {
+        this.renderPos[id] = { ...target };
+      } else if (id !== this.draggedNodeId) {
+        this.renderPos[id].x += (target.x - this.renderPos[id].x) * lerpFactor;
+        this.renderPos[id].y += (target.y - this.renderPos[id].y) * lerpFactor;
+      }
+    }
+  }
+
+  updateVisibility() {
+    /* Compute distances from active node for depth dimming */
+    const distances = this.activeNodeId ? bfsDistances(this.activeNodeId, ADJACENCY) : {};
+
+    for (const [id, el] of Object.entries(this.nodeElements)) {
+      if (this.visibleNodes.has(id)) {
+        if (!el.classList.contains('visible')) {
+          el.classList.add('visible', 'entering');
+          setTimeout(() => el.classList.remove('entering'), 500);
+        }
+        if (this.expandedNodes.has(id)) el.classList.add('expanded');
+        else el.classList.remove('expanded');
+        if (id === this.activeNodeId) el.classList.add('active');
+        else el.classList.remove('active');
+
+        /* Depth dimming: nodes >2 hops from active get dimmed */
+        const d = distances[id];
+        if (this.activeNodeId && d !== undefined && d > 2) {
+          el.classList.add('depth-far');
+        } else {
+          el.classList.remove('depth-far');
+        }
+      } else {
+        el.classList.remove('visible', 'active', 'expanded', 'entering', 'depth-far');
+      }
+    }
+  }
+
+  /* ---- Edges ---- */
+  drawEdges() {
+    const ctx = this.edgeCtx;
+    const dpr = 2;
+    ctx.clearRect(0, 0, this.edgeCanvas.width, this.edgeCanvas.height);
+    ctx.save();
+    ctx.scale(dpr, dpr);
+
+    this.edgePulseOffset = (this.edgePulseOffset + 0.5) % 40;
+
+    for (const [from, to] of GRAPH_DATA.edges) {
+      if (!this.visibleNodes.has(from) || !this.visibleNodes.has(to)) continue;
+      const wp1 = this.renderPos[from];
+      const wp2 = this.renderPos[to];
+      if (!wp1 || !wp2) continue;
+
+      /* Convert to screen space */
+      const p1 = this.worldToScreen(wp1.x, wp1.y);
+      const p2 = this.worldToScreen(wp2.x, wp2.y);
+
+      const isActive = this.traversalPath.includes(from) && this.traversalPath.includes(to);
+
+      /* Slight curve */
+      const mx = (p1.x + p2.x) / 2;
+      const my = (p1.y + p2.y) / 2;
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const cx = mx - dy * 0.08;
+      const cy = my + dx * 0.08;
+
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.quadraticCurveTo(cx, cy, p2.x, p2.y);
+      ctx.strokeStyle = isActive ? 'rgba(59, 130, 246, 0.5)' : 'rgba(59, 130, 246, 0.15)';
+      ctx.lineWidth = isActive ? 2 : 1;
+      ctx.stroke();
+
+      /* Pulse dots along active edges */
+      if (isActive) {
+        const len = Math.sqrt(dx * dx + dy * dy);
+        const dots = Math.max(2, Math.floor(len / 40));
+        for (let i = 0; i < dots; i++) {
+          const t = ((i / dots) + this.edgePulseOffset / 40) % 1;
+          const px = (1-t)*(1-t)*p1.x + 2*(1-t)*t*cx + t*t*p2.x;
+          const py = (1-t)*(1-t)*p1.y + 2*(1-t)*t*cy + t*t*p2.y;
+          ctx.beginPath();
+          ctx.arc(px, py, 2, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(59, 130, 246, ${0.4 + 0.3 * Math.sin(t * Math.PI)})`;
+          ctx.fill();
+        }
+      }
+    }
+
+    ctx.restore();
+  }
+
+  /* ---- Interaction ---- */
+  selectNode(id) {
+    const node = GRAPH_DATA.nodes[id];
+    if (!node) return;
+
+    this.activeNodeId = id;
+
+    /* Expand children */
+    if (node.children && node.children.length > 0 && !this.expandedNodes.has(id)) {
+      this.expandedNodes.add(id);
+      for (const childId of node.children) {
+        this.visibleNodes.add(childId);
+      }
+    }
+
+    /* Update traversal path */
+    const idx = this.traversalPath.indexOf(id);
+    if (idx >= 0) {
+      this.traversalPath = this.traversalPath.slice(0, idx + 1);
+    } else {
+      const path = this.findPath('root', id);
+      if (path) this.traversalPath = path;
+      else this.traversalPath.push(id);
+    }
+
+    /* Show detail panel */
+    if (node.content) {
+      this.panelTitle.textContent = node.content.title;
+      this.panelCategory.textContent = node.content.category;
+      this.panelBody.innerHTML = node.content.body;
+      this.panel.classList.add('open');
+      /* Scroll panel to top */
+      this.panelBody.scrollTop = 0;
+    }
+
+    /* Recompute layout centered on selected node */
+    this.recomputeLayout(id);
+    this.updateVisibility();
+    this.updatePathBar();
+  }
+
+  findPath(from, to) {
+    const visited = new Set();
+    const queue = [[from]];
+    visited.add(from);
+    while (queue.length > 0) {
+      const path = queue.shift();
+      const current = path[path.length - 1];
+      if (current === to) return path;
+      const children = GRAPH_DATA.nodes[current]?.children || [];
+      for (const child of children) {
+        if (!visited.has(child)) {
+          visited.add(child);
+          queue.push([...path, child]);
+        }
+      }
+    }
+    return null;
+  }
+
+  closePanel() {
+    this.panel.classList.remove('open');
+    this.activeNodeId = null;
+    this.updateVisibility();
+  }
+
+  resetGraph() {
+    this.visibleNodes = new Set(['root']);
+    this.expandedNodes.clear();
+    this.activeNodeId = null;
+    this.traversalPath = ['root'];
+    this.zoom = 1;
+    this.closePanel();
+    this.recomputeLayout('root');
+    /* Snap positions on reset */
+    for (const id of Object.keys(this.targetPos)) {
+      this.renderPos[id] = { ...this.targetPos[id] };
+    }
+    this.updateVisibility();
+    this.updatePathBar();
+  }
+
+  updatePathBar() {
+    this.pathBar.innerHTML = '';
+    this.traversalPath.forEach((id, i) => {
+      const node = GRAPH_DATA.nodes[id];
+      if (!node) return;
+      if (i > 0) {
+        const arrow = document.createElement('span');
+        arrow.className = 'path-arrow';
+        arrow.textContent = '\u203a';
+        arrow.setAttribute('aria-hidden', 'true');
+        this.pathBar.appendChild(arrow);
+      }
+      const seg = document.createElement('button');
+      seg.className = 'path-segment';
+      if (id === this.activeNodeId) seg.classList.add('current');
+      seg.textContent = node.label.replace('\n', ' ');
+      seg.addEventListener('click', () => this.selectNode(id));
+      this.pathBar.appendChild(seg);
+    });
+  }
+
+  /* ---- Event Binding ---- */
+  bindEvents() {
+    /* Keyboard on nodes */
+    this.world.addEventListener('keydown', (e) => {
+      const nodeEl = e.target.closest('.graph-node');
+      if (nodeEl && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        this.selectNode(nodeEl.dataset.nodeId);
+      }
+    });
+
+    /* Close panel */
+    document.getElementById('panelClose').addEventListener('click', () => this.closePanel());
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') this.closePanel();
+    });
+
+    /* ---- Pointer events: unified node-drag vs canvas-pan ---- */
+    this.viewport.addEventListener('pointerdown', (e) => {
+      const nodeEl = e.target.closest('.graph-node');
+
+      if (nodeEl) {
+        /* Start node drag */
+        const nodeId = nodeEl.dataset.nodeId;
+        this.draggedNodeId = nodeId;
+        this.nodeDragStartX = e.clientX;
+        this.nodeDragStartY = e.clientY;
+        const pos = this.renderPos[nodeId];
+        if (pos) {
+          this.nodePosStartX = pos.x;
+          this.nodePosStartY = pos.y;
+        }
+        this.pointerMovedDuringDrag = false;
+        this.viewport.classList.add('node-dragging');
+        this.viewport.setPointerCapture(e.pointerId);
+        e.preventDefault();
+        return;
+      }
+
+      /* Start canvas pan */
+      this.isDragging = true;
+      this.dragStartX = e.clientX;
+      this.dragStartY = e.clientY;
+      this.panStartX = this.panX;
+      this.panStartY = this.panY;
+      this.viewport.classList.add('dragging');
+      this.viewport.setPointerCapture(e.pointerId);
+    });
+
+    this.viewport.addEventListener('pointermove', (e) => {
+      if (this.draggedNodeId) {
+        /* Move individual node */
+        const dx = e.clientX - this.nodeDragStartX;
+        const dy = e.clientY - this.nodeDragStartY;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+          this.pointerMovedDuringDrag = true;
+        }
+        const pos = this.renderPos[this.draggedNodeId];
+        if (pos) {
+          pos.x = this.nodePosStartX + dx / this.zoom;
+          pos.y = this.nodePosStartY + dy / this.zoom;
+          /* Also update target so it doesn't snap back */
+          if (this.targetPos[this.draggedNodeId]) {
+            this.targetPos[this.draggedNodeId].x = pos.x;
+            this.targetPos[this.draggedNodeId].y = pos.y;
+          }
+        }
+        return;
+      }
+
+      if (!this.isDragging) return;
+      this.panX = this.panStartX + (e.clientX - this.dragStartX);
+      this.panY = this.panStartY + (e.clientY - this.dragStartY);
+    });
+
+    this.viewport.addEventListener('pointerup', (e) => {
+      if (this.draggedNodeId) {
+        const nodeId = this.draggedNodeId;
+        this.draggedNodeId = null;
+        this.viewport.classList.remove('node-dragging');
+        /* If pointer didn't move, treat as click → select */
+        if (!this.pointerMovedDuringDrag) {
+          this.selectNode(nodeId);
+        }
+        return;
+      }
+
+      this.isDragging = false;
+      this.viewport.classList.remove('dragging');
+    });
+
+    /* Zoom (wheel) */
+    this.viewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? 0.92 : 1.08;
+      const newZoom = Math.max(0.3, Math.min(2.5, this.zoom * delta));
+
+      /* Zoom toward cursor */
+      const rect = this.viewport.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const wx = (mx - this.panX) / this.zoom;
+      const wy = (my - this.panY) / this.zoom;
+
+      this.zoom = newZoom;
+      this.panX = mx - wx * this.zoom;
+      this.panY = my - wy * this.zoom;
+    }, { passive: false });
+
+    /* Touch pinch zoom */
+    let lastTouchDist = 0;
+    this.viewport.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        lastTouchDist = Math.sqrt(dx * dx + dy * dy);
+      }
+    }, { passive: true });
+
+    this.viewport.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (lastTouchDist > 0) {
+          const scale = dist / lastTouchDist;
+          this.zoom = Math.max(0.3, Math.min(2.5, this.zoom * scale));
+        }
+        lastTouchDist = dist;
+      }
+    }, { passive: true });
+
+    /* Control buttons */
+    document.getElementById('btnRecenter').addEventListener('click', () => {
+      const id = this.activeNodeId || 'root';
+      this.recomputeLayout(id);
+    });
+    document.getElementById('btnZoomIn').addEventListener('click', () => {
+      this.zoom = Math.min(2.5, this.zoom * 1.2);
+    });
+    document.getElementById('btnZoomOut').addEventListener('click', () => {
+      this.zoom = Math.max(0.3, this.zoom * 0.8);
+    });
+    document.getElementById('btnReset').addEventListener('click', () => this.resetGraph());
+  }
+
+  /* ---- Animation Loop ---- */
+  animate() {
+    this.drawBackground();
+    this.interpolatePositions();
+    this.updateNodeTransforms();
+    this.drawEdges();
+    this.animFrame = requestAnimationFrame(() => this.animate());
+  }
+}
+
+/* ================================================================
+   AI CLONE CHAT WIDGET
+   ================================================================ */
+const AI_ENDPOINT = 'https://workflows.socratesone.com/webhook/chat';
+
+function buildChatWidget() {
+  const t = document.createElement('template');
+  t.innerHTML = `
+    <div id="aiCloneModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:100; padding:16px; place-items:center;">
+      <div style="width:100%; max-width:720px; height:85vh; display:flex; flex-direction:column; background:var(--bg-secondary); border:1px solid var(--border-subtle); border-radius:16px; overflow:hidden; box-shadow:0 24px 48px rgba(0,0,0,0.5);">
+        <header style="background:linear-gradient(135deg,#8b5cf6,#6d28d9); color:#fff; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+          <h2 style="font-size:1rem; font-weight:700; margin:0;">Joshua Albert's AI Clone</h2>
+          <button id="closeChatBtn" style="background:none; border:none; color:#fff; font-size:1.4rem; cursor:pointer; padding:4px 8px; line-height:1;" aria-label="Close chat">&times;</button>
+        </header>
+        <div id="chatLog" style="flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:12px; background:var(--bg-primary);">
+          <div style="align-self:flex-start; max-width:80%; background:var(--bg-tertiary); border:1px solid var(--border-subtle); border-radius:12px; padding:12px 16px;">
+            <p style="font-size:0.85rem; color:var(--text-secondary); line-height:1.6; margin:0;">
+              Hello! I'm an AI clone of Joshua Albert. Ask me anything about his experience, approach, or how he can help with your project.<br><br>
+              <span style="font-size:0.75rem; color:var(--text-tertiary);">Note: I'm a work in progress. For the most accurate information, reach out to Joshua directly.</span>
+            </p>
+          </div>
+        </div>
+        <form id="chatForm" style="border-top:1px solid var(--border-subtle); padding:12px 16px; display:flex; gap:8px; flex-shrink:0; background:var(--bg-secondary);">
+          <input id="msgInput" autocomplete="off" placeholder="Ask me anything..."
+            style="flex:1; padding:10px 14px; background:var(--bg-primary); border:1px solid var(--border-subtle); border-radius:8px; color:var(--text-primary); font-size:0.88rem; font-family:var(--font-sans); outline:none;"
+          />
+          <button type="submit" style="padding:10px 20px; background:linear-gradient(135deg,#8b5cf6,#6d28d9); color:#fff; border:none; border-radius:8px; font-size:0.88rem; font-weight:600; cursor:pointer;">Send</button>
+        </form>
+      </div>
+    </div>`;
+  const modal = document.body.appendChild(t.content.firstElementChild);
+  const log = modal.querySelector('#chatLog');
+  const form = modal.querySelector('#chatForm');
+  const input = modal.querySelector('#msgInput');
+  const closeBtn = modal.querySelector('#closeChatBtn');
+
+  const uid = () => localStorage.aiCloneUid ?? (localStorage.aiCloneUid = crypto.randomUUID());
+  const esc = s => s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+  function bubble(role, msg) {
+    const isUser = role === 'user';
+    const div = document.createElement('div');
+    div.style.cssText = `align-self:${isUser ? 'flex-end' : 'flex-start'}; max-width:80%;`;
+    div.innerHTML = `<div style="background:${isUser ? 'var(--accent-blue)' : 'var(--bg-tertiary)'}; border:1px solid ${isUser ? 'transparent' : 'var(--border-subtle)'}; border-radius:12px; padding:10px 14px;">
+      <p style="font-size:0.85rem; color:${isUser ? '#fff' : 'var(--text-secondary)'}; line-height:1.6; margin:0; white-space:pre-wrap;">${esc(msg)}</p>
+    </div>`;
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function showTyping() {
+    const el = document.createElement('div');
+    el.id = 'typing-dots';
+    el.style.cssText = 'align-self:flex-start;';
+    el.innerHTML = '<div style="background:var(--bg-tertiary); border:1px solid var(--border-subtle); border-radius:12px; padding:10px 14px;"><span style="font-size:0.8rem; color:var(--text-tertiary);">Thinking\u2026</span></div>';
+    log.appendChild(el);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function hideTyping() {
+    const el = document.getElementById('typing-dots');
+    if (el) el.remove();
+  }
+
+  async function sendMessage(text) {
+    const res = await fetch(AI_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: uid(), message: text, temperature: 0.7 })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    return data.bot_response ?? '[no response]';
+  }
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+    bubble('user', text);
+    input.value = '';
+    showTyping();
+    try {
+      const reply = await sendMessage(text);
+      hideTyping();
+      bubble('assistant', reply);
+    } catch (err) {
+      hideTyping();
+      bubble('assistant', 'Sorry, I could not connect. Please try emailing socratesone@gmail.com directly.');
+    }
+  });
+
+  function openModal() { modal.style.display = 'grid'; input.focus(); }
+  function closeModal() { modal.style.display = 'none'; }
+  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+  closeBtn.addEventListener('click', closeModal);
+
+  return { openModal };
+}
+
+function wireChatTrigger(openFn) {
+  /* Wire immediately and also re-wire when panel content changes (since innerHTML replaces the link) */
+  function attach() {
+    const link = document.getElementById('aiCloneLink');
+    if (!link) return;
+    const handler = e => { e.preventDefault(); openFn(); };
+    link.addEventListener('click', handler);
+    link.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') handler(e); });
+  }
+  /* Use MutationObserver on the panel body to re-attach after content swaps */
+  const panelBody = document.getElementById('panelBody');
+  if (panelBody) {
+    const obs = new MutationObserver(() => setTimeout(attach, 50));
+    obs.observe(panelBody, { childList: true });
+  }
+  attach();
+}
+
+/* ================================================================
+   BOOT
+   ================================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  new GraphRenderer();
+  const { openModal } = buildChatWidget();
+  wireChatTrigger(openModal);
+});
+</script>
+
+</body>
+</html>

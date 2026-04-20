@@ -5,6 +5,7 @@ from pathlib import Path
 from auditgraph.ingest.frontmatter import extract_frontmatter
 from auditgraph.ingest.importer import collect_import_paths
 from auditgraph.ingest.parsers import parse_file
+from tests.support import null_parse_options
 from auditgraph.ingest.policy import is_allowed, load_policy
 from auditgraph.ingest.scanner import discover_files
 
@@ -22,10 +23,14 @@ def test_allowlist_allows_markdown_and_routes_pdf(tmp_path: Path) -> None:
     policy = load_policy({})
 
     assert is_allowed(md_path, policy)
-    assert is_allowed(py_path, policy)
+    # Spec 025: source code files (.py .js .ts .tsx .jsx) are no longer
+    # in the default allowed extensions. Auditgraph is a documents +
+    # provenance tool; code files are skipped at ingest with reason
+    # `unsupported_extension`.
+    assert not is_allowed(py_path, policy)
     assert is_allowed(pdf_path, policy)
 
-    result = parse_file(pdf_path, policy)
+    result = parse_file(pdf_path, policy, null_parse_options())
     assert result.parser_id == "document/pdf"
     assert result.status in {"ok", "failed"}
 

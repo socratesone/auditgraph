@@ -19,12 +19,13 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-	"pyyaml",
+	"pyyaml>=6.0.3",
 	"neo4j>=5,<6",
-	"pypdf",
-	"python-docx",
+	"pypdf>=6.9.1",
+	"python-docx>=1.2.0",
 	"spacy>=3.7,<4",
 	"dulwich>=0.22",
+	"jsonschema>=4,<5",
 ]
 
 [project.scripts]
@@ -60,3 +61,6 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--strict-markers"
+markers = [
+    "slow: end-to-end story tests; opt out via 'pytest -m \"not slow\"'",
+]
