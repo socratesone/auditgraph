@@ -61,3 +61,6 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--strict-markers"
+markers = [
+    "slow: end-to-end story tests; opt out via 'pytest -m \"not slow\"'",
+]
