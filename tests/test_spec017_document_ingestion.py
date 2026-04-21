@@ -60,6 +60,16 @@ def test_spec017_deterministic_normalization_and_chunk_boundaries(tmp_path: Path
 
 
 def test_spec017_unchanged_hash_skip_reason(tmp_path: Path) -> None:
+    """Spec-028 migration: cache hits are `parse_status="ok"` + `source_origin="cached"`.
+
+    Pre-028 this test asserted `parse_status="skipped"` for cache hits — that
+    shape was explicitly retired by Spec-028 FR-001/FR-002 because it caused
+    BUG-1 (cache hits starving the extract stage). The observability signal
+    (`status_reason` / `skip_reason` = "unchanged_source_hash") is preserved
+    on the record for audit purposes, but the filtering signal
+    (`parse_status`) now correctly says "ok" — a cache hit is a successful
+    parse reused from cache, not a skip.
+    """
     docs_dir = _copy_fixture_tree(tmp_path)
     runner = PipelineRunner()
     config = load_config(None)
@@ -69,9 +79,19 @@ def test_spec017_unchanged_hash_skip_reason(tmp_path: Path) -> None:
 
     second = runner.run_import(root=tmp_path, config=config, targets=[str(docs_dir)])
     manifest = read_json(Path(second.detail["manifest"]))
-    skipped = [record for record in manifest["records"] if record["parse_status"] == "skipped"]
-    assert skipped
-    assert all(record.get("status_reason") == "unchanged_source_hash" for record in skipped)
+    cached = [
+        record
+        for record in manifest["records"]
+        if record.get("source_origin") == "cached"
+    ]
+    assert cached, "second run must have at least one cache hit for this fixture"
+    assert all(record["parse_status"] == "ok" for record in cached), (
+        "Spec-028 FR-001: cache hits are ok, not skipped"
+    )
+    assert all(record.get("status_reason") == "unchanged_source_hash" for record in cached), (
+        "observability signal preserved for audit"
+    )
+    assert all(record.get("skip_reason") == "unchanged_source_hash" for record in cached)
 
 
 def test_spec017_ocr_mode_matrix(tmp_path: Path) -> None:

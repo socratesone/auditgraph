@@ -17,6 +17,9 @@ def build_manifest(
     outputs_hash: str,
     artifacts: list[str],
     status: str,
+    warnings: list[dict[str, str]] | None = None,
+    wall_clock_started_at: str | None = None,
+    wall_clock_finished_at: str | None = None,
 ) -> IngestManifest:
     record_list = list(records)
     failed = sum(1 for record in record_list if record.parse_status == "failed")
@@ -39,4 +42,7 @@ def build_manifest(
         ingested_count=ingested,
         skipped_count=skipped,
         failed_count=failed,
+        warnings=list(warnings) if warnings else [],
+        wall_clock_started_at=wall_clock_started_at,
+        wall_clock_finished_at=wall_clock_finished_at,
     )

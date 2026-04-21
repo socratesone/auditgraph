@@ -223,6 +223,36 @@ Before filtering, `run_extract` passes the loaded ingest manifest through a norm
 
 The normalizer is pure (no disk writes). It lets pre-028 workspaces' existing manifests feed the post-028 extract stage without a rebuild.
 
+## 3a. Known storage-form deviation: absolute `source_path` on documents/chunks
+
+**Status**: known gap, not blocking. Tracked for a follow-up spec.
+
+The data-model contract calls for `source_path` values to be stored in
+**normalized workspace-relative POSIX form** across `documents/`,
+`chunks/`, `sources/`, `entities/`, and `links/` artifacts. The current
+implementation of `auditgraph/ingest/parsers.py :: _build_document_metadata`
+stores the **absolute path** for `document.source_path`, `chunk.source_path`,
+and uses the absolute path as the input to
+`deterministic_document_id(path, source_hash)`.
+
+Downstream consumers tolerate this today:
+
+- `DocumentsIndex` is built from `source_hash` joins — not from path
+  comparison — so the relative-vs-absolute mismatch does not leak into
+  reference classification.
+- `entity.refs[0].source_path` is set to the workspace-relative form by
+  the extract-stage entity builders (which receive `source_path` from
+  the normalized ingest record).
+- `node_view` and query commands display `source_path` as-is — either
+  form is readable.
+
+Fixing this would require a one-time document-ID migration (old absolute-
+hash IDs → new relative-hash IDs). That migration is out of scope for
+spec-028 and would be its own spec.
+
+Tests that assert on stored `source_path` should use substring matching
+rather than equality when cross-workspace portability matters.
+
 ## 3b. Modified record: `document` payload
 
 Before (existing `auditgraph/ingest/parsers.py :: _build_document_metadata`):

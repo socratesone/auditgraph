@@ -1,0 +1,4 @@
+version: v1
+# Spec-028: shipped as a schema-valid empty stub. Future specs populate
+# `link_rules:` with real rule definitions.
+link_rules: []

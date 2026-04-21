@@ -119,20 +119,29 @@ def _build_document_metadata(
             }
         )
 
+    document_payload: dict[str, object] = {
+        "document_id": document_id,
+        "source_path": path.as_posix(),
+        "source_hash": source_hash,
+        "mime_type": parser_id,
+        "file_size": path.stat().st_size,
+        "extractor_id": extractor_id,
+        "extractor_version": extractor_version,
+        "ingest_config_hash": str(options.get("ingest_config_hash", "")),
+        "status": "ok",
+        "status_reason": None,
+        "hash_history": [source_hash],
+    }
+    # Spec-028 FR-015a: persist the redacted full markdown text on the
+    # document record so the markdown sub-entity extractor can read it
+    # without re-reading the source file or re-running redaction
+    # (Spec-027 FR-016 keeps parser entry as the canonical redaction site).
+    # Field is ONLY emitted for markdown sources; non-markdown document
+    # payloads remain byte-identical to pre-028.
+    if parser_id == "text/markdown":
+        document_payload["text"] = text
     payload: dict[str, object] = {
-        "document": {
-            "document_id": document_id,
-            "source_path": path.as_posix(),
-            "source_hash": source_hash,
-            "mime_type": parser_id,
-            "file_size": path.stat().st_size,
-            "extractor_id": extractor_id,
-            "extractor_version": extractor_version,
-            "ingest_config_hash": str(options.get("ingest_config_hash", "")),
-            "status": "ok",
-            "status_reason": None,
-            "hash_history": [source_hash],
-        },
+        "document": document_payload,
         "segments": normalized_segments,
         "chunks": chunk_records,
     }

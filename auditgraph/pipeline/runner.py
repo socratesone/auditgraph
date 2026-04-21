@@ -49,6 +49,171 @@ class StageResult:
     detail: dict[str, Any]
 
 
+_LEGACY_CACHE_SKIP_REASONS = {"unchanged_source_hash", SKIP_REASON_UNCHANGED}
+
+
+def _markdown_document_is_complete(document_payload: dict[str, Any]) -> bool:
+    """Spec-028 FR-016b1: a cached markdown document payload is considered
+    complete for spec-028 extraction iff the ``text`` field is present and
+    non-empty. Pre-028 cached records don't have ``text`` and MUST trigger
+    a one-time reparse on the next run.
+    """
+    if document_payload.get("mime_type") != "text/markdown":
+        # Non-markdown documents never had a text requirement.
+        return True
+    text = document_payload.get("text")
+    return isinstance(text, str) and len(text) > 0
+
+
+def _prune_markdown_subentities_for_source(pkg_root: Path, source_path: str) -> None:
+    """Spec-028 FR-016c/FR-016d: delete stale markdown sub-entities and
+    their markdown-produced links for a given source path, BEFORE writing
+    refreshed entities for the same source.
+
+    Algorithm (data-model.md §5):
+      1. Enumerate entities with type ∈ MARKDOWN_ENTITY_TYPES AND
+         refs[0].source_path == source_path; collect IDs into stale_ids;
+         delete those files.
+      2. Enumerate link files with rule_id ∈ MARKDOWN_RULE_IDS AND
+         (from_id ∈ stale_ids OR to_id ∈ stale_ids); delete them.
+
+    Links do NOT carry source_path; we resolve source ownership via
+    entity IDs instead. This also correctly handles `contains_section`
+    edges where from-side is the note entity (not in stale_ids) by
+    matching the to-side.
+    """
+    from auditgraph.extract.markdown import MARKDOWN_ENTITY_TYPES, MARKDOWN_RULE_IDS
+
+    entities_dir = pkg_root / "entities"
+    links_dir = pkg_root / "links"
+    stale_ids: set[str] = set()
+
+    if entities_dir.exists():
+        for entity_file in sorted(entities_dir.rglob("*.json")):
+            try:
+                payload = read_json(entity_file)
+            except Exception:
+                continue
+            if payload.get("type") not in MARKDOWN_ENTITY_TYPES:
+                continue
+            refs = payload.get("refs") or []
+            if not refs or not isinstance(refs[0], dict):
+                continue
+            if refs[0].get("source_path") != source_path:
+                continue
+            stale_ids.add(str(payload.get("id", "")))
+            try:
+                entity_file.unlink()
+            except FileNotFoundError:
+                pass
+
+    if not stale_ids:
+        return
+
+    if links_dir.exists():
+        markdown_rule_set = set(MARKDOWN_RULE_IDS)
+        for link_file in sorted(links_dir.rglob("*.json")):
+            try:
+                link = read_json(link_file)
+            except Exception:
+                continue
+            if link.get("rule_id") not in markdown_rule_set:
+                continue
+            if link.get("from_id") in stale_ids or link.get("to_id") in stale_ids:
+                try:
+                    link_file.unlink()
+                except FileNotFoundError:
+                    pass
+
+
+def _build_documents_index(
+    pkg_root: Path,
+    root: Path,  # noqa: ARG001 — retained for signature stability / future use
+    normalized_records: list[dict[str, Any]],
+) -> "Any":
+    """Build a DocumentsIndex from CURRENT run's successful ingest records.
+
+    Spec-028 adjustments3.md §4 AND §5: source-of-truth is the ingest
+    manifest (``parse_status == "ok"`` records) joined against the on-disk
+    ``documents/<doc_id>.json`` payloads. We do NOT recompute ``document_id``
+    here — we read it from the persisted payload and join on
+    ``source_hash`` (which IS unambiguously identical between the record
+    and the document payload, regardless of whether ingest happened to
+    hash the absolute or relative path form).
+
+    Filtering rules:
+      1. Only records with ``parse_status == "ok"`` and a non-empty
+         ``source_hash`` qualify.
+      2. Only document files whose ``source_hash`` matches a qualifying
+         record are added.
+      3. Stale document artifacts from prior runs (their sources absent
+         from the current manifest) are silently excluded — this is the
+         scan-filter behavior adjustments3 §4 mandates.
+    """
+    from auditgraph.extract.markdown import DocumentsIndex
+
+    # Build: source_hash → (source_path, record_index)
+    hash_to_relpath: dict[str, str] = {}
+    for record in normalized_records:
+        if record.get("parse_status") != "ok":
+            continue
+        relative_source_path = str(record.get("path", ""))
+        source_hash = str(record.get("source_hash", ""))
+        if not relative_source_path or not source_hash:
+            continue
+        hash_to_relpath[source_hash] = relative_source_path
+
+    by_doc_id: dict[str, Path] = {}
+    by_source_path: dict[str, str] = {}
+    docs_dir = pkg_root / "documents"
+    if docs_dir.exists():
+        for doc_file in docs_dir.glob("doc_*.json"):
+            try:
+                payload = read_json(doc_file)
+            except Exception:
+                continue
+            if not isinstance(payload, dict):
+                continue
+            doc_source_hash = str(payload.get("source_hash", ""))
+            doc_id = str(payload.get("document_id", ""))
+            if not doc_source_hash or not doc_id:
+                continue
+            relpath = hash_to_relpath.get(doc_source_hash)
+            if relpath is None:
+                # Stale document artifact — its source is not in the current
+                # ingest manifest. Skip it per adjustments3 §4.
+                continue
+            by_doc_id[doc_id] = doc_file
+            by_source_path[relpath] = doc_id
+    return DocumentsIndex(by_doc_id=by_doc_id, by_source_path=by_source_path)
+
+
+def _normalize_ingest_records(records: Any) -> list[dict[str, Any]]:
+    """Translate pre-028 cache-hit records to the canonical shape.
+
+    Spec-028 separates parse outcome (`parse_status`) from execution origin
+    (`source_origin`). Pre-028 workspaces wrote cache hits as
+    ``parse_status="skipped" + skip_reason="unchanged_source_hash"`` which
+    would cause the post-028 extract filter (``parse_status != "ok"``) to
+    silently drop them — re-introducing BUG-1 from Orpheus.md.
+
+    This helper returns a shallow copy of ``records`` with the legacy shape
+    rewritten to ``parse_status="ok", source_origin="cached"`` in memory.
+    The on-disk manifest is NOT mutated (FR-001/FR-002).
+    """
+    normalized: list[dict[str, Any]] = []
+    for record in records or []:
+        record_copy = dict(record)
+        if (
+            record_copy.get("parse_status") == "skipped"
+            and record_copy.get("skip_reason") in _LEGACY_CACHE_SKIP_REASONS
+        ):
+            record_copy["parse_status"] = "ok"
+            record_copy["source_origin"] = "cached"
+        normalized.append(record_copy)
+    return normalized
+
+
 class PipelineRunner:
     @staticmethod
     def _deterministic_time_for(seed: str) -> str:
@@ -108,7 +273,15 @@ class PipelineRunner:
         config_hash: str,
         artifacts: list[str],
         status: str = "ok",
+        warnings: list[dict[str, str]] | None = None,
     ) -> Path:
+        # Spec-028 US6 (BUG-3 fix): wall-clock fields are read via the
+        # helper (monkeypatchable in tests). `started_at`/`finished_at`
+        # stay deterministic (hashed from run_id) to preserve byte-identity
+        # of non-wall-clock manifest fields across runs.
+        from auditgraph.storage.hashing import wall_clock_now
+
+        now = wall_clock_now()
         manifest = StageManifest(
             version="v1",
             schema_version=ARTIFACT_SCHEMA_VERSION,
@@ -121,6 +294,10 @@ class PipelineRunner:
             started_at=self._deterministic_time_for(run_id),
             finished_at=self._deterministic_time_for(run_id),
             artifacts=artifacts,
+            # Spec-028 FR-018: always serialize (even as []).
+            warnings=list(warnings) if warnings else [],
+            wall_clock_started_at=now,
+            wall_clock_finished_at=now,
         )
         manifest_path = pkg_root / "runs" / run_id / f"{stage}-manifest.json"
         write_json(manifest_path, manifest.to_dict())
@@ -162,17 +339,29 @@ class PipelineRunner:
             if existing_document_path.exists():
                 existing_document = read_json(existing_document_path)
                 if str(existing_document.get("source_hash", "")) == source_hash:
-                    record, metadata = build_source_record(
-                        path,
-                        root,
-                        parser_id_for(path),
-                        "skipped",
-                        status_reason=SKIP_REASON_UNCHANGED,
-                        skip_reason=SKIP_REASON_UNCHANGED,
-                    )
-                    records.append(record)
-                    source_payloads.append((record, metadata))
-                    continue
+                    # Spec-028 FR-016b1 cache-completeness check: pre-028
+                    # cached markdown records lack the `text` field added by
+                    # FR-015a. Fall through to the fresh-parse branch once
+                    # to populate it; record the result as source_origin="fresh"
+                    # (NOT cached). No warning — silent one-time migration.
+                    if _markdown_document_is_complete(existing_document):
+                        # Spec-028 FR-001/FR-002 (BUG-1 fix): cache hit is
+                        # parse_status="ok", source_origin="cached".
+                        # Downstream stages admit this record (extract filters
+                        # on parse_status=="ok", regardless of origin).
+                        record, metadata = build_source_record(
+                            path,
+                            root,
+                            parser_id_for(path),
+                            "ok",
+                            status_reason=SKIP_REASON_UNCHANGED,
+                            skip_reason=SKIP_REASON_UNCHANGED,
+                            source_origin="cached",
+                        )
+                        records.append(record)
+                        source_payloads.append((record, metadata))
+                        continue
+                    # else: fall through to fresh-parse branch below.
 
             parse_options["source_hash"] = source_hash
             result = parse_file(path, policy, parse_options)
@@ -251,6 +440,26 @@ class PipelineRunner:
 
         for record, metadata in source_payloads:
             source_path = pkg_root / "sources" / f"{record.source_hash}.json"
+            # Spec-028 regression fix: on a cache hit the minimal record-only
+            # metadata returned by build_source_record lacks `frontmatter`,
+            # `document`, `segments`, and `chunks` — the rich fields produced
+            # by the fresh parse. If we blindly overwrite, the next extract
+            # loses access to the frontmatter title and falls back to the
+            # filename stem, duplicating the note entity. Preserve those
+            # fields from the existing on-disk metadata when the current
+            # write came from a cache hit (source_origin == "cached").
+            if record.source_origin == "cached" and source_path.exists():
+                try:
+                    existing = read_json(source_path)
+                except Exception:
+                    existing = None
+                if isinstance(existing, dict):
+                    merged = dict(existing)
+                    # Basic fields (parse_status, source_origin, status_reason,
+                    # skip_reason, parser_id, size, mtime) come from the fresh
+                    # record; everything else stays from the cached payload.
+                    merged.update(metadata)
+                    metadata = merged
             write_json_redacted(source_path, metadata, redactor)
 
         pipeline_version = str(config.raw.get("run_metadata", {}).get("pipeline_version", DEFAULT_PIPELINE_VERSION))
@@ -264,10 +473,15 @@ class PipelineRunner:
             str(pkg_root / "sources" / f"{record.source_hash}.json")
             for record in records
         ]
+        from auditgraph.storage.hashing import wall_clock_now
+
+        _wc_now = wall_clock_now()
         manifest = build_manifest(
             run_id=run_id,
             started_at=self._deterministic_time_for(run_id),
             finished_at=self._deterministic_time_for(run_id),
+            wall_clock_started_at=_wc_now,
+            wall_clock_finished_at=_wc_now,
             records=records,
             pipeline_version=pipeline_version,
             config_hash=config_hash,
@@ -562,7 +776,12 @@ class PipelineRunner:
         if not ingest_manifest:
             return StageResult(stage="extract", status="missing_manifest", detail={"run_id": resolved})
 
-        records = ingest_manifest.get("records", [])
+        # Spec-028 FR-001/FR-002/FR-003 (BUG-1 fix): normalize legacy cache-hit
+        # records (parse_status="skipped" + skip_reason="unchanged_source_hash")
+        # to the canonical post-028 shape (parse_status="ok", source_origin="cached")
+        # in memory before filtering. This is the backward-compat reader for
+        # pre-028 workspaces — it does NOT rewrite the on-disk manifest.
+        records = _normalize_ingest_records(ingest_manifest.get("records", []))
         source_map = {record["path"]: record["source_hash"] for record in records}
         ok_paths = [
             root / record["path"]
@@ -572,6 +791,21 @@ class PipelineRunner:
 
         entities: dict[str, dict[str, object]] = {}
         claims: list[dict[str, object]] = []
+        markdown_links: list[dict[str, object]] = []
+
+        # Spec-028 FR-013/FR-016i: markdown sub-entity extraction is on by
+        # default but can be disabled via config. When disabled, BOTH the
+        # producer AND the pruning helper stay inert (the flag is a pure
+        # activation switch, not a cleanup command).
+        extraction_cfg = config.profile().get("extraction", {}) if isinstance(config.profile(), dict) else {}
+        markdown_cfg = extraction_cfg.get("markdown", {}) if isinstance(extraction_cfg, dict) else {}
+        markdown_enabled = bool(markdown_cfg.get("enabled", True))
+
+        # Spec-028 adjustments3.md §4: build DocumentsIndex from the
+        # CURRENT run's successful ingest records only — NOT a disk scan
+        # of documents/ — so stale document artifacts from prior runs
+        # never falsely classify references as internal.
+        documents_index = _build_documents_index(pkg_root, root, records)
 
         for record in records:
             if record.get("parse_status") != "ok":
@@ -590,6 +824,62 @@ class PipelineRunner:
                     title = Path(source_path).stem
                 note_entity = build_note_entity(str(title), source_path, source_hash, redactor=redactor)
                 entities[note_entity["id"]] = note_entity
+
+                # Spec-028 US2: emit ag:section / ag:technology / ag:reference
+                # sub-entities from the markdown source. Gated by config flag
+                # (FR-013/FR-016i).
+                if markdown_enabled:
+                    from auditgraph.extract.markdown import extract_markdown_subentities
+
+                    # adjustments3.md §5: use the authoritative document
+                    # path from the DocumentsIndex we just built. Do NOT
+                    # recompute `deterministic_document_id(source_path, ...)`
+                    # with the relative path — ingest computed it with the
+                    # absolute path and they won't agree.
+                    document_id_value = documents_index.by_source_path.get(source_path)
+                    document_payload_path = (
+                        documents_index.by_doc_id.get(document_id_value)
+                        if document_id_value
+                        else None
+                    )
+                    markdown_text = None
+                    if document_payload_path is not None and document_payload_path.exists():
+                        document_payload = read_json(document_payload_path)
+                        document_id_value = document_payload.get("document_id") or document_id_value
+                        markdown_text = document_payload.get("text")
+
+                    # FR-016b2: missing text on a markdown document is an
+                    # integration bug — ingest should have caught this via
+                    # FR-016b1. Fail loudly rather than silently emit zero.
+                    if not isinstance(markdown_text, str) or not markdown_text:
+                        raise ValueError(
+                            f"Spec-028 FR-016b2: markdown document for {source_path!r} "
+                            f"is missing the `text` field. Re-run `auditgraph ingest` to "
+                            f"trigger the FR-016b1 cache-migration refresh; the extract "
+                            f"stage does not tolerate incomplete document records."
+                        )
+                    if not document_id_value:
+                        document_id_value = deterministic_document_id(
+                            (root / source_path).as_posix(), source_hash
+                        )
+
+                    # FR-016c pruning: remove stale markdown sub-entities for
+                    # this source before writing refreshed ones.
+                    _prune_markdown_subentities_for_source(pkg_root, source_path)
+
+                    md_entities, md_links = extract_markdown_subentities(
+                        source_path=source_path,
+                        source_hash=source_hash,
+                        document_id=str(document_id_value),
+                        document_anchor_id=str(note_entity["id"]),
+                        markdown_text=markdown_text,
+                        redactor=redactor,
+                        documents_index=documents_index,
+                        pipeline_version=str(config.raw.get("run_metadata", {}).get("pipeline_version", DEFAULT_PIPELINE_VERSION)),
+                    )
+                    for ent in md_entities:
+                        entities[ent["id"]] = ent
+                    markdown_links.extend(md_links)
 
 
         adr_claims = extract_adr_claims(pkg_root, ok_paths)
@@ -629,16 +919,40 @@ class PipelineRunner:
         entity_paths = write_entities(pkg_root, entity_list)
         claim_paths = write_claims(pkg_root, claims)
 
+        # Spec-028 US2: write markdown-generated links (contains_section,
+        # mentions_technology, references, resolves_to_document) through the
+        # canonical link store so they participate in adjacency / index /
+        # query paths.
+        markdown_link_paths: list[Path] = []
+        if markdown_links:
+            markdown_link_paths = write_links(pkg_root, markdown_links)
+
+        # Spec-028 US3 FR-017: binary throughput check. Emit the
+        # `no_entities_produced` warning iff ≥1 upstream input from the
+        # prior stage AND exactly 0 entities produced here.
+        from auditgraph.pipeline.warnings import warning_no_entities
+
+        upstream_ok_inputs = sum(
+            1 for record in records if record.get("parse_status") == "ok"
+        )
+        stage_warnings: list[dict[str, str]] = []
+        if upstream_ok_inputs >= 1 and len(entity_list) == 0:
+            stage_warnings.append(warning_no_entities(upstream_ok_inputs).to_dict())
+
         outputs_hash = sha256_json(
             {
                 "entities": sorted(entity["id"] for entity in entity_list),
                 "claims": sorted(claim.get("id") for claim in claims),
                 "ner_links": sorted(str(path) for path in ner_link_paths),
+                "markdown_links": sorted(str(path) for path in markdown_link_paths),
             }
         )
         inputs_hash = str(ingest_manifest.get("outputs_hash", ""))
         config_hash = str(ingest_manifest.get("config_hash", ""))
-        artifacts = [str(path) for path in entity_paths + claim_paths + ner_link_paths]
+        artifacts = [
+            str(path)
+            for path in entity_paths + claim_paths + ner_link_paths + markdown_link_paths
+        ]
         manifest_path = self._write_stage_manifest(
             pkg_root,
             stage="extract",
@@ -647,6 +961,7 @@ class PipelineRunner:
             outputs_hash=outputs_hash,
             config_hash=config_hash,
             artifacts=artifacts,
+            warnings=stage_warnings,
         )
 
         provenance_records: list[ProvenanceRecord] = []
@@ -688,11 +1003,15 @@ class PipelineRunner:
         }
         append_text(replay_path, f"{json.dumps(replay_line, sort_keys=True)}\n")
 
-        return StageResult(
-            stage="extract",
-            status="ok",
-            detail={"manifest": str(manifest_path), "profile": config.active_profile(), "run_id": resolved},
-        )
+        detail = {
+            "manifest": str(manifest_path),
+            "profile": config.active_profile(),
+            "run_id": resolved,
+        }
+        # Spec-028 FR-018: live StageResult MAY omit warnings when empty.
+        if stage_warnings:
+            detail["warnings"] = stage_warnings
+        return StageResult(stage="extract", status="ok", detail=detail)
 
     def run_link(self, root: Path, config: Config, run_id: str | None = None) -> StageResult:
         _start = time.monotonic()
@@ -781,10 +1100,30 @@ class PipelineRunner:
             return StageResult(stage="index", status="missing_manifest", detail={"run_id": resolved})
 
         entities = load_entities(pkg_root)
-        bm25_path = build_bm25_index(pkg_root, entities)
-        type_index_paths = build_type_indexes(pkg_root, entities)
+        # Materialize once — we need both the count (for the warning
+        # threshold check) and the list (for BM25 construction).
+        entities_materialized = list(entities)
+        bm25_path = build_bm25_index(pkg_root, iter(entities_materialized))
+        type_index_paths = build_type_indexes(pkg_root, iter(entities_materialized))
         link_type_index_paths = build_link_type_indexes(pkg_root)
         adjacency_path = build_adjacency_index(pkg_root)
+
+        # Spec-028 US3 FR-017: empty_index warning fires iff ≥1 entities
+        # on disk AND the BM25 index ended up empty.
+        from auditgraph.pipeline.warnings import warning_empty_index
+
+        stage_warnings: list[dict[str, str]] = []
+        entity_count = len(entities_materialized)
+        bm25_entries = 0
+        if bm25_path.exists():
+            bm25_payload = read_json(bm25_path)
+            postings = bm25_payload.get("postings") if isinstance(bm25_payload, dict) else None
+            if isinstance(postings, dict):
+                bm25_entries = len(postings)
+            elif isinstance(postings, list):
+                bm25_entries = len(postings)
+        if entity_count >= 1 and bm25_entries == 0:
+            stage_warnings.append(warning_empty_index(entity_count).to_dict())
 
         outputs_hash = sha256_json({
             "bm25": str(bm25_path),
@@ -804,6 +1143,7 @@ class PipelineRunner:
             outputs_hash=outputs_hash,
             config_hash=config_hash,
             artifacts=artifacts,
+            warnings=stage_warnings,
         )
 
         replay_path = pkg_root / "runs" / resolved / "replay-log.jsonl"
@@ -817,11 +1157,14 @@ class PipelineRunner:
         }
         append_text(replay_path, f"{json.dumps(replay_line, sort_keys=True)}\n")
 
-        return StageResult(
-            stage="index",
-            status="ok",
-            detail={"manifest": str(manifest_path), "profile": config.active_profile(), "run_id": resolved},
-        )
+        detail = {
+            "manifest": str(manifest_path),
+            "profile": config.active_profile(),
+            "run_id": resolved,
+        }
+        if stage_warnings:
+            detail["warnings"] = stage_warnings
+        return StageResult(stage="index", status="ok", detail=detail)
 
     def run_rebuild(
         self,
@@ -937,18 +1280,39 @@ class PipelineRunner:
             if existing_document_path.exists():
                 existing_document = read_json(existing_document_path)
                 if str(existing_document.get("source_hash", "")) == source_hash:
-                    record, metadata = build_source_record(
-                        path,
-                        root,
-                        parser_id_for(path),
-                        "skipped",
-                        status_reason=SKIP_REASON_UNCHANGED,
-                        skip_reason=SKIP_REASON_UNCHANGED,
-                    )
-                    records.append(record)
-                    source_path = pkg_root / "sources" / f"{record.source_hash}.json"
-                    write_json_redacted(source_path, metadata, redactor)
-                    continue
+                    # Spec-028 FR-016b1 cache-completeness check (parallel with
+                    # run_ingest): pre-028 markdown records lack `text`. Fall
+                    # through to fresh parse once to populate it; then takes
+                    # the normal cache path on subsequent runs.
+                    if _markdown_document_is_complete(existing_document):
+                        # Spec-028 FR-001/FR-002 (BUG-1 fix): cache hit ⇒
+                        # parse_status="ok", source_origin="cached".
+                        record, metadata = build_source_record(
+                            path,
+                            root,
+                            parser_id_for(path),
+                            "ok",
+                            status_reason=SKIP_REASON_UNCHANGED,
+                            skip_reason=SKIP_REASON_UNCHANGED,
+                            source_origin="cached",
+                        )
+                        records.append(record)
+                        source_path = pkg_root / "sources" / f"{record.source_hash}.json"
+                        # Spec-028 regression fix (parallel with run_ingest):
+                        # preserve rich source metadata (frontmatter, document,
+                        # segments, chunks) from the previous fresh parse.
+                        if source_path.exists():
+                            try:
+                                existing_meta = read_json(source_path)
+                            except Exception:
+                                existing_meta = None
+                            if isinstance(existing_meta, dict):
+                                merged = dict(existing_meta)
+                                merged.update(metadata)
+                                metadata = merged
+                        write_json_redacted(source_path, metadata, redactor)
+                        continue
+                    # else: fall through to fresh-parse branch below.
 
             parse_options["source_hash"] = source_hash
             result = parse_file(path, policy, parse_options)
@@ -1024,10 +1388,15 @@ class PipelineRunner:
             str(pkg_root / "sources" / f"{record.source_hash}.json")
             for record in records
         ]
+        from auditgraph.storage.hashing import wall_clock_now
+
+        _wc_now = wall_clock_now()
         manifest = build_manifest(
             run_id=run_id,
             started_at=self._deterministic_time_for(run_id),
             finished_at=self._deterministic_time_for(run_id),
+            wall_clock_started_at=_wc_now,
+            wall_clock_finished_at=_wc_now,
             records=records,
             pipeline_version=pipeline_version,
             config_hash=config_hash,

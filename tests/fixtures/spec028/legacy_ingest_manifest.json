@@ -1,0 +1,59 @@
+{
+  "version": "v1",
+  "schema_version": "2026.02",
+  "stage": "ingest",
+  "run_id": "run_legacy_028",
+  "started_at": "1995-12-23T04:33:39Z",
+  "finished_at": "1995-12-23T04:33:39Z",
+  "pipeline_version": "v0.1.0",
+  "config_hash": "cfg_legacy",
+  "inputs_hash": "in_legacy",
+  "outputs_hash": "out_legacy",
+  "status": "ok",
+  "artifacts": [],
+  "records": [
+    {
+      "path": "notes/cached_md.md",
+      "source_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "size": 42,
+      "mtime": 1700000000.0,
+      "parser_id": "text/markdown",
+      "parse_status": "skipped",
+      "status_reason": "unchanged_source_hash",
+      "skip_reason": "unchanged_source_hash"
+    },
+    {
+      "path": "notes/fresh_md.md",
+      "source_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "size": 20,
+      "mtime": 1700000100.0,
+      "parser_id": "text/markdown",
+      "parse_status": "ok",
+      "status_reason": null,
+      "skip_reason": null
+    },
+    {
+      "path": "notes/unsupported.exe",
+      "source_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "size": 10,
+      "mtime": 1700000200.0,
+      "parser_id": "text/unknown",
+      "parse_status": "skipped",
+      "status_reason": "unsupported_extension",
+      "skip_reason": "unsupported_extension"
+    },
+    {
+      "path": "notes/broken_md.md",
+      "source_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "size": 99,
+      "mtime": 1700000300.0,
+      "parser_id": "text/markdown",
+      "parse_status": "failed",
+      "status_reason": "parse_error",
+      "skip_reason": null
+    }
+  ],
+  "ingested_count": 1,
+  "skipped_count": 2,
+  "failed_count": 1
+}

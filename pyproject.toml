@@ -26,6 +26,7 @@ dependencies = [
 	"spacy>=3.7,<4",
 	"dulwich>=0.22",
 	"jsonschema>=4,<5",
+	"markdown-it-py[linkify]>=4,<5",
 ]
 
 [project.scripts]
@@ -40,6 +41,14 @@ package-dir = {"" = "."}
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["auditgraph*"]
+
+[tool.setuptools.package-data]
+# Ship rule-pack stubs as package resources (Spec-028 #8 / adjustments2.md §8).
+# The validator falls back to these via importlib.resources when a workspace-
+# local copy is absent; scaffold.initialize_workspace copies them into new
+# workspaces. Top-level config/ is an editable-checkout mirror, not the
+# wheel-packaging mechanism.
+auditgraph = ["_package_data/**/*.yaml", "_package_data/**/*.yml"]
 
 [tool.black]
 line-length = 120

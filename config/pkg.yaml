@@ -58,6 +58,13 @@ profiles:
         - "config/extractors/core.yaml"
       llm:
         enabled: false
+      # Spec-028 FR-013/FR-016i: markdown sub-entity extractor is on by
+      # default. Setting `enabled: false` makes BOTH the producer and the
+      # pruning helper inert — existing markdown sub-entities on disk are
+      # preserved (the flag is a pure activation switch, not a cleanup
+      # command).
+      markdown:
+        enabled: true
       # NER is opt-in. It runs spaCy inference over every chunk in the workspace
       # and is meaningful only on natural-language content (notes, documents, PDFs).
       # On code-only repositories the inference cost is high and the results are

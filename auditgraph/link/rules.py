@@ -7,6 +7,17 @@ from typing import Iterable
 from auditgraph.storage.hashing import sha256_text
 
 
+# Spec-028 FR-016e / adjustments3.md §15: markdown sub-entities are
+# excluded from source-level cooccurrence entirely. The explicit
+# markdown link rules (contains_section, mentions_technology,
+# references, resolves_to_document) carry the meaningful relationships
+# for these types at precision 1.0. EITHER endpoint being in this set
+# disqualifies the pair — not only same-type pairs.
+EXCLUDED_COOCCURRENCE_TYPES = frozenset(
+    {"ag:section", "ag:technology", "ag:reference"}
+)
+
+
 def _link_id(rule_id: str, from_id: str, to_id: str) -> str:
     return f"lnk_{sha256_text(rule_id + ':' + from_id + ':' + to_id)}"
 
@@ -26,6 +37,10 @@ def build_source_cooccurrence_links(
         # during the extract stage.
         entity_type = str(entity.get("type", ""))
         if entity_type.startswith("ner:"):
+            continue
+        # Spec-028 FR-016e: markdown sub-entities never participate in
+        # source cooccurrence (on either side of a candidate pair).
+        if entity_type in EXCLUDED_COOCCURRENCE_TYPES:
             continue
         refs = entity.get("refs", [])
         if not entity_id or not isinstance(refs, list):

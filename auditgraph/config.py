@@ -56,7 +56,12 @@ DEFAULT_CONFIG: dict[str, Any] = {
                 "max_file_size_bytes": 209715200,
             },
             "normalization": {"unicode": "NFC", "line_endings": "LF", "path_style": "posix"},
-            "extraction": {"rule_packs": ["config/extractors/core.yaml"], "llm": {"enabled": False}},
+            "extraction": {
+                "rule_packs": ["config/extractors/core.yaml"],
+                "llm": {"enabled": False},
+                # Spec-028 FR-013/FR-016i: markdown sub-entity extractor on by default.
+                "markdown": {"enabled": True},
+            },
             "linking": {"rule_packs": ["config/link_rules/core.yaml"]},
             "git_provenance": {
                 "enabled": False,
@@ -148,3 +153,26 @@ def load_config(path: Path | None) -> Config:
     if not isinstance(raw, dict):
         raise ConfigError("Config root must be a mapping")
     return Config(raw=raw, source_path=path)
+
+
+def validate_rule_packs_in_config(config: Config, workspace_root: Path) -> None:
+    """Spec-028 FR-022/FR-023: validate profile rule-pack paths.
+
+    Called from the CLI right after config load for any command that will
+    run the pipeline. Raises auditgraph.utils.rule_packs.RulePackError for
+    missing / malformed paths — the CLI catches and emits a structured
+    exit-code-5 error per contracts/rule-pack-validator.md.
+
+    The ``workspace_root`` argument MUST be the directory containing
+    ``config/pkg.yaml``, NOT the config file's parent. Using the config
+    parent re-introduces the ``config/config/...`` path-doubling bug
+    (adjustments2.md §4).
+    """
+    # Lazy import to avoid pulling pyyaml into code paths that don't use it.
+    from auditgraph.utils.rule_packs import validate_rule_pack_paths
+
+    profile = config.profile()
+    extraction_paths = profile.get("extraction", {}).get("rule_packs", []) or []
+    linking_paths = profile.get("linking", {}).get("rule_packs", []) or []
+    validate_rule_pack_paths(extraction_paths, workspace_root)
+    validate_rule_pack_paths(linking_paths, workspace_root)
