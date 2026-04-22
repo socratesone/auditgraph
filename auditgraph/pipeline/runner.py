@@ -274,14 +274,21 @@ class PipelineRunner:
         artifacts: list[str],
         status: str = "ok",
         warnings: list[dict[str, str]] | None = None,
+        wall_clock_started_at: str | None = None,
     ) -> Path:
-        # Spec-028 US6 (BUG-3 fix): wall-clock fields are read via the
-        # helper (monkeypatchable in tests). `started_at`/`finished_at`
-        # stay deterministic (hashed from run_id) to preserve byte-identity
-        # of non-wall-clock manifest fields across runs.
+        # Spec-028 US6 (BUG-3 fix): `wall_clock_started_at` is captured by
+        # each `run_*` method at stage entry and passed in here.
+        # `wall_clock_finished_at` is captured at manifest-construction time
+        # so the pair reflects actual stage wall-clock duration. If the
+        # caller did not supply a start timestamp (legacy callers), fall
+        # back to a single helper call so both fields at least carry a
+        # valid ISO string. `started_at`/`finished_at` stay deterministic
+        # (hashed from run_id) to preserve byte-identity of non-wall-clock
+        # manifest fields across runs.
         from auditgraph.storage.hashing import wall_clock_now
 
-        now = wall_clock_now()
+        finished = wall_clock_now()
+        started = wall_clock_started_at if wall_clock_started_at is not None else finished
         manifest = StageManifest(
             version="v1",
             schema_version=ARTIFACT_SCHEMA_VERSION,
@@ -296,8 +303,8 @@ class PipelineRunner:
             artifacts=artifacts,
             # Spec-028 FR-018: always serialize (even as []).
             warnings=list(warnings) if warnings else [],
-            wall_clock_started_at=now,
-            wall_clock_finished_at=now,
+            wall_clock_started_at=started,
+            wall_clock_finished_at=finished,
         )
         manifest_path = pkg_root / "runs" / run_id / f"{stage}-manifest.json"
         write_json(manifest_path, manifest.to_dict())
@@ -305,6 +312,8 @@ class PipelineRunner:
 
     def run_ingest(self, root: Path, config: Config, *, enforce_compatibility: bool = True) -> StageResult:
         _start = time.monotonic()
+        from auditgraph.storage.hashing import wall_clock_now as _wc_now
+        _wall_clock_started_at = _wc_now()
         profile = config.profile()
         policy = load_policy(profile)
         include_paths = profile.get("include_paths", [])
@@ -475,13 +484,17 @@ class PipelineRunner:
         ]
         from auditgraph.storage.hashing import wall_clock_now
 
-        _wc_now = wall_clock_now()
+        # Spec-028 US6 (BUG-3 fix): wall_clock_started_at was captured at
+        # stage entry (near the top of run_ingest / run_import). Capture
+        # wall_clock_finished_at now, right before we build the manifest
+        # so the pair reflects actual stage duration.
+        _wall_clock_finished_at = wall_clock_now()
         manifest = build_manifest(
             run_id=run_id,
             started_at=self._deterministic_time_for(run_id),
             finished_at=self._deterministic_time_for(run_id),
-            wall_clock_started_at=_wc_now,
-            wall_clock_finished_at=_wc_now,
+            wall_clock_started_at=_wall_clock_started_at,
+            wall_clock_finished_at=_wall_clock_finished_at,
             records=records,
             pipeline_version=pipeline_version,
             config_hash=config_hash,
@@ -538,6 +551,8 @@ class PipelineRunner:
 
     def run_git_provenance(self, root: Path, config: Config, run_id: str | None = None) -> StageResult:
         _start = time.monotonic()
+        from auditgraph.storage.hashing import wall_clock_now as _wc_now
+        _wall_clock_started_at = _wc_now()
         pkg_root = profile_pkg_root(root, config)
         resolved = self._resolve_run_id(pkg_root, run_id)
         if not resolved:
@@ -694,6 +709,7 @@ class PipelineRunner:
                 outputs_hash=stage_outputs_hash,
                 config_hash=git_config_hash,
                 artifacts=all_artifacts,
+                wall_clock_started_at=_wall_clock_started_at,
             )
 
             # Append replay log
@@ -728,6 +744,8 @@ class PipelineRunner:
 
     def run_normalize(self, root: Path, config: Config, run_id: str | None = None) -> StageResult:
         _start = time.monotonic()
+        from auditgraph.storage.hashing import wall_clock_now as _wc_now
+        _wall_clock_started_at = _wc_now()
         pkg_root = profile_pkg_root(root, config)
         resolved = self._resolve_run_id(pkg_root, run_id)
         if not resolved:
@@ -748,6 +766,7 @@ class PipelineRunner:
             outputs_hash=outputs_hash,
             config_hash=config_hash,
             artifacts=artifacts,
+            wall_clock_started_at=_wall_clock_started_at,
         )
         replay_path = pkg_root / "runs" / resolved / "replay-log.jsonl"
         replay_line = {
@@ -767,6 +786,8 @@ class PipelineRunner:
 
     def run_extract(self, root: Path, config: Config, run_id: str | None = None) -> StageResult:
         _start = time.monotonic()
+        from auditgraph.storage.hashing import wall_clock_now as _wc_now
+        _wall_clock_started_at = _wc_now()
         pkg_root = profile_pkg_root(root, config)
         redactor = build_redactor(root, config)
         resolved = self._resolve_run_id(pkg_root, run_id)
@@ -962,6 +983,7 @@ class PipelineRunner:
             config_hash=config_hash,
             artifacts=artifacts,
             warnings=stage_warnings,
+            wall_clock_started_at=_wall_clock_started_at,
         )
 
         provenance_records: list[ProvenanceRecord] = []
@@ -1015,6 +1037,8 @@ class PipelineRunner:
 
     def run_link(self, root: Path, config: Config, run_id: str | None = None) -> StageResult:
         _start = time.monotonic()
+        from auditgraph.storage.hashing import wall_clock_now as _wc_now
+        _wall_clock_started_at = _wc_now()
         pkg_root = profile_pkg_root(root, config)
         resolved = self._resolve_run_id(pkg_root, run_id)
         if not resolved:
@@ -1069,6 +1093,7 @@ class PipelineRunner:
             outputs_hash=outputs_hash,
             config_hash=config_hash,
             artifacts=artifacts,
+            wall_clock_started_at=_wall_clock_started_at,
         )
 
         replay_path = pkg_root / "runs" / resolved / "replay-log.jsonl"
@@ -1090,6 +1115,8 @@ class PipelineRunner:
 
     def run_index(self, root: Path, config: Config, run_id: str | None = None) -> StageResult:
         _start = time.monotonic()
+        from auditgraph.storage.hashing import wall_clock_now as _wc_now
+        _wall_clock_started_at = _wc_now()
         pkg_root = profile_pkg_root(root, config)
         resolved = self._resolve_run_id(pkg_root, run_id)
         if not resolved:
@@ -1144,6 +1171,7 @@ class PipelineRunner:
             config_hash=config_hash,
             artifacts=artifacts,
             warnings=stage_warnings,
+            wall_clock_started_at=_wall_clock_started_at,
         )
 
         replay_path = pkg_root / "runs" / resolved / "replay-log.jsonl"
@@ -1246,6 +1274,8 @@ class PipelineRunner:
             raise
 
     def run_import(self, root: Path, config: Config, targets: list[str]) -> StageResult:
+        from auditgraph.storage.hashing import wall_clock_now as _wc_now_import
+        _wall_clock_started_at = _wc_now_import()
         profile = config.profile()
         policy = load_policy(profile)
         exclude_globs = profile.get("exclude_globs", [])
@@ -1390,13 +1420,17 @@ class PipelineRunner:
         ]
         from auditgraph.storage.hashing import wall_clock_now
 
-        _wc_now = wall_clock_now()
+        # Spec-028 US6 (BUG-3 fix): wall_clock_started_at was captured at
+        # stage entry (near the top of run_ingest / run_import). Capture
+        # wall_clock_finished_at now, right before we build the manifest
+        # so the pair reflects actual stage duration.
+        _wall_clock_finished_at = wall_clock_now()
         manifest = build_manifest(
             run_id=run_id,
             started_at=self._deterministic_time_for(run_id),
             finished_at=self._deterministic_time_for(run_id),
-            wall_clock_started_at=_wc_now,
-            wall_clock_finished_at=_wc_now,
+            wall_clock_started_at=_wall_clock_started_at,
+            wall_clock_finished_at=_wall_clock_finished_at,
             records=records,
             pipeline_version=pipeline_version,
             config_hash=config_hash,
