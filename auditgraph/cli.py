@@ -7,7 +7,8 @@ import sys
 from pathlib import Path
 
 from auditgraph import __version__
-from auditgraph.config import footprint_budget_settings, load_config
+from auditgraph.config import footprint_budget_settings, load_config, validate_rule_packs_in_config
+from auditgraph.utils.rule_packs import RulePackError
 from auditgraph.export import export_dot, export_graphml, export_json
 from auditgraph.logging import setup_logging
 from auditgraph.neo4j import export_neo4j, sync_neo4j
@@ -301,6 +302,11 @@ def main() -> None:
     args = parser.parse_args()
     setup_logging(args.log_level)
     try:
+        # Spec-028 FR-022/FR-023: if the command loads a profile config
+        # that runs the pipeline, validate rule-pack paths up front. The
+        # structured error exits 5 — distinct from other error classes.
+        _maybe_validate_rule_packs(args)
+
         if args.command == "version":
             _emit({"version": __version__})
             return
@@ -449,6 +455,12 @@ def main() -> None:
             pkg_root = profile_pkg_root(root, config)
             payload = node_view(pkg_root, args.id)
             _emit(payload)
+            # Spec-028 US5 (BUG-4 fix): node_view returns a structured
+            # error dict on miss rather than raising OSError. Preserve the
+            # pre-028 exit-code-1 signal so scripts can still react to
+            # a missing ID.
+            if isinstance(payload, dict) and payload.get("status") == "error":
+                raise SystemExit(1)
             return
 
         if args.command == "neighbors":
@@ -633,9 +645,49 @@ def main() -> None:
         # specific class so they can distinguish "deliberately not implemented
         # yet" from generic runtime errors.
         raise
+    except RulePackError as exc:
+        # Spec-028 FR-022/FR-023: exit code 5 with structured envelope.
+        _emit(
+            {
+                "status": "error",
+                "code": f"rule_pack_{exc.kind}",
+                "path": exc.path,
+                "reason": exc.reason,
+                "message": str(exc),
+            }
+        )
+        raise SystemExit(5)
     except Exception as exc:
         _emit({"status": "error", "message": str(exc)})
         raise SystemExit(1)
+
+
+# Commands that do NOT read profile config (`version`, `init`) skip rule-pack
+# validation. `init` creates the config; validation happens on the next run.
+_RULE_PACK_VALIDATION_EXEMPT = frozenset({"version", "init"})
+
+
+def _maybe_validate_rule_packs(args: "argparse.Namespace") -> None:
+    """Validate profile rule-pack paths for commands that will load config.
+
+    Called at the top of `main` so structured rule-pack errors exit with
+    code 5 before the pipeline begins any work. Exempt commands:
+    `version`, `init` — neither needs a materialized profile's rule packs.
+    """
+    command = getattr(args, "command", None)
+    if command is None or command in _RULE_PACK_VALIDATION_EXEMPT:
+        return
+    # Only validate when the command carries a --root / --config pair.
+    if not hasattr(args, "root") and not hasattr(args, "config"):
+        return
+    root = _resolve_root(getattr(args, "root", "."))
+    config_path = _resolve_config(getattr(args, "config", None), root)
+    try:
+        config = load_config(config_path)
+    except Exception:
+        # Let the normal error path (below) report load failures.
+        return
+    validate_rule_packs_in_config(config, workspace_root=root)
 
 
 if __name__ == "__main__":

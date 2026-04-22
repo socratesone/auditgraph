@@ -29,9 +29,20 @@ def test_link_stage_creates_adjacency(tmp_path: Path) -> None:
     link = runner.run_link(root=tmp_path, config=config, run_id=run_id)
     assert link.status == "ok"
 
+    # Spec-028 note: extract also writes markdown-sub-entity links
+    # (contains_section, mentions_technology, references) to links/
+    # before link stage runs its cooccurrence pass. Pick the cooccurrence
+    # link explicitly — not the first rglob hit — so the test remains
+    # specific about what it asserts.
     link_files = list((pkg_root / "links").rglob("*.json"))
     assert link_files
-    link_payload = read_json(link_files[0])
+    cooccurrence = [
+        read_json(p)
+        for p in link_files
+        if read_json(p).get("rule_id") == "link.source_cooccurrence.v1"
+    ]
+    assert cooccurrence, "link stage did not emit any source_cooccurrence links"
+    link_payload = cooccurrence[0]
     assert link_payload["rule_id"] == "link.source_cooccurrence.v1"
     assert link_payload["evidence"]
 

@@ -197,9 +197,18 @@ def test_export_subgraph_to_workspace_relative_path(tmp_path: Path):
 
 def test_unchanged_corpus_produces_byte_identical_outputs(tmp_path: Path):
     """Story claim: 'plain-text sources stay primary, derived artifacts are
-    reproducible'."""
+    reproducible'.
+
+    Spec-028 note: the first rebuild fresh-parses every source; subsequent
+    rebuilds take the cache path and record parse_status="ok" +
+    source_origin="cached" (pre-028 this was parse_status="skipped").
+    outputs_hash incorporates parse_status, so we warm the cache once, then
+    compare two subsequent cache-hit runs — that is where reproducibility
+    lives post-028.
+    """
     workspace = build_workspace(tmp_path, _marta_corpus())
 
+    rebuild(workspace)  # warm the cache
     rebuild(workspace)
     manifest_a = latest_index_manifest(workspace)
     outputs_a = manifest_a["outputs_hash"]

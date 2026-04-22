@@ -60,6 +60,19 @@ def deterministic_document_id(source_path: str, source_hash: str = "") -> str:
     return f"doc_{sha256_text(source_path)[:24]}"
 
 
+def wall_clock_now() -> str:
+    """Return the current UTC wall-clock time as ISO-8601.
+
+    Spec-028 US6 (BUG-3 fix): used to populate `wall_clock_started_at` /
+    `wall_clock_finished_at` on run manifests. MUST NEVER participate in
+    `outputs_hash` or any deterministic field — two runs will necessarily
+    see different values. Tests can monkeypatch this symbol to pin the
+    clock for byte-identity regression checks.
+    """
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def deterministic_segment_id(document_id: str, segment_type: str, order: int, text: str) -> str:
     return f"seg_{sha256_text(f'{document_id}:{segment_type}:{order}:{text}')[:24]}"
 

@@ -1,0 +1,5 @@
+version: v1
+# Spec-028: shipped as a schema-valid empty stub so default config does not
+# reference an orphan path. Future specs populate `extractors:` with real
+# rule definitions; spec-028 itself does not require any content here.
+extractors: []
