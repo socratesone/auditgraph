@@ -64,7 +64,7 @@ Auditgraph solves the "where did this fact come from?" problem for technical not
 | Jobs automation | Implemented | YAML-configured job runner |
 | Pipeline replay | Implemented | Re-run from stored config snapshots |
 | Schema versioning | Implemented | `v1` with compatibility checks |
-| Markdown sub-entities | Planned | Code exists but not wired into pipeline |
+| Markdown sub-entities | Implemented | Enabled by default for markdown: emits `ag:section`, `ag:technology`, and `ag:reference` entities plus markdown-specific links. |
 | Semantic/vector search | Planned | Index stub only; no embeddings yet |
 | Git provenance ingestion | Implemented | Commit history, authors, file lineage, MCP tools |
 | LLM-assisted extraction | In Progress | Interface + NullProvider implemented; no concrete provider yet |
