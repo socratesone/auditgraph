@@ -10,17 +10,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from auditgraph.config import load_config
 from auditgraph.extract.markdown import (
-    DocumentsIndex,
     RULE_RESOLVES_TO_DOCUMENT,
-    extract_markdown_subentities,
 )
 from auditgraph.pipeline.runner import PipelineRunner, _build_documents_index
 from auditgraph.storage.artifacts import profile_pkg_root, write_json
-from auditgraph.utils.redaction import RedactionPolicy, Redactor
 
 
 def _scaffold(tmp_path: Path) -> Path:
@@ -47,7 +42,12 @@ def test_documents_index_by_source_path_excludes_stale_entries(tmp_path: Path) -
     # Stale doc on disk with no corresponding current-run record.
     write_json(
         pkg_root / "documents" / "doc_ghost.json",
-        {"document_id": "doc_ghost", "source_path": str(tmp_path / "notes" / "ghost.md"), "source_hash": "g" * 64, "mime_type": "text/markdown"},
+        {
+            "document_id": "doc_ghost",
+            "source_path": str(tmp_path / "notes" / "ghost.md"),
+            "source_hash": "g" * 64,
+            "mime_type": "text/markdown",
+        },
     )
     # Current-run record does NOT include notes/ghost.md; only notes/intro.md.
     current_records = [

@@ -14,13 +14,12 @@ from pathlib import Path
 import pytest
 
 from auditgraph.extract.markdown import (
-    DocumentsIndex,
     RULE_REFERENCES,
     RULE_RESOLVES_TO_DOCUMENT,
+    DocumentsIndex,
     extract_markdown_subentities,
 )
 from auditgraph.utils.redaction import RedactionPolicy, Redactor
-
 
 FIXTURES = Path(__file__).parent / "fixtures" / "spec028"
 
@@ -183,7 +182,7 @@ def test_every_reference_has_inbound_references_link(redactor: Redactor) -> None
     refs = _refs(entities)
     ref_ids = {r["id"] for r in refs}
     references_link_tos = {
-        l["to_id"] for l in links if l["rule_id"] == RULE_REFERENCES
+        link["to_id"] for link in links if link["rule_id"] == RULE_REFERENCES
     }
     assert ref_ids == references_link_tos, (
         "every ag:reference must receive exactly one `references` inbound edge"
@@ -201,7 +200,7 @@ def test_only_internal_reference_has_outbound_resolves_to_document_link(
     entities, links = _extract(text, redactor, idx, source_path="notes/intro.md")
     refs = _refs(entities)
     resolves_from_ids = {
-        l["from_id"] for l in links if l["rule_id"] == RULE_RESOLVES_TO_DOCUMENT
+        link["from_id"] for link in links if link["rule_id"] == RULE_RESOLVES_TO_DOCUMENT
     }
     internal_ids = {r["id"] for r in refs if r["resolution"] == "internal"}
     assert resolves_from_ids == internal_ids
@@ -215,10 +214,10 @@ def test_references_invariant_i3_internal_targets_have_link(redactor: Redactor) 
     text = "[a](a.md) [b](b.md) [x](nope.md)\n"
     entities, links = _extract(text, redactor, idx, source_path="notes/intro.md")
     refs = _refs(entities)
-    resolves = [l for l in links if l["rule_id"] == RULE_RESOLVES_TO_DOCUMENT]
+    resolves = [link for link in links if link["rule_id"] == RULE_RESOLVES_TO_DOCUMENT]
     for ref in refs:
         if ref["resolution"] == "internal":
-            matching = [l for l in resolves if l["from_id"] == ref["id"]]
+            matching = [link for link in resolves if link["from_id"] == ref["id"]]
             assert len(matching) == 1, (
                 f"I3 violated: internal ref {ref['id']} has no resolves_to_document edge"
             )

@@ -13,7 +13,6 @@ import pytest
 from auditgraph.extract.markdown import DocumentsIndex, extract_markdown_subentities
 from auditgraph.utils.redaction import RedactionPolicy, Redactor
 
-
 FIXTURES = Path(__file__).parent / "fixtures" / "spec028"
 
 

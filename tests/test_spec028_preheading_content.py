@@ -6,14 +6,12 @@ with no headings) MUST have their origin edges attach to `document_anchor_id`
 """
 from __future__ import annotations
 
-import secrets
-
 import pytest
 
 from auditgraph.extract.markdown import (
-    DocumentsIndex,
     RULE_MENTIONS_TECHNOLOGY,
     RULE_REFERENCES,
+    DocumentsIndex,
     extract_markdown_subentities,
 )
 from auditgraph.utils.redaction import RedactionPolicy, Redactor
@@ -53,10 +51,10 @@ def test_code_span_before_first_heading_attaches_mentions_technology_to_note(
 ) -> None:
     text = "Use `PostgreSQL` for storage.\n\n# First Heading\n"
     _, links = _extract(text, redactor, empty_index)
-    mentions = [l for l in links if l["rule_id"] == RULE_MENTIONS_TECHNOLOGY]
+    mentions = [link for link in links if link["rule_id"] == RULE_MENTIONS_TECHNOLOGY]
     assert mentions, "pre-heading code span must emit a mentions_technology link"
     # The from side is the document anchor (note entity), not a section.
-    assert all(l["from_id"] == ANCHOR_ID for l in mentions)
+    assert all(link["from_id"] == ANCHOR_ID for link in mentions)
 
 
 def test_link_before_first_heading_attaches_references_to_note(
@@ -64,7 +62,7 @@ def test_link_before_first_heading_attaches_references_to_note(
 ) -> None:
     text = "See [docs](https://example.com) before we start.\n\n# First Heading\n"
     _, links = _extract(text, redactor, empty_index)
-    refs = [l for l in links if l["rule_id"] == RULE_REFERENCES]
+    refs = [link for link in links if link["rule_id"] == RULE_REFERENCES]
     assert len(refs) == 1
     assert refs[0]["from_id"] == ANCHOR_ID
 
@@ -88,7 +86,9 @@ def test_no_headings_file_attaches_all_origin_edges_to_note(
     _, links = _extract(text, redactor, empty_index)
     # Every mentions_technology / references link must originate at the
     # document anchor.
-    relevant = [l for l in links if l["rule_id"] in (RULE_MENTIONS_TECHNOLOGY, RULE_REFERENCES)]
+    relevant = [
+        link for link in links if link["rule_id"] in (RULE_MENTIONS_TECHNOLOGY, RULE_REFERENCES)
+    ]
     assert relevant
     for link in relevant:
         assert link["from_id"] == ANCHOR_ID

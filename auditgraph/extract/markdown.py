@@ -44,7 +44,6 @@ from markdown_it.token import Token
 from auditgraph.storage.hashing import sha256_text
 from auditgraph.utils.redaction import Redactor
 
-
 # ---------------------------------------------------------------------------
 # Data structures
 

@@ -8,7 +8,6 @@ and the structured not-found envelope.
 """
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
@@ -48,7 +47,10 @@ def _write_chunk(pkg_root: Path, chunk_id: str) -> None:
     from auditgraph.storage.sharding import shard_dir
 
     shard = shard_dir(pkg_root / "chunks", chunk_id)
-    write_json(shard / f"{chunk_id}.json", {"chunk_id": chunk_id, "text": "chunk text", "source_path": "x.md", "source_hash": "a" * 64})
+    write_json(
+        shard / f"{chunk_id}.json",
+        {"chunk_id": chunk_id, "text": "chunk text", "source_path": "x.md", "source_hash": "a" * 64},
+    )
 
 
 def _write_entity(pkg_root: Path, entity_id: str, entity_type: str = "ag:note") -> None:

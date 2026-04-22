@@ -46,8 +46,6 @@ def test_extract_reads_document_id_from_persisted_payload_not_recomputed(tmp_pat
 
     # Now make deterministic_document_id raise. The extract stage uses the
     # persisted document_id via the DocumentsIndex and should NOT recompute.
-    import auditgraph.extract.markdown as markdown_mod
-    import auditgraph.pipeline.runner as runner_mod
 
     calls = []
 

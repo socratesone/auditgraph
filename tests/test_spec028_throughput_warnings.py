@@ -15,8 +15,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from auditgraph.config import load_config
 from auditgraph.pipeline.runner import PipelineRunner
 from auditgraph.pipeline.warnings import (
@@ -110,7 +108,7 @@ def test_warning_persists_to_manifest(tmp_path: Path) -> None:
     runner = PipelineRunner()
     ingest = runner.run_ingest(root=tmp_path, config=config)
     run_id = json.loads(Path(ingest.detail["manifest"]).read_text(encoding="utf-8"))["run_id"]
-    result = runner.run_extract(root=tmp_path, config=config, run_id=run_id)
+    runner.run_extract(root=tmp_path, config=config, run_id=run_id)
 
     pkg_root = profile_pkg_root(tmp_path, config)
     manifest_path = pkg_root / "runs" / run_id / "extract-manifest.json"

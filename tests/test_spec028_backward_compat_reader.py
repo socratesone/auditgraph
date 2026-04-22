@@ -16,7 +16,6 @@ from pathlib import Path
 
 from auditgraph.ingest.policy import SKIP_REASON_UNCHANGED
 
-
 LEGACY_FIXTURE = Path(__file__).parent / "fixtures" / "spec028" / "legacy_ingest_manifest.json"
 
 

@@ -7,14 +7,12 @@ content, same IDs.
 from __future__ import annotations
 
 import json
-import secrets
 from pathlib import Path
 
 import pytest
 
 from auditgraph.extract.markdown import DocumentsIndex, extract_markdown_subentities
 from auditgraph.utils.redaction import RedactionPolicy, Redactor
-
 
 FIXTURES = Path(__file__).parent / "fixtures" / "spec028"
 
@@ -63,7 +61,7 @@ def test_two_runs_produce_identical_link_ids(redactor: Redactor, empty_index: Do
     text = (FIXTURES / "code_and_links.md").read_text()
     _, links_a = _extract(text, redactor, empty_index)
     _, links_b = _extract(text, redactor, empty_index)
-    assert [l["id"] for l in links_a] == [l["id"] for l in links_b]
+    assert [link["id"] for link in links_a] == [link["id"] for link in links_b]
 
 
 def test_two_runs_produce_byte_identical_json_payloads(

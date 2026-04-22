@@ -88,7 +88,20 @@ Chunk matching is case-insensitive substring matching.
 
 Example: `"auth_token"` matches entities indexed as `auth_token` and chunks containing `auth_token` text.
 
-Markdown sub-entity extraction (`ag:section`, `ag:technology`, `ag:reference`) is planned but not enabled in the default pipeline yet.
+Markdown sub-entity extraction is enabled by default (Spec-028). For each markdown source, auditgraph emits:
+- `ag:section` entities — one per heading, with `parent_section_id` building a heading hierarchy.
+- `ag:technology` entities — one per inline code span; one per fenced code block's language tag (`bash`, `python`, etc.). Case-folded + whitespace-trimmed dedup per document.
+- `ag:reference` entities — one per markdown link (inline, autolink, reference-style, or bare URL via linkify). Classified as `internal` / `external` / `unresolved`.
+
+Quick exploration:
+
+```bash
+auditgraph list --type ag:section
+auditgraph list --type ag:technology
+auditgraph list --type ag:reference --where "resolution=unresolved"   # broken links
+```
+
+To disable: set `extraction.markdown.enabled: false` in your profile config. Note this keeps already-extracted entities in place — the flag is a producer/pruner kill-switch, not a cleanup command.
 
 Optional inspection commands:
 

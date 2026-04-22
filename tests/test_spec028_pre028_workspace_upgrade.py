@@ -20,10 +20,7 @@ markdown document record with missing `text`.
 from __future__ import annotations
 
 import json
-import shutil
 from pathlib import Path
-
-import pytest
 
 from auditgraph.config import load_config
 from auditgraph.pipeline.runner import PipelineRunner

@@ -13,7 +13,6 @@ import pytest
 from auditgraph.extract.markdown import DocumentsIndex, extract_markdown_subentities
 from auditgraph.utils.redaction import RedactionPolicy, Redactor
 
-
 FIXTURES = Path(__file__).parent / "fixtures" / "spec028"
 
 
@@ -88,14 +87,11 @@ def test_setext_headings_are_captured(redactor: Redactor, empty_index: Documents
 def test_section_name_is_redacted(redactor: Redactor, empty_index: DocumentsIndex) -> None:
     """Heading text passes through the Redactor (defense-in-depth)."""
     text = (FIXTURES / "with_secrets.md").read_text()
-    entities, _ = _extract(text, redactor, empty_index)
-    sections = _sections(entities)
     # The null-detector redactor returns content as-is — but the call site
     # still invokes the Redactor. Use a detector-equipped redactor to test
     # that secrets get scrubbed.
-    from auditgraph.utils.redaction import RedactionPolicy, Redactor as R
-
-    from auditgraph.utils.redaction import _default_detectors
+    from auditgraph.utils.redaction import RedactionPolicy, _default_detectors
+    from auditgraph.utils.redaction import Redactor as R
 
     registry = _default_detectors()
     detector_policy = RedactionPolicy(
@@ -117,7 +113,11 @@ def test_section_name_is_redacted(redactor: Redactor, empty_index: DocumentsInde
     )
     strict_sections = [e for e in entities2 if e["type"] == "ag:section"]
     # Heading that contained a JWT must no longer contain the raw token.
-    offending = [s for s in strict_sections if "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abc123XYZ" in s["name"]]
+    offending = [
+        s
+        for s in strict_sections
+        if "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abc123XYZ" in s["name"]
+    ]
     assert not offending, (
         f"section name leaked a JWT past redaction: {offending}"
     )

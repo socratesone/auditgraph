@@ -137,6 +137,10 @@ auditgraph list --type commit --where "author_email=alice@example.com"
 auditgraph list --type commit --sort authored_at --desc --limit 10  # 10 most recent
 auditgraph list --group-by type --count                             # entities per type
 auditgraph neighbors <id> --edge-type authored_by --min-confidence 0.8
+# Spec-028 markdown sub-entities:
+auditgraph list --type ag:section                                   # every markdown heading
+auditgraph list --type ag:technology --where "canonical_key=postgresql"
+auditgraph list --type ag:reference --where "resolution=unresolved" # broken links
 ```
 
 Filter operators: `=`, `!=`, `>`, `>=`, `<`, `<=`, `~` (substring contains). Numeric values are auto-detected. On array fields (`aliases`, `parent_shas`), `=` checks membership and `~` checks substring across elements. Sort order is deterministic with a stable tiebreaker on `entity.id`.
@@ -154,13 +158,13 @@ Current extract stage behavior:
 
 The default model `en_core_web_sm` is trained on news and web text. On technical or scientific content (research papers, ML literature, domain-specific writing) it produces a high false-positive rate: technical acronyms (`GPU`, `CPU`, `RNN`, `WER`) get classified as `ner:org`; concept words (`Edge`, `Training`, `Bias`) and model names (`Whisper`, `NeMo`) get classified as `ner:person`; numeric markdown citation tokens get classified as `ner:money`. If your content is technical, expect NER output to need manual filtering or post-processing before it's useful, or consider using a domain-tuned model. SciSpaCy's `en_core_sci_sm` is a better fit for biomedical/scientific text and can be installed alongside spaCy and selected via the `extraction.ner.model` config field.
 
-Planned markdown sub-entities (implemented in extractor code but not wired into the default extract pipeline yet):
+Markdown sub-entities (Spec-028, shipped, on by default):
 
-- **`ag:section`** — one entity per heading (`# Heading` through `###### Heading`), with the heading level and source line recorded.
-- **`ag:technology`** — one entity per recognized technology mention (languages, frameworks, databases, tools). Over 80 technologies are recognized including Python, Neo4j, FastAPI, React, Docker, etc.
-- **`ag:reference`** — one entity per markdown link (`[text](url)`), with the URL stored in aliases and metadata.
+- **`ag:section`** — one entity per markdown heading (H1–H6, ATX and setext). Carries `level`, `order`, `parent_section_id` (nearest preceding heading with strictly lower numeric level), `body_snippet` (redacted). Nested `contains_section` links form a section-hierarchy topology.
+- **`ag:technology`** — one entity per distinct code token. Emitted from inline code spans (`` `Postgres` ``) and fenced code block **info strings** only (` ```bash ` → one `ag:technology` with token `bash`; fenced block **body content** is not mined). Deduplicated per-document by case-folded, whitespace-trimmed token.
+- **`ag:reference`** — one entity per link. Includes inline links, autolinks (`<url>`), reference-style links, and plain-text bare URLs (via `markdown-it-py`'s `linkify`). Classified as `internal` (resolves to a document in the current ingest manifest), `external` (scheme is `http`/`https`/`ftp`/`mailto`), or `unresolved` (everything else including broken relative paths, fragment-only targets, and unsupported schemes). Internal references get a `resolves_to_document` edge to the target's `doc_…` record. Images (`![alt](src)`) produce neither references nor technologies in v1.
 
-Note: these planned markdown sub-entities are not produced by default in the current pipeline.
+To disable markdown sub-entity extraction, set `extraction.markdown.enabled: false` in your profile config. This also keeps the pruner inert — disabling the flag preserves existing on-disk sub-entities rather than cleaning them up.
 
 Document ingestion defaults:
 

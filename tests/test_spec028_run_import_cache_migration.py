@@ -13,7 +13,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-
 from auditgraph.config import load_config
 from auditgraph.pipeline.runner import PipelineRunner
 from auditgraph.storage.artifacts import profile_pkg_root, write_json

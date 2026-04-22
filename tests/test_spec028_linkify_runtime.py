@@ -7,7 +7,6 @@ three preconditions regresses.
 """
 from __future__ import annotations
 
-import pytest
 from markdown_it import MarkdownIt
 
 

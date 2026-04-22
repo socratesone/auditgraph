@@ -21,7 +21,6 @@ from auditgraph.ingest.policy import SKIP_REASON_UNCHANGED
 from auditgraph.ingest.sources import build_source_record
 from auditgraph.pipeline.runner import PipelineRunner
 from auditgraph.storage.manifests import IngestRecord
-
 from tests.support import null_parse_options  # noqa: F401 (available for downstream tests)
 
 

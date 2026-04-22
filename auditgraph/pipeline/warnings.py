@@ -15,7 +15,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-
 # Authoritative warning codes (stable strings — grep for them in CI / audits).
 THROUGHPUT_WARNING_NO_ENTITIES = "no_entities_produced"
 THROUGHPUT_WARNING_EMPTY_INDEX = "empty_index"

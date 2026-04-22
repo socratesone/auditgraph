@@ -12,13 +12,10 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 
-import pytest
-
 from auditgraph.config import load_config
 from auditgraph.pipeline.runner import PipelineRunner
 from auditgraph.storage.artifacts import profile_pkg_root
 from auditgraph.storage.hashing import wall_clock_now
-
 
 ISO_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 
@@ -119,6 +116,41 @@ def test_wall_clock_monkeypatchable_in_tests(monkeypatch, tmp_path: Path) -> Non
     manifest = json.loads(Path(result.detail["manifest"]).read_text(encoding="utf-8"))
     assert manifest["wall_clock_started_at"] == fixed
     assert manifest["wall_clock_finished_at"] == fixed
+
+
+def test_wall_clock_started_at_captured_at_stage_entry_not_end(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """Spec-028 task T069: `wall_clock_started_at` is captured near the top
+    of each `run_*` method; `wall_clock_finished_at` is captured just before
+    manifest construction. They must be distinct values when the clock has
+    advanced between entry and manifest-write.
+    """
+    import auditgraph.storage.hashing as hashing_mod
+
+    # Monkeypatched clock advances by 1s on every call.
+    clock = {"value": 1000}
+
+    def _fake_wall_clock() -> str:
+        v = clock["value"]
+        clock["value"] += 1
+        return datetime.fromtimestamp(v, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    monkeypatch.setattr(hashing_mod, "wall_clock_now", _fake_wall_clock)
+
+    config_path = _scaffold(tmp_path)
+    (tmp_path / "notes" / "intro.md").write_text("# Hi\n", encoding="utf-8")
+    config = load_config(config_path)
+    runner = PipelineRunner()
+    result = runner.run_ingest(root=tmp_path, config=config)
+
+    manifest = json.loads(Path(result.detail["manifest"]).read_text(encoding="utf-8"))
+    # First call captures start, subsequent call captures finish → they differ.
+    assert manifest["wall_clock_started_at"] != manifest["wall_clock_finished_at"], (
+        "wall_clock_started_at must be captured at stage entry, separate from "
+        "wall_clock_finished_at captured at manifest construction"
+    )
+    assert manifest["wall_clock_started_at"] < manifest["wall_clock_finished_at"]
 
 
 def test_outputs_hash_stable_across_runs_with_different_wall_clocks(tmp_path: Path) -> None:
